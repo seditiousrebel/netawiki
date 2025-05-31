@@ -6,22 +6,17 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Users, CalendarDays, FileText, ExternalLink, ShieldAlert, AlertTriangle, MessageSquare, Building, Tag, ListChecks, Scale, Briefcase } from 'lucide-react';
+import { Edit, Users, CalendarDays, FileText, ExternalLink, ShieldAlert, AlertTriangle, MessageSquare, Building, Tag, ListChecks, Scale, Briefcase, Milestone, Newspaper, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import type { Controversy, InvolvedEntity, ControversyUpdate, ControversyEvidenceLink, ControversyOfficialResponse, ControversyMediaCoverage, ControversyLegalProceeding } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
-import { TimelineDisplay } from '@/components/common/timeline-display'; // Assuming you might use this for updates
-
-function formatControversyUpdatesForTimeline(updates: ControversyUpdate[] = []): { date: string; title: string; description?: string; }[] {
-  return updates.map(update => ({
-    date: update.date,
-    title: update.description.substring(0, 100) + (update.description.length > 100 ? '...' : ''), // Use part of desc as title
-    description: update.sourceUrl ? `Source: ${update.sourceUrl}` : undefined,
-  })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-}
+import { TimelineDisplay, formatControversyUpdatesForTimeline } from '@/components/common/timeline-display';
+import React from 'react';
+import { format } from 'date-fns';
 
 
-export default function ControversyDetailPage({ params }: { params: { id: string } }) {
+export default function ControversyDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+  const params = React.use(paramsPromise);
   const controversy = getControversyById(params.id);
   const { toast } = useToast();
 
@@ -48,19 +43,21 @@ export default function ControversyDetailPage({ params }: { params: { id: string
   
   const getEntityIcon = (type: InvolvedEntity['type']) => {
     switch(type) {
-      case 'politician': return <Users className="h-4 w-4 text-primary" />;
-      case 'party': return <Briefcase className="h-4 w-4 text-primary" />; // Using Briefcase for party as Flag might be used for nation
-      case 'organization': return <Building className="h-4 w-4 text-primary" />;
-      default: return <Users className="h-4 w-4 text-primary" />;
+      case 'politician': return <Users className="h-4 w-4 text-primary/80" />;
+      case 'party': return <Briefcase className="h-4 w-4 text-primary/80" />; 
+      case 'organization': return <Building className="h-4 w-4 text-primary/80" />;
+      default: return <Users className="h-4 w-4 text-primary/80" />;
     }
   };
+
+  const timelineItems = formatControversyUpdatesForTimeline(controversy.updates || []);
 
   return (
     <div>
       <PageHeader
         title={controversy.title}
         description={
-          <div className="flex flex-wrap gap-2 items-center mt-1">
+          <div className="flex flex-wrap gap-2 items-center mt-1 text-sm">
             <Badge variant={controversy.status === 'Proven' || controversy.status === 'Legal Action Initiated' ? 'destructive' : 'secondary'}>{controversy.status}</Badge>
             <Badge variant={
                 controversy.severityIndicator === 'Critical' || controversy.severityIndicator === 'High' ? 'destructive' :
@@ -68,9 +65,9 @@ export default function ControversyDetailPage({ params }: { params: { id: string
             }>
                 Severity: {controversy.severityIndicator}
             </Badge>
-            {controversy.dates?.started && <span className="text-sm text-muted-foreground">Started: {new Date(controversy.dates.started).toLocaleDateString()}</span>}
-            {controversy.dates?.ended && <span className="text-sm text-muted-foreground">Ended: {new Date(controversy.dates.ended).toLocaleDateString()}</span>}
-            {controversy.period && !controversy.dates?.started && <span className="text-sm text-muted-foreground">Period: {controversy.period}</span>}
+            {controversy.dates?.started && <span className="text-muted-foreground">Started: {format(new Date(controversy.dates.started), 'MM/dd/yyyy')}</span>}
+            {controversy.dates?.ended && <span className="text-muted-foreground">Ended: {format(new Date(controversy.dates.ended), 'MM/dd/yyyy')}</span>}
+            {controversy.period && !controversy.dates?.started && <span className="text-muted-foreground">Period: {controversy.period}</span>}
           </div>
         }
         actions={
@@ -90,20 +87,20 @@ export default function ControversyDetailPage({ params }: { params: { id: string
               <p className="text-foreground/80 whitespace-pre-line">{controversy.description}</p>
               {controversy.summaryOutcome && (
                 <div className="mt-4 pt-4 border-t">
-                  <h3 className="font-semibold text-md mb-1">Outcome Summary:</h3>
-                  <p className="text-sm text-muted-foreground italic">{controversy.summaryOutcome}</p>
+                  <h3 className="font-semibold text-md mb-1 flex items-center gap-1"><Milestone className="h-4 w-4 text-primary/70"/>Outcome Summary:</h3>
+                  <p className="text-sm text-foreground/80 italic">{controversy.summaryOutcome}</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {controversy.updates && controversy.updates.length > 0 && (
+          {timelineItems.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><CalendarDays className="text-primary"/> Chronological Updates</CardTitle>
               </CardHeader>
               <CardContent>
-                <TimelineDisplay items={formatControversyUpdatesForTimeline(controversy.updates)} />
+                <TimelineDisplay items={timelineItems} />
               </CardContent>
             </Card>
           )}
@@ -115,12 +112,12 @@ export default function ControversyDetailPage({ params }: { params: { id: string
               </CardHeader>
               <CardContent className="space-y-3">
                 {controversy.legalProceedings.map((lp, idx) => (
-                  <div key={idx} className="text-sm border-b pb-2 last:border-b-0">
-                    {lp.court && <p className="font-semibold">{lp.court}{lp.caseNumber && ` (${lp.caseNumber})`}</p>}
+                  <div key={idx} className="text-sm border-b pb-3 last:border-b-0">
+                    {lp.court && <p className="font-semibold">{lp.court}{lp.caseNumber && ` (Case: ${lp.caseNumber})`}</p>}
                     {lp.status && <p>Status: <Badge variant="outline">{lp.status}</Badge></p>}
-                    {lp.outcome && <p>Outcome: {lp.outcome}</p>}
+                    {lp.outcome && <p className="text-foreground/90">Outcome: {lp.outcome}</p>}
                     {lp.summary && <p className="text-muted-foreground text-xs mt-1">{lp.summary}</p>}
-                    {lp.date && <p className="text-xs text-muted-foreground">Last Update: {new Date(lp.date).toLocaleDateString()}</p>}
+                    {lp.date && <p className="text-xs text-muted-foreground mt-1">Last Update: {format(new Date(lp.date), 'MM/dd/yyyy')}</p>}
                   </div>
                 ))}
               </CardContent>
@@ -146,7 +143,7 @@ export default function ControversyDetailPage({ params }: { params: { id: string
                         {entity.name}
                       </Link>
                       <span className="text-xs text-muted-foreground block"> ({entity.type.charAt(0).toUpperCase() + entity.type.slice(1)})</span>
-                      {entity.role && <p className="text-xs text-muted-foreground italic mt-0.5">{entity.role}</p>}
+                      {entity.role && <p className="text-xs text-foreground/80 italic mt-0.5">{entity.role}</p>}
                     </div>
                   </li>
                 ))}
@@ -173,13 +170,16 @@ export default function ControversyDetailPage({ params }: { params: { id: string
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><ListChecks className="text-primary"/> Evidence</CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-1 text-sm">
+                <ul className="space-y-2 text-sm">
                   {controversy.evidenceLinks.map((link, idx) => (
-                    <li key={idx}>
+                    <li key={idx} className="border-b pb-1.5 last:pb-0 last:border-b-0">
                       <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
-                        {link.description || link.url} <ExternalLink className="h-3 w-3"/>
+                        {link.description || link.url} <ExternalLink className="h-3 w-3 shrink-0"/>
                       </a>
-                      {link.dateAdded && <span className="text-xs text-muted-foreground"> (Added: {new Date(link.dateAdded).toLocaleDateString()})</span>}
+                      <div className="text-xs text-muted-foreground">
+                        {link.type && <Badge variant="outline" className="mr-1 text-[0.7rem] px-1 py-0">{link.type}</Badge>}
+                        {link.dateAdded && <span>Added: {format(new Date(link.dateAdded), 'MM/dd/yyyy')}</span>}
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -194,28 +194,31 @@ export default function ControversyDetailPage({ params }: { params: { id: string
               </CardHeader>
               <CardContent className="space-y-4">
                 {controversy.officialResponses.map((response, idx) => (
-                  <div key={idx} className="text-sm border-l-4 border-primary/50 pl-3 py-1">
-                    <p className="font-semibold">{response.entityName} ({new Date(response.date).toLocaleDateString()})</p>
+                  <div key={idx} className="text-sm border-l-4 border-primary/50 pl-3 py-1 bg-muted/30 rounded-r-sm">
+                    <p className="font-semibold">{response.entityName} <span className="text-xs text-muted-foreground">({format(new Date(response.date), 'MM/dd/yyyy')})</span></p>
                     <blockquote className="italic text-foreground/80 mt-1">"{response.responseText}"</blockquote>
-                    {response.sourceUrl && <a href={response.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1 mt-1">View Source <ExternalLink className="h-3 w-3"/></a>}
+                    {response.sourceUrl && <a href={response.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1 mt-1.5">View Source <ExternalLink className="h-3 w-3"/></a>}
                   </div>
                 ))}
               </CardContent>
             </Card>
           )}
+
            {controversy.mediaCoverageLinks && controversy.mediaCoverageLinks.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="font-headline text-xl flex items-center gap-2"><ShieldAlert className="text-primary"/> Media Coverage</CardTitle>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><Newspaper className="text-primary"/> Media Coverage</CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-1 text-sm">
+                <ul className="space-y-2 text-sm">
                   {controversy.mediaCoverageLinks.map((link, idx) => (
-                    <li key={idx}>
-                      <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    <li key={idx} className="border-b pb-1.5 last:pb-0 last:border-b-0">
+                      <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
                         {link.title}
                       </a>
-                      <span className="text-xs text-muted-foreground"> - {link.sourceName} {link.date && `(${new Date(link.date).toLocaleDateString()})`}</span>
+                      <p className="text-xs text-muted-foreground">
+                        {link.sourceName} {link.date && ` - ${format(new Date(link.date), 'MM/dd/yyyy')}`}
+                      </p>
                     </li>
                   ))}
                 </ul>
@@ -227,3 +230,5 @@ export default function ControversyDetailPage({ params }: { params: { id: string
     </div>
   );
 }
+
+    

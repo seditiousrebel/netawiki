@@ -1,5 +1,5 @@
 
-import type { PoliticalJourneyEvent, BillTimelineEvent, PromiseStatusUpdate } from '@/types/gov';
+import type { PoliticalJourneyEvent, BillTimelineEvent, PromiseStatusUpdate, ControversyUpdate } from '@/types/gov';
 
 interface TimelineItem {
   date: string;
@@ -81,4 +81,10 @@ export function formatPromiseStatusUpdatesForTimeline(statusUpdates: PromiseStat
   });
 }
 
-    
+export function formatControversyUpdatesForTimeline(updates: ControversyUpdate[]): TimelineItem[] {
+  return updates.map(update => ({
+    date: update.date,
+    title: update.description,
+    relatedDocumentUrl: update.sourceUrl,
+  }));
+}

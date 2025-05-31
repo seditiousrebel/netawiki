@@ -355,7 +355,8 @@ export interface ControversyUpdate {
 export interface ControversyEvidenceLink {
   url: string;
   description?: string;
-  dateAdded?: string;
+  dateAdded?: string; // ISO Date string
+  type?: 'document' | 'image' | 'video' | 'article' | 'official_report' | 'other'; // New
 }
 
 export interface ControversyOfficialResponse {
@@ -375,10 +376,10 @@ export interface ControversyMediaCoverage {
 export interface ControversyLegalProceeding {
   caseNumber?: string;
   court?: string;
-  status?: string; // e.g., "Ongoing", "Concluded"
+  status?: string; // e.g., "Ongoing", "Concluded", "Dismissed", "Appealed"
   outcome?: string;
-  date?: string; // Date of proceeding or update
-  summary?: string;
+  date?: string; // Date of proceeding or update (ISO Date string)
+  summary?: string; // Brief summary of the proceeding or its outcome
 }
 
 export interface Controversy {
@@ -466,3 +467,5 @@ export interface PromiseItem {
   // sdgTags?: string[]; // UN Sustainable Development Goals
   // userFollowersCount?: number;
 }
+
+    
