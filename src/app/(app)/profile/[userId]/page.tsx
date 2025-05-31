@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -41,7 +42,8 @@ const MOCK_USER = {
   // avatarImage: 'https://placehold.co/100x100.png' // Optional: if you want a placeholder image
 };
 
-export default function UserProfilePage({ params }: { params: { userId: string } }) {
+export default function UserProfilePage({ params: paramsPromise }: { params: Promise<{ userId: string }> }) {
+  const params = React.use(paramsPromise);
   const [followedItems, setFollowedItems] = useState<FollowedItem[]>([]);
   const [loadingFollowed, setLoadingFollowed] = useState(true);
 
