@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { getNewsArticleByIdOrSlug, getPoliticianById, getPartyById, getBillById, getPromiseById, getControversyById, getElectionById } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,14 +9,34 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ExternalLink, CalendarDays, UserCircle, Tag, Link as LinkIcon, CheckSquare, ShieldQuestion, Newspaper, ArrowLeft, Users, Flag, FileText, ListChecks, VoteIcon, ShieldAlert } from 'lucide-react';
+import { ExternalLink, CalendarDays, UserCircle, Tag, Link as LinkIcon, CheckSquare, ShieldQuestion, Newspaper, ArrowLeft, Users, Flag, FileText, ListChecks, VoteIcon, ShieldAlert, Bookmark, BookmarkCheck, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
+
+const LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY = 'govtrackr_bookmarked_articles';
 
 export default function NewsArticlePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
   const article = getNewsArticleByIdOrSlug(params.id);
   const { toast } = useToast();
+
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [currentRating, setCurrentRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+
+  useEffect(() => {
+    if (article) {
+      try {
+        const bookmarkedArticlesStr = localStorage.getItem(LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY);
+        if (bookmarkedArticlesStr) {
+          const bookmarkedArticleIds: string[] = JSON.parse(bookmarkedArticlesStr);
+          setIsBookmarked(bookmarkedArticleIds.includes(article.id));
+        }
+      } catch (error) {
+        console.error("Error reading bookmarked articles from localStorage:", error);
+      }
+    }
+  }, [article]);
 
   if (!article) {
     return (
@@ -32,6 +52,58 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
       </div>
     );
   }
+
+  const handleBookmarkToggle = () => {
+    if (!article) return;
+    const newBookmarkState = !isBookmarked;
+    setIsBookmarked(newBookmarkState);
+
+    try {
+      const bookmarkedArticlesStr = localStorage.getItem(LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY);
+      let bookmarkedArticleIds: string[] = bookmarkedArticlesStr ? JSON.parse(bookmarkedArticlesStr) : [];
+
+      if (newBookmarkState) {
+        if (!bookmarkedArticleIds.includes(article.id)) {
+          bookmarkedArticleIds.push(article.id);
+        }
+      } else {
+        bookmarkedArticleIds = bookmarkedArticleIds.filter(id => id !== article.id);
+      }
+      localStorage.setItem(LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY, JSON.stringify(bookmarkedArticleIds));
+      toast({
+        title: newBookmarkState ? `Article Bookmarked` : `Bookmark Removed`,
+        description: newBookmarkState ? `"${article.title.substring(0,30)}..." added to bookmarks.` : `"${article.title.substring(0,30)}..." removed from bookmarks.`,
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error updating bookmarked articles in localStorage:", error);
+      toast({
+        title: "Could not update bookmark",
+        description: "There was an issue saving your bookmark preference. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      setIsBookmarked(!newBookmarkState); // Revert state
+    }
+  };
+
+  const handleRatingSubmit = () => {
+    if (currentRating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please select a star rating before submitting.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    console.log("Article Rating Submitted:", { articleId: article.id, rating: currentRating });
+    toast({
+      title: "Review Submitted (Demo)",
+      description: `You rated this article ${currentRating} star(s).`,
+      duration: 5000,
+    });
+  };
 
   const renderTaggedEntities = () => {
     const entities: React.ReactNode[] = [];
@@ -126,7 +198,7 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
           {article.dataAiHint && (
             <div className="mb-6 rounded-lg overflow-hidden shadow-lg">
               <Image
-                src={`https://placehold.co/800x400.png`} // Placeholder
+                src={`https://placehold.co/800x400.png`}
                 alt={article.title}
                 width={800}
                 height={400}
@@ -135,6 +207,13 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
               />
             </div>
           )}
+
+          <div className="mb-4">
+            <Button onClick={handleBookmarkToggle} variant={isBookmarked ? "default" : "outline"} className="w-full sm:w-auto">
+              {isBookmarked ? <BookmarkCheck className="mr-2 h-4 w-4" /> : <Bookmark className="mr-2 h-4 w-4" />}
+              {isBookmarked ? "Bookmarked" : "Bookmark Article"}
+            </Button>
+          </div>
 
           {article.isFactCheck && (
             <Card className="bg-yellow-50 border-yellow-300 shadow-md">
@@ -150,7 +229,6 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
           {article.fullContent ? (
             <Card>
               <CardContent className="pt-6 prose dark:prose-invert max-w-none">
-                {/* Using dangerouslySetInnerHTML for mock HTML content. In a real app, use a proper Markdown/HTML renderer. */}
                 <div dangerouslySetInnerHTML={{ __html: article.fullContent.replace(/\n/g, '<br />') }} />
               </CardContent>
             </Card>
@@ -174,14 +252,43 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
             <p className="text-muted-foreground">Full article content not available for this aggregated link. Please refer to the original source.</p>
           )}
 
-          {/* Placeholder for Comments Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center gap-2">
+                <Star className="h-5 w-5 text-primary" /> Rate this Article
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="mb-2 text-sm font-medium">Your Rating:</p>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`h-7 w-7 cursor-pointer transition-colors ${
+                        (hoverRating || currentRating) >= star
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : 'text-gray-300 hover:text-yellow-300'
+                      }`}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      onClick={() => setCurrentRating(star)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <Button onClick={handleRatingSubmit} className="w-full sm:w-auto" disabled={currentRating === 0}>
+                Submit Review
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="font-headline text-xl">Comments & Discussion</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">(Comments feature coming soon.)</p>
-              {/* Future: Add Textarea for new comment and list existing comments */}
             </CardContent>
           </Card>
         </div>

@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getConstituencyById, getPoliticianById, getNewsByConstituencyId } from '@/lib/mock-data';
@@ -10,16 +10,36 @@ import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Users, User, Type, Code, Building, Globe, Landmark, History, Package, Newspaper, AlertTriangle, Edit, Info, CheckCircle, Layers } from 'lucide-react';
+import { MapPin, Users, User, Type, Code, Building, Globe, Landmark, History, Package, Newspaper, AlertTriangle, Edit, Info, CheckCircle, Layers, Star, UserPlus } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
 
+const LOCAL_STORAGE_FOLLOWED_CONSTITUENCIES_KEY = 'govtrackr_followed_constituencies';
 
 export default function ConstituencyDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
   const constituency = getConstituencyById(params.id);
   const relatedNews = constituency ? getNewsByConstituencyId(constituency.id) : [];
   const { toast } = useToast();
+
+  const [isFollowingConstituency, setIsFollowingConstituency] = useState(false);
+  const [currentRating, setCurrentRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+
+  useEffect(() => {
+    if (constituency) {
+      try {
+        const followedItemsStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_CONSTITUENCIES_KEY);
+        if (followedItemsStr) {
+          const followedIds: string[] = JSON.parse(followedItemsStr);
+          setIsFollowingConstituency(followedIds.includes(constituency.id));
+        }
+      } catch (error) {
+        console.error("Error reading followed constituencies from localStorage:", error);
+      }
+    }
+  }, [constituency]);
+
 
   if (!constituency) {
     return (
@@ -39,6 +59,58 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
       title: "Suggest Edit Feature",
       description: "This functionality is under development. Approved suggestions will update the content.",
       duration: 6000,
+    });
+  };
+
+  const handleFollowToggle = () => {
+    if (!constituency) return;
+    const newFollowingState = !isFollowingConstituency;
+    setIsFollowingConstituency(newFollowingState);
+
+    try {
+      const followedItemsStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_CONSTITUENCIES_KEY);
+      let followedIds: string[] = followedItemsStr ? JSON.parse(followedItemsStr) : [];
+
+      if (newFollowingState) {
+        if (!followedIds.includes(constituency.id)) {
+          followedIds.push(constituency.id);
+        }
+      } else {
+        followedIds = followedIds.filter(id => id !== constituency.id);
+      }
+      localStorage.setItem(LOCAL_STORAGE_FOLLOWED_CONSTITUENCIES_KEY, JSON.stringify(followedIds));
+       toast({
+        title: newFollowingState ? `Following "${constituency.name.substring(0,30)}..."` : `Unfollowed "${constituency.name.substring(0,30)}..."`,
+        description: newFollowingState ? "You'll receive updates for this constituency (demo)." : "You will no longer receive updates (demo).",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error updating followed constituencies in localStorage:", error);
+      toast({
+        title: "Could not update follow status",
+        description: "There was an issue saving your follow preference. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      setIsFollowingConstituency(!newFollowingState); // Revert state
+    }
+  };
+
+  const handleRatingSubmit = () => {
+    if (currentRating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please select a star rating before submitting.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    console.log("Constituency Rating Submitted:", { constituencyId: constituency.id, rating: currentRating });
+    toast({
+      title: "Review Submitted (Demo)",
+      description: `You rated this constituency ${currentRating} star(s).`,
+      duration: 5000,
     });
   };
 
@@ -162,6 +234,37 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
             </Card>
           )}
 
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center gap-2">
+                <Star className="h-5 w-5 text-primary" /> Rate this Constituency
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="mb-2 text-sm font-medium">Your Rating:</p>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`h-7 w-7 cursor-pointer transition-colors ${
+                        (hoverRating || currentRating) >= star
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : 'text-gray-300 hover:text-yellow-300'
+                      }`}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      onClick={() => setCurrentRating(star)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <Button onClick={handleRatingSubmit} className="w-full sm:w-auto" disabled={currentRating === 0}>
+                Submit Review
+              </Button>
+            </CardContent>
+          </Card>
+
         </div>
 
         <div className="lg:col-span-1 space-y-6">
@@ -243,10 +346,16 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                     </CardContent>
                 </Card>
             )}
+            <Button
+              onClick={handleFollowToggle}
+              className="w-full"
+              variant={isFollowingConstituency ? "outline" : "default"}
+            >
+              {isFollowingConstituency ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+              {isFollowingConstituency ? `Following Constituency` : `Follow Constituency`}
+            </Button>
         </div>
       </div>
     </div>
   );
 }
-
-    
