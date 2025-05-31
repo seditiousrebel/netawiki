@@ -9,8 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
+import React from 'react'; // Import React for React.use
 
-export default function PartyProfilePage({ params }: { params: { id: string } }) {
+export default function PartyProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+  const params = React.use(paramsPromise); // Unwrap the params promise
   const party = getPartyById(params.id);
   const { toast } = useToast();
 
