@@ -2,16 +2,24 @@
 "use client";
 
 import Image from 'next/image';
-import { getPoliticianById, getPromisesByPolitician, mockParties, getBillsBySponsor } from '@/lib/mock-data';
+import { getPoliticianById, getPromisesByPolitician, mockParties, getBillsBySponsor, mockBills } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
-import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill } from '@/types/gov';
+import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
+
+interface PoliticianVote extends VoteRecord {
+  billId: string;
+  billTitle: string;
+  billNumber: string;
+  chamber: 'House' | 'Senate';
+  voteDate: string;
+}
 
 export default function PoliticianProfilePage({ params }: { params: { id: string } }) {
   const politician = getPoliticianById(params.id);
@@ -24,6 +32,37 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
   const promises = getPromisesByPolitician(params.id);
   const party = politician.partyId ? mockParties.find(p => p.id === politician.partyId) : null;
   const sponsoredBills = getBillsBySponsor(politician.id);
+
+  const politicianVotes: PoliticianVote[] = [];
+  mockBills.forEach(bill => {
+    if (bill.votingResults?.house?.records) {
+      const houseVote = bill.votingResults.house.records.find(record => record.politicianId === politician.id);
+      if (houseVote) {
+        politicianVotes.push({
+          ...houseVote,
+          billId: bill.id,
+          billTitle: bill.title,
+          billNumber: bill.billNumber,
+          chamber: 'House',
+          voteDate: bill.votingResults.house.date,
+        });
+      }
+    }
+    if (bill.votingResults?.senate?.records) {
+      const senateVote = bill.votingResults.senate.records.find(record => record.politicianId === politician.id);
+      if (senateVote) {
+        politicianVotes.push({
+          ...senateVote,
+          billId: bill.id,
+          billTitle: bill.title,
+          billNumber: bill.billNumber,
+          chamber: 'Senate',
+          voteDate: bill.votingResults.senate.date,
+        });
+      }
+    }
+  });
+
 
   const getStatusBadgeVariant = (status: CriminalRecord['status']) => {
     switch (status) {
@@ -301,6 +340,33 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
               </CardContent>
             </Card>
           )}
+
+          {politicianVotes.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5 text-primary"/> Voting Record
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-4">
+                  {politicianVotes.map((vote, idx) => (
+                    <li key={`vote-${idx}-${vote.billId}`} className="text-sm border-b pb-3 last:border-b-0 last:pb-0">
+                       <Link href={`/bills/${vote.billId}`} className="font-semibold text-primary hover:underline">
+                        {vote.billTitle} ({vote.billNumber})
+                      </Link>
+                      <p className="text-muted-foreground">
+                        Vote: <span className={`font-medium ${vote.vote === 'Yea' ? 'text-green-600' : vote.vote === 'Nay' ? 'text-red-600' : ''}`}>{vote.vote}</span> in {vote.chamber}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Date: {new Date(vote.voteDate).toLocaleDateString()}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
           
           {politician.assetDeclarations && politician.assetDeclarations.length > 0 && (
             <Card>
@@ -388,3 +454,4 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
     </div>
   );
 }
+
