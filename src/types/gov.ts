@@ -1,5 +1,4 @@
 
-
 export type ContactInfo = {
   email?: string;
   phone?: string; // Personal/General Phone
@@ -103,17 +102,14 @@ export interface Politician {
   criminalRecords?: CriminalRecord[];
   committeeMemberships?: CommitteeMembership[];
   statementsAndQuotes?: StatementQuote[];
-  tags?: string[]; // New: General tags
-
+  tags?: string[];
   isActiveInPolitics?: boolean; // New
   lastActivityDate?: string; // New: ISO date string
-
   overallRating?: number; // e.g., 1-5 stars (User Rating Average)
   userRatingCount?: number; // New
   voteScore?: number; // e.g., 0-100% (hypothetical or derived)
   promiseFulfillmentRate?: number; // e.g., 0-100%
   popularityScore?: number; // New field for popularity
-
   dataAiHint?: string;
   controversyIds?: string[]; // New: Link to controversies
 }
@@ -201,6 +197,7 @@ export type NewsArticleLink = {
   taggedPartyIds?: string[];
   taggedPoliticianIds?: string[];
   taggedPromiseIds?: string[];
+  taggedBillIds?: string[]; // New
 };
 
 export interface Party {
@@ -242,7 +239,7 @@ export interface Party {
   isNationalParty?: boolean;
   dataAiHint?: string;
   controversyIds?: string[];
-  tags?: string[]; // New: General tags
+  tags?: string[];
 }
 
 export type VoteOption = 'Yea' | 'Nay' | 'Abstain' | 'Not Voting';
@@ -253,29 +250,65 @@ export type VoteRecord = {
   vote: VoteOption;
 };
 
-export type Amendment = {
-  date: string;
-  description: string;
-  status?: 'Proposed' | 'Adopted' | 'Rejected';
+export type BillTimelineEvent = {
+  date: string; // ISO Date string
+  event: string; // e.g., "Introduced in Senate", "First Reading", "Amendment X Proposed", "Passed Committee Y", "Voted Yea/Nay"
+  description?: string;
+  relatedDocumentUrl?: string;
+  actor?: string; // e.g., Politician name, Committee name
 };
 
+export type BillStatus =
+  | 'Introduced'
+  | 'In Committee'
+  | 'First Reading'
+  | 'Second Reading'
+  | 'Third Reading'
+  | 'Passed Lower House'
+  | 'Passed Upper House'
+  | 'Awaiting Assent'
+  | 'Became Law'
+  | 'Failed'
+  | 'Rejected'
+  | 'Withdrawn';
+
 export interface Bill {
-  id:string;
+  id: string;
+  slug?: string;
   title: string;
-  billNumber: string; // e.g., "H.R. 1234"
+  billNumber: string;
   summary: string;
-  sponsors: Array<{ id: string; name: string; type: 'Primary' | 'Co-Sponsor' }>; // Politician IDs/Names
+  purpose?: string;
+  billType?: 'Government' | 'Private Member' | 'Constitutional Amendment' | string;
+  responsibleMinistry?: string;
+  houseOfIntroduction?: 'Lower' | 'Upper' | 'Provincial Assembly' | string;
+  parliamentarySession?: string;
+  keyDates?: {
+    introduced?: string;
+    committeeReferral?: string;
+    firstReading?: string;
+    secondReading?: string;
+    thirdReading?: string;
+    passedLowerHouse?: string;
+    passedUpperHouse?: string;
+    assent?: string;
+    gazettePublication?: string;
+    effectiveDate?: string;
+  };
+  sponsors: Array<{ id: string; name: string; type: 'Primary' | 'Co-Sponsor' }>;
   votingResults?: {
     house?: { date: string; records: VoteRecord[]; passed: boolean };
     senate?: { date: string; records: VoteRecord[]; passed: boolean };
   };
-  amendmentHistory: Amendment[];
-  status: 'Introduced' | 'In Committee' | 'Passed House' | 'Passed Senate' | 'To President' | 'Became Law' | 'Failed';
+  timelineEvents: BillTimelineEvent[]; // Replaces amendmentHistory
+  status: BillStatus;
   introducedDate: string;
   lastActionDate?: string;
   lastActionDescription?: string;
   fullTextUrl?: string;
-  committees?: string[]; // e.g., "House Committee on Ways and Means"
+  committees?: string[];
+  impact?: string; // Briefly, what laws it amends/repeals
+  tags?: string[];
 }
 
 export interface UserProfile {
@@ -425,7 +458,7 @@ export interface PromiseItem {
 
   evidenceLinks: PromiseEvidenceLink[];
   statusUpdateHistory?: PromiseStatusUpdate[]; // Timeline of status changes
-  tags?: string[]; // New: General tags
+  tags?: string[];
 
   // Future considerations (not implemented in this phase)
   // commentsCount?: number;
@@ -434,3 +467,4 @@ export interface PromiseItem {
   // userFollowersCount?: number;
 }
 
+    

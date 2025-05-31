@@ -1,18 +1,21 @@
 
 "use client";
 
+import React from 'react';
 import { getBillById } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Users, CalendarDays, CheckSquare, XSquare, ExternalLink, Landmark, FileText, ListCollapse } from 'lucide-react';
+import { Edit, Users, CalendarDays, CheckSquare, XSquare, ExternalLink, Landmark, FileText, ListCollapse, BookOpen, Info, Tag, Layers, Building, Clock, GitBranch, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import { TimelineDisplay, formatAmendmentsForTimeline } from '@/components/common/timeline-display';
-import type { VoteRecord } from '@/types/gov';
+import { TimelineDisplay, formatBillTimelineEventsForTimeline } from '@/components/common/timeline-display';
+import type { VoteRecord, BillTimelineEvent } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
+import { format } from 'date-fns';
 
-export default function BillDetailsPage({ params }: { params: { id: string } }) {
+export default function BillDetailsPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+  const params = React.use(paramsPromise);
   const bill = getBillById(params.id);
   const { toast } = useToast();
 
@@ -28,11 +31,20 @@ export default function BillDetailsPage({ params }: { params: { id: string } }) 
     });
   };
 
+  const timelineItems = bill.timelineEvents ? formatBillTimelineEventsForTimeline(bill.timelineEvents) : [];
+
   return (
     <div>
       <PageHeader
         title={`${bill.title} (${bill.billNumber})`}
-        description={`Introduced on ${new Date(bill.introducedDate).toLocaleDateString()}`}
+        description={
+            <div className="flex flex-wrap gap-2 items-center mt-1">
+                <Badge variant={bill.status === 'Became Law' ? 'default' : 'secondary'} className={bill.status === 'Became Law' ? 'bg-green-500 text-white' : ''}>
+                    {bill.status}
+                </Badge>
+                {bill.billType && <Badge variant="outline">{bill.billType}</Badge>}
+            </div>
+        }
         actions={
           <Button variant="outline" onClick={handleSuggestEdit}>
             <Edit className="mr-2 h-4 w-4" /> Suggest Edit
@@ -44,10 +56,16 @@ export default function BillDetailsPage({ params }: { params: { id: string } }) 
         <div className="lg:col-span-2 space-y-8">
           <Card>
             <CardHeader>
-              <CardTitle className="font-headline text-xl flex items-center gap-2"><FileText className="text-primary"/> Summary</CardTitle>
+              <CardTitle className="font-headline text-xl flex items-center gap-2"><FileText className="text-primary"/> Summary & Purpose</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-foreground/80 whitespace-pre-line">{bill.summary}</p>
+              {bill.purpose && (
+                <div className="mt-4 pt-4 border-t">
+                  <h3 className="font-semibold text-md mb-1">Purpose:</h3>
+                  <p className="text-sm text-muted-foreground italic">{bill.purpose}</p>
+                </div>
+              )}
               {bill.fullTextUrl && (
                  <a href={bill.fullTextUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block">
                   <Button variant="link" className="p-0 h-auto text-primary items-center">
@@ -58,13 +76,13 @@ export default function BillDetailsPage({ params }: { params: { id: string } }) 
             </CardContent>
           </Card>
 
-          {bill.amendmentHistory.length > 0 && (
+          {timelineItems.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="font-headline text-xl flex items-center gap-2"><ListCollapse className="text-primary"/> Amendment History</CardTitle>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><ListCollapse className="text-primary"/> Bill Journey</CardTitle>
               </CardHeader>
               <CardContent>
-                <TimelineDisplay items={formatAmendmentsForTimeline(bill.amendmentHistory)} />
+                <TimelineDisplay items={timelineItems} />
               </CardContent>
             </Card>
           )}
@@ -115,22 +133,40 @@ export default function BillDetailsPage({ params }: { params: { id: string } }) 
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-          <Card>
+           <Card>
             <CardHeader>
-              <CardTitle className="font-headline text-xl">Bill Status</CardTitle>
+              <CardTitle className="font-headline text-xl flex items-center gap-2"><Info className="text-primary"/> Legislative Details</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="flex items-center gap-2">
-                <Badge variant={bill.status === 'Became Law' ? 'default' : 'secondary'} className={bill.status === 'Became Law' ? 'bg-green-500 text-white' : ''}>
-                    {bill.status}
-                </Badge>
-              </p>
-              <p className="text-sm text-muted-foreground">Introduced: {new Date(bill.introducedDate).toLocaleDateString()}</p>
-              {bill.lastActionDate && <p className="text-sm text-muted-foreground">Last Action: {new Date(bill.lastActionDate).toLocaleDateString()}</p>}
-              {bill.lastActionDescription && <p className="text-sm text-muted-foreground">{bill.lastActionDescription}</p>}
+            <CardContent className="space-y-2 text-sm">
+              {bill.billType && <p><span className="font-semibold">Type:</span> {bill.billType}</p>}
+              {bill.responsibleMinistry && <p><span className="font-semibold">Responsible Ministry:</span> {bill.responsibleMinistry}</p>}
+              {bill.houseOfIntroduction && <p><span className="font-semibold">Introduced In:</span> {bill.houseOfIntroduction}</p>}
+              {bill.parliamentarySession && <p><span className="font-semibold">Session:</span> {bill.parliamentarySession}</p>}
             </CardContent>
           </Card>
 
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center gap-2"><Clock className="text-primary"/> Key Dates</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5 text-sm text-muted-foreground">
+              <p><ShieldCheck className="inline-block h-4 w-4 mr-1 text-primary/70" /> Status: 
+                 <Badge variant={bill.status === 'Became Law' ? 'default' : 'secondary'} 
+                        className={`ml-1 ${bill.status === 'Became Law' ? 'bg-green-500 text-white' : ''}`}>
+                    {bill.status}
+                </Badge>
+              </p>
+              <p><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Introduced: {format(new Date(bill.introducedDate), 'MMMM dd, yyyy')}</p>
+              {bill.keyDates?.committeeReferral && <p><GitBranch className="inline-block h-4 w-4 mr-1 text-primary/70" /> Committee Referral: {format(new Date(bill.keyDates.committeeReferral), 'MMMM dd, yyyy')}</p>}
+              {bill.keyDates?.passedLowerHouse && <p><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Lower House: {format(new Date(bill.keyDates.passedLowerHouse), 'MMMM dd, yyyy')}</p>}
+              {bill.keyDates?.passedUpperHouse && <p><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Upper House: {format(new Date(bill.keyDates.passedUpperHouse), 'MMMM dd, yyyy')}</p>}
+              {bill.keyDates?.assent && <p><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Assented: {format(new Date(bill.keyDates.assent), 'MMMM dd, yyyy')}</p>}
+              {bill.keyDates?.effectiveDate && <p><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Effective: {format(new Date(bill.keyDates.effectiveDate), 'MMMM dd, yyyy')}</p>}
+              {bill.lastActionDate && <p><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Last Action: {format(new Date(bill.lastActionDate), 'MMMM dd, yyyy')}</p>}
+              {bill.lastActionDescription && <p className="text-xs mt-1">{bill.lastActionDescription}</p>}
+            </CardContent>
+          </Card>
+          
           <Card>
             <CardHeader>
               <CardTitle className="font-headline text-xl flex items-center gap-2"><Users className="text-primary"/> Sponsors</CardTitle>
@@ -163,8 +199,34 @@ export default function BillDetailsPage({ params }: { params: { id: string } }) 
                 </CardContent>
             </Card>
           )}
+
+          {bill.impact && (
+             <Card>
+                <CardHeader>
+                  <CardTitle className="font-headline text-xl flex items-center gap-2"><Layers className="text-primary"/> Impact</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-foreground/80">{bill.impact}</p>
+                </CardContent>
+            </Card>
+          )}
+          
+          {bill.tags && bill.tags.length > 0 && (
+             <Card>
+                <CardHeader>
+                  <CardTitle className="font-headline text-xl flex items-center gap-2"><Tag className="text-primary"/> Tags</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-wrap gap-2">
+                    {bill.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary">{tag}</Badge>
+                    ))}
+                </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
   );
 }
+
+    

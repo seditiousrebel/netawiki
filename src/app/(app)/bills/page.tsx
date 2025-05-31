@@ -1,19 +1,75 @@
 
 "use client";
 
+import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/common/page-header';
 import { mockBills } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowRight, FileText, Edit } from 'lucide-react';
-import type { Bill } from '@/types/gov';
+import { ArrowRight, FileText, Edit, SearchIcon } from 'lucide-react';
+import type { Bill, BillStatus } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 export default function BillsPage() {
-  const bills = mockBills;
   const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState<BillStatus | ''>('');
+  const [sortOption, setSortOption] = useState('introduced_desc'); // Default sort
+  const [filteredBills, setFilteredBills] = useState<Bill[]>(mockBills);
+
+  const allStatuses = useMemo(() => {
+    const statuses = new Set<BillStatus>();
+    mockBills.forEach(bill => statuses.add(bill.status));
+    return Array.from(statuses).sort();
+  }, []);
+
+  useEffect(() => {
+    let updatedBills = [...mockBills];
+
+    // Search term filter
+    if (searchTerm) {
+      updatedBills = updatedBills.filter(bill =>
+        bill.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        bill.billNumber.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Status filter
+    if (selectedStatus) {
+      updatedBills = updatedBills.filter(bill => bill.status === selectedStatus);
+    }
+
+    // Apply sorting
+    const getDateVal = (dateStr: string | undefined, ascending: boolean = true): number => {
+        if (!dateStr) return ascending ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
+        return new Date(dateStr).getTime();
+    };
+
+    switch (sortOption) {
+      case 'introduced_desc':
+        updatedBills.sort((a, b) => getDateVal(b.introducedDate, false) - getDateVal(a.introducedDate, false));
+        break;
+      case 'introduced_asc':
+        updatedBills.sort((a, b) => getDateVal(a.introducedDate) - getDateVal(b.introducedDate));
+        break;
+      case 'last_action_desc':
+        updatedBills.sort((a, b) => getDateVal(b.lastActionDate, false) - getDateVal(a.lastActionDate, false));
+        break;
+      case 'last_action_asc':
+        updatedBills.sort((a, b) => getDateVal(a.lastActionDate) - getDateVal(b.lastActionDate));
+        break;
+      default:
+        updatedBills.sort((a, b) => getDateVal(b.introducedDate, false) - getDateVal(a.introducedDate, false)); // Default to newest introduced
+        break;
+    }
+
+    setFilteredBills(updatedBills);
+  }, [searchTerm, selectedStatus, sortOption]);
 
   const handleSuggestEdit = () => {
     toast({
@@ -29,15 +85,58 @@ export default function BillsPage() {
         title="Bill Tracking"
         description="Follow legislative bills, their summaries, sponsorship, and status."
       />
-      {bills.length > 0 ? (
+
+      <Card className="mb-8 p-6 shadow-md">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
+          <div>
+            <Label htmlFor="search-bills">Search Bills</Label>
+             <div className="relative">
+                <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                id="search-bills"
+                placeholder="Title or bill number..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+                />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="filter-status">Status</Label>
+            <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value === 'all' ? '' : value as BillStatus)}>
+              <SelectTrigger id="filter-status"><SelectValue placeholder="Filter by status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {allStatuses.map(status => (
+                  <SelectItem key={status} value={status}>{status}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="sort-bills">Sort By</Label>
+            <Select value={sortOption} onValueChange={setSortOption}>
+              <SelectTrigger id="sort-bills"><SelectValue placeholder="Sort by..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="introduced_desc">Introduced Date (Newest)</SelectItem>
+                <SelectItem value="introduced_asc">Introduced Date (Oldest)</SelectItem>
+                <SelectItem value="last_action_desc">Last Action (Newest)</SelectItem>
+                <SelectItem value="last_action_asc">Last Action (Oldest)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </Card>
+
+      {filteredBills.length > 0 ? (
         <div className="space-y-6">
-          {bills.map((bill: Bill) => (
+          {filteredBills.map((bill: Bill) => (
             <Card key={bill.id} className="shadow-md hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="font-headline text-xl mb-1">
-                      <Link href={`/bills/${bill.id}`} className="text-primary hover:underline">
+                      <Link href={`/bills/${bill.slug || bill.id}`} className="text-primary hover:underline">
                         {bill.title} ({bill.billNumber})
                       </Link>
                     </CardTitle>
@@ -70,7 +169,7 @@ export default function BillsPage() {
                 <Button variant="ghost" size="sm" onClick={handleSuggestEdit}>
                   <Edit className="mr-2 h-3 w-3" /> Suggest Edit
                 </Button>
-                <Link href={`/bills/${bill.id}`}>
+                <Link href={`/bills/${bill.slug || bill.id}`}>
                   <Button variant="outline" size="sm">
                     View Details <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -80,8 +179,14 @@ export default function BillsPage() {
           ))}
         </div>
       ) : (
-        <p>No bills found.</p>
+        <div className="text-center py-10">
+            <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
+            <p className="mt-4 text-lg font-medium">No bills found.</p>
+            <p className="text-sm text-muted-foreground">Try adjusting your search or filter criteria.</p>
+        </div>
       )}
     </div>
   );
 }
+
+    
