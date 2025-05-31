@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from 'react'; // Added React import
+import React, { useState, useEffect, useMemo } from 'react'; // Added useState, useEffect, useMemo
 import Link from 'next/link';
 import { PageHeader } from '@/components/common/page-header';
 import { getAllConstituencies, getPoliticianById } from '@/lib/mock-data';
