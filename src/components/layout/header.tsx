@@ -4,14 +4,14 @@
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Search, UserCircle, ShieldCheck, LogOut } from 'lucide-react';
+import { Menu, Search, UserCircle, ShieldCheck, LogOut, SettingsIcon } from 'lucide-react'; // Added SettingsIcon
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/gov';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import NotificationBell from './NotificationBell';
-import { getCurrentUser, logout } from '@/lib/auth'; // Import getCurrentUser and logout
+import { getCurrentUser, logout } from '@/lib/auth';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,11 +21,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Simplified navLinks for the main app header
-const navLinks = [
+const mainNavLinks = [
   { href: '/feed', label: 'My Feed' },
   { href: '/explore', label: 'Explore' },
 ];
+
+const mobileSheetNavLinks = [ // Separate for mobile sheet if needed, or combine
+  { href: '/feed', label: 'My Feed' },
+  { href: '/explore', label: 'Explore' },
+  { href: '/settings', label: 'Settings', icon: SettingsIcon }, // Added settings here
+];
+
 
 export function AppHeader() {
   const pathname = usePathname();
@@ -44,9 +50,8 @@ export function AppHeader() {
       }
     };
 
-    updateUserData(); // Initial check
+    updateUserData();
 
-    // Listen for custom events that might signify user state change
     window.addEventListener('userRoleChanged', updateUserData);
     window.addEventListener('userLoggedOut', updateUserData);
 
@@ -54,22 +59,22 @@ export function AppHeader() {
       window.removeEventListener('userRoleChanged', updateUserData);
       window.removeEventListener('userLoggedOut', updateUserData);
     };
-  }, [pathname]); // Re-check user on pathname change (e.g., after login/logout simulation)
+  }, [pathname]);
 
   const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery(''); // Clear search query after submission
-      setIsSheetOpen(false); // Close sheet on search
+      setSearchQuery('');
+      setIsSheetOpen(false);
     }
   };
 
   const handleLogout = () => {
     logout();
-    setUser(null); // Update UI immediately
+    setUser(null);
     router.push('/auth/login');
-    setIsSheetOpen(false); // Close sheet if open
+    setIsSheetOpen(false);
   };
 
   const profileLink = user ? `/profile/${user.id}` : '/auth/login';
@@ -83,7 +88,7 @@ export function AppHeader() {
         </Link>
 
         <nav className="hidden lg:flex items-center space-x-1 text-sm font-medium">
-          {navLinks.map((link) => (
+          {mainNavLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -130,6 +135,13 @@ export function AppHeader() {
                     <span>My Profile</span>
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="cursor-pointer">
+                    <SettingsIcon className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sign Out</span>
@@ -174,19 +186,20 @@ export function AppHeader() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </form>
-                  <nav className="flex flex-col space-y-2">
-                    {navLinks.map((link) => (
+                  <nav className="flex flex-col space-y-1">
+                    {mobileSheetNavLinks.map((link) => (
                       <Link
                         key={link.href}
                         href={link.href}
                         className={cn(
-                          'text-base transition-colors hover:bg-accent/50 p-2.5 rounded-md',
+                          'text-base transition-colors hover:bg-accent/50 p-2.5 rounded-md flex items-center gap-2.5',
                            (pathname === '/' && link.href === '/feed') || (link.href !== '/' && pathname.startsWith(link.href))
                             ? 'text-primary font-semibold bg-primary/10'
                             : 'text-foreground/80 hover:text-primary'
                         )}
                         onClick={() => setIsSheetOpen(false)}
                       >
+                        {link.icon && <link.icon className="h-5 w-5" />}
                         {link.label}
                       </Link>
                     ))}
