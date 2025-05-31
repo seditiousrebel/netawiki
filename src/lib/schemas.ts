@@ -224,8 +224,125 @@ export const partySchema: FormFieldSchema[] = [
   { name: 'tags', label: 'Tags (comma-separated)', type: 'textarea' },
   { name: 'isActive', label: 'Is Party Currently Active?', type: 'boolean' },
   { name: 'isNationalParty', label: 'Is Party a National Party?', type: 'boolean' },
-  // Complex fields like leadershipHistory, wings, alliances, stancesOnIssues etc. are omitted for brevity for user suggestion
+  { name: 'detailedIdeologyDescription', label: 'Detailed Ideology', type: 'textarea', placeholder: 'Full description of party ideology.' },
+  { name: 'partyManifestoUrl', label: 'Current Manifesto URL', type: 'url', placeholder: 'Link to current party manifesto.' },
+  { name: 'parentPartyId', label: 'Parent Party ID (Optional)', type: 'text' },
+  { name: 'parentPartyName', label: 'Parent Party Name (Optional)', type: 'text' },
+  { name: 'splinterPartyIds', label: 'Splinter Party IDs (JSON Array)', type: 'textarea', placeholder: 'e.g., ["id1", "id2"]' }, // Simple JSON for now
+  { name: 'splinterPartyNames', label: 'Splinter Party Names (JSON Array)', type: 'textarea', placeholder: 'e.g., ["Name1", "Name2"]' }, // Simple JSON for now
 ];
+
+// --- Schemas for Party's complex array fields ---
+
+export const historicalManifestoItemSchema: FormFieldSchema[] = [
+  { name: 'year', label: 'Year', type: 'text', required: true, placeholder: 'e.g., 2018' },
+  { name: 'url', label: 'URL', type: 'url', required: true, placeholder: 'Link to the manifesto document' },
+  { name: 'description', label: 'Description (Optional)', type: 'textarea' },
+];
+
+export const leadershipEventItemSchema: FormFieldSchema[] = [ // For Party.leadershipHistory
+  { name: 'role', label: 'Role', type: 'text', required: true, placeholder: 'e.g., President' },
+  { name: 'name', label: 'Leader Name', type: 'text', required: true },
+  { name: 'politicianId', label: 'Politician ID (Optional)', type: 'text' },
+  { name: 'startDate', label: 'Start Date', type: 'date', required: true },
+  { name: 'endDate', label: 'End Date (or "Present")', type: 'text', placeholder: 'YYYY-MM-DD or Present' },
+];
+
+export const partyWingKeyLeaderSchema: FormFieldSchema[] = [
+    { name: 'name', label: 'Leader Name', type: 'text', required: true },
+    { name: 'politicianId', label: 'Politician ID (Optional)', type: 'text' },
+];
+
+export const partyWingItemSchema: FormFieldSchema[] = [ // For Party.wings
+  { name: 'name', label: 'Wing Name', type: 'text', required: true },
+  { name: 'description', label: 'Description (Optional)', type: 'textarea' },
+  {
+    name: 'keyLeaders',
+    label: 'Key Leaders',
+    type: 'array',
+    arrayItemSchema: { name: 'leader', label: 'Key Leader', type: 'object', objectSchema: partyWingKeyLeaderSchema } as FormFieldSchema,
+  }
+];
+
+export const partyAllianceItemSchema: FormFieldSchema[] = [ // For Party.alliances
+  { name: 'name', label: 'Alliance Name', type: 'text', required: true },
+  { name: 'partnerPartyIds', label: 'Partner Party IDs (JSON Array)', type: 'textarea', placeholder: 'e.g., ["partyId1", "partyId2"]', required: true },
+  { name: 'partnerPartyNames', label: 'Partner Party Names (JSON Array)', type: 'textarea', placeholder: 'e.g., ["Party Name 1", "Party Name 2"]' },
+  { name: 'startDate', label: 'Start Date', type: 'date', required: true },
+  { name: 'endDate', label: 'End Date (or "Ongoing")', type: 'text', placeholder: 'YYYY-MM-DD or Ongoing' },
+  { name: 'purpose', label: 'Purpose (Optional)', type: 'textarea' },
+  { name: 'status', label: 'Status', type: 'text', placeholder: 'e.g., Active, Dissolved' }, // TODO: Select: Active | Dissolved | Inactive
+];
+
+export const partySplitMergerInvolvedPartySchema: FormFieldSchema[] = [
+    { name: 'id', label: 'Party ID (Optional)', type: 'text'},
+    { name: 'name', label: 'Party Name', type: 'text', required: true },
+    { name: 'role', label: 'Role in Event', type: 'text', required: true, placeholder: 'e.g., MergedInto, SplitFrom' }, // TODO: Select
+];
+
+export const partySplitMergerItemSchema: FormFieldSchema[] = [ // For Party.splitMergerHistory
+  { name: 'date', label: 'Date', type: 'date', required: true },
+  { name: 'type', label: 'Event Type', type: 'text', required: true, placeholder: 'e.g., Split, Merger' }, // TODO: Select
+  { name: 'description', label: 'Description', type: 'textarea', required: true },
+  {
+    name: 'involvedParties',
+    label: 'Involved Parties',
+    type: 'array',
+    arrayItemSchema: { name: 'involvedParty', label: 'Involved Party', type: 'object', objectSchema: partySplitMergerInvolvedPartySchema } as FormFieldSchema,
+  }
+];
+
+export const partyStanceItemSchema: FormFieldSchema[] = [ // For Party.stancesOnIssues
+  { name: 'issueId', label: 'Issue ID/Slug', type: 'text', required: true },
+  { name: 'issueTitle', label: 'Issue Title', type: 'text', required: true },
+  { name: 'stance', label: 'Stance', type: 'text', required: true, placeholder: 'e.g., Supports, Opposes, Neutral' }, // TODO: Select
+  { name: 'statement', label: 'Statement (Optional)', type: 'textarea' },
+  { name: 'statementUrl', label: 'Statement URL (Optional)', type: 'url' },
+  { name: 'dateOfStance', label: 'Date of Stance (Optional)', type: 'date' },
+  { name: 'isBill', label: 'Is this a Bill?', type: 'boolean' },
+];
+
+export const fundingSourceItemSchema: FormFieldSchema[] = [ // For Party.fundingSources
+  { name: 'year', label: 'Year', type: 'text', required: true, placeholder: 'e.g., 2023' },
+  { name: 'sourceName', label: 'Source Name', type: 'text', required: true },
+  { name: 'amount', label: 'Amount (Optional)', type: 'text', placeholder: 'e.g., $10,000 or Major Contributor' },
+  { name: 'type', label: 'Funding Type', type: 'text', required: true, placeholder: 'e.g., Donation, Grant' }, // TODO: Select
+  { name: 'description', label: 'Description (Optional)', type: 'textarea' },
+  { name: 'sourceUrl', label: 'Source URL (Optional)', type: 'url' },
+];
+
+export const intraPartyElectionItemSchema: FormFieldSchema[] = [ // For Party.intraPartyElections
+  { name: 'date', label: 'Date', type: 'date', required: true },
+  { name: 'electionTitle', label: 'Election Title', type: 'text', required: true },
+  { name: 'description', label: 'Description (Optional)', type: 'textarea' },
+  { name: 'resultsSummary', label: 'Results Summary (Optional)', type: 'textarea' },
+  { name: 'documentUrl', label: 'Document URL (Optional)', type: 'url' },
+];
+
+export const electionPerformanceRecordItemSchema: FormFieldSchema[] = [ // For Party.electionHistory
+  { name: 'electionYear', label: 'Election Year', type: 'text', required: true, placeholder: 'e.g., 2018' },
+  { name: 'electionType', label: 'Election Type', type: 'text', required: true, placeholder: 'e.g., General, Local' }, // TODO: Select
+  { name: 'seatsContested', label: 'Seats Contested (Optional)', type: 'number' },
+  { name: 'seatsWon', label: 'Seats Won', type: 'number', required: true },
+  { name: 'votePercentage', label: 'Vote Percentage (Optional)', type: 'number', placeholder: 'e.g., 45.5' },
+  { name: 'notes', label: 'Notes (Optional)', type: 'textarea' },
+];
+
+// Add these complex array fields to the partySchema
+const existingPartySchemaFields = partySchema.slice(); // Get a copy
+export const fullPartySchema: FormFieldSchema[] = [
+    ...existingPartySchemaFields,
+    { name: 'historicalManifestos', label: 'Historical Manifestos', type: 'array', arrayItemSchema: { name: 'manifesto', label: 'Manifesto', type: 'object', objectSchema: historicalManifestoItemSchema } as FormFieldSchema },
+    { name: 'leadershipHistory', label: 'Leadership History', type: 'array', arrayItemSchema: { name: 'event', label: 'Leadership Event', type: 'object', objectSchema: leadershipEventItemSchema } as FormFieldSchema },
+    { name: 'wings', label: 'Party Wings', type: 'array', arrayItemSchema: { name: 'wing', label: 'Wing', type: 'object', objectSchema: partyWingItemSchema } as FormFieldSchema },
+    { name: 'alliances', label: 'Alliances', type: 'array', arrayItemSchema: { name: 'alliance', label: 'Alliance', type: 'object', objectSchema: partyAllianceItemSchema } as FormFieldSchema },
+    { name: 'splitMergerHistory', label: 'Split/Merger History', type: 'array', arrayItemSchema: { name: 'event', label: 'Split/Merger Event', type: 'object', objectSchema: partySplitMergerItemSchema } as FormFieldSchema },
+    { name: 'stancesOnIssues', label: 'Stances on Issues', type: 'array', arrayItemSchema: { name: 'stance', label: 'Stance', type: 'object', objectSchema: partyStanceItemSchema } as FormFieldSchema },
+    { name: 'fundingSources', label: 'Funding Sources', type: 'array', arrayItemSchema: { name: 'source', label: 'Funding Source', type: 'object', objectSchema: fundingSourceItemSchema } as FormFieldSchema },
+    { name: 'intraPartyElections', label: 'Intra-Party Elections', type: 'array', arrayItemSchema: { name: 'election', label: 'Internal Election', type: 'object', objectSchema: intraPartyElectionItemSchema } as FormFieldSchema },
+    { name: 'electionHistory', label: 'Election Performance History', type: 'array', arrayItemSchema: { name: 'record', label: 'Election Record', type: 'object', objectSchema: electionPerformanceRecordItemSchema } as FormFieldSchema },
+];
+
 
 const billSponsorSchema: FormFieldSchema[] = [
     { name: 'id', label: 'Sponsor Politician ID', type: 'text', required: true },
@@ -248,8 +365,76 @@ export const billSchema: FormFieldSchema[] = [
     type: 'array',
     arrayItemSchema: { name: 'sponsor', label: 'Sponsor', type: 'object', objectSchema: billSponsorSchema } as FormFieldSchema,
   },
-  // KeyDates, timelineEvents, votingResults etc. might be too complex for initial user suggestion.
+  { name: 'slug', label: 'Slug', type: 'text', placeholder: 'URL-friendly identifier' },
+  { name: 'responsibleMinistry', label: 'Responsible Ministry', type: 'text', placeholder: 'e.g., Ministry of Finance' },
+  { name: 'houseOfIntroduction', label: 'House of Introduction', type: 'text', placeholder: 'e.g., Lower, Upper' }, // TODO: Select
+  { name: 'parliamentarySession', label: 'Parliamentary Session', type: 'text', placeholder: 'e.g., 42nd Parliament, 2nd Session' },
+  { name: 'lastActionDate', label: 'Last Action Date', type: 'date' },
+  { name: 'lastActionDescription', label: 'Last Action Description', type: 'textarea' },
+  { name: 'impact', label: 'Impact Statement', type: 'textarea', placeholder: 'Briefly, what laws it amends/repeals' },
+  { name: 'tags', label: 'Tags', type: 'array', arrayItemSchema: { name: 'tag', label: 'Tag', type: 'text', placeholder: 'Enter a tag' } as FormFieldSchema },
+  { name: 'committees', label: 'Referred Committees', type: 'array', arrayItemSchema: { name: 'committee', label: 'Committee Name', type: 'text', placeholder: 'Name of committee' } as FormFieldSchema },
 ];
+
+// --- Schemas for Bill's complex fields ---
+export const keyDatesSchema: FormFieldSchema[] = [
+  { name: 'introduced', label: 'Introduced', type: 'date'},
+  { name: 'committeeReferral', label: 'Committee Referral', type: 'date'},
+  { name: 'firstReading', label: 'First Reading', type: 'date'},
+  { name: 'secondReading', label: 'Second Reading', type: 'date'},
+  { name: 'thirdReading', label: 'Third Reading', type: 'date'},
+  { name: 'passedLowerHouse', label: 'Passed Lower House', type: 'date'},
+  { name: 'passedUpperHouse', label: 'Passed Upper House', type: 'date'},
+  { name: 'assent', label: 'Assent', type: 'date'},
+  { name: 'gazettePublication', label: 'Gazette Publication', type: 'date'},
+  { name: 'effectiveDate', label: 'Effective Date', type: 'date'},
+];
+
+export const billTimelineEventItemSchema: FormFieldSchema[] = [
+  { name: 'date', label: 'Date', type: 'date', required: true },
+  { name: 'event', label: 'Event', type: 'text', required: true, placeholder: 'e.g., First Reading' },
+  { name: 'description', label: 'Description (Optional)', type: 'textarea' },
+  { name: 'relatedDocumentUrl', label: 'Related Document URL (Optional)', type: 'url' },
+  { name: 'actor', label: 'Actor (Optional)', type: 'text', placeholder: 'e.g., Committee Name, Politician Name' },
+];
+
+export const voteRecordItemSchema: FormFieldSchema[] = [
+  { name: 'politicianId', label: 'Politician ID', type: 'text', required: true },
+  { name: 'politicianName', label: 'Politician Name', type: 'text', required: true },
+  { name: 'vote', label: 'Vote', type: 'text', required: true, placeholder: 'Yea, Nay, Abstain, Not Voting' }, // TODO: Select
+];
+
+export const billVotingResultsChamberSchema: FormFieldSchema[] = [
+  { name: 'date', label: 'Vote Date', type: 'date', required: true },
+  { name: 'passed', label: 'Passed?', type: 'boolean', required: true },
+  {
+    name: 'records',
+    label: 'Vote Records',
+    type: 'array',
+    arrayItemSchema: { name: 'voteRecord', label: 'Vote Record', type: 'object', objectSchema: voteRecordItemSchema } as FormFieldSchema,
+  },
+];
+
+// Update billSchema to include these complex types
+const existingBillSchemaFields = billSchema.slice(0, billSchema.findIndex(f => f.name === 'sponsors') +1); // Keep fields up to and including sponsors
+const remainingBillSchemaFields = billSchema.slice(billSchema.findIndex(f => f.name === 'sponsors') + 1);
+
+export const fullBillSchema: FormFieldSchema[] = [
+    ...existingBillSchemaFields, // title, billNumber, summary, purpose, billType, status, introducedDate, fullTextUrl, sponsors
+    { name: 'keyDates', label: 'Key Dates', type: 'object', objectSchema: keyDatesSchema, placeholder: 'Various key dates of the bill' },
+    { name: 'timelineEvents', label: 'Timeline Events', type: 'array', arrayItemSchema: { name: 'event', label: 'Timeline Event', type: 'object', objectSchema: billTimelineEventItemSchema } as FormFieldSchema },
+    {
+        name: 'votingResults',
+        label: 'Voting Results',
+        type: 'object',
+        objectSchema: [
+            { name: 'house', label: 'House Voting Results', type: 'object', objectSchema: billVotingResultsChamberSchema, required: false },
+            { name: 'senate', label: 'Senate Voting Results', type: 'object', objectSchema: billVotingResultsChamberSchema, required: false },
+        ]
+    },
+    ...remainingBillSchemaFields, // slug, responsibleMinistry, etc. added earlier
+];
+
 
 const committeeMemberSchema: FormFieldSchema[] = [
     { name: 'politicianId', label: 'Politician ID', type: 'text', required: true },
@@ -271,8 +456,61 @@ export const committeeSchema: FormFieldSchema[] = [
     type: 'array',
     arrayItemSchema: { name: 'member', label: 'Member', type: 'object', objectSchema: committeeMemberSchema } as FormFieldSchema,
   },
-  // contactInfo, meetings, reports etc. can be added later or admin-managed.
+  { name: 'slug', label: 'Slug', type: 'text', placeholder: 'URL-friendly identifier' },
+  { name: 'isActive', label: 'Is Active?', type: 'boolean' },
+  { name: 'establishmentDate', label: 'Establishment Date', type: 'date' },
+  { name: 'dissolutionDate', label: 'Dissolution Date (Optional)', type: 'date' },
+  { name: 'tags', label: 'Tags', type: 'array', arrayItemSchema: { name: 'tag', label: 'Tag', type: 'text', placeholder: 'Enter a tag' } as FormFieldSchema },
 ];
+
+// --- Schemas for Committee's complex fields ---
+export const billReferredItemSchema: FormFieldSchema[] = [
+  { name: 'billId', label: 'Bill ID', type: 'text', required: true },
+  { name: 'billName', label: 'Bill Name', type: 'text', required: true },
+  { name: 'billNumber', label: 'Bill Number (Optional)', type: 'text' },
+  { name: 'referralDate', label: 'Referral Date', type: 'date', required: true },
+  { name: 'status', label: 'Status in Committee', type: 'text', placeholder: 'e.g., Under Review' }, // TODO: Select
+  { name: 'committeeReportId', label: 'Committee Report ID (Optional)', type: 'text' },
+];
+
+export const committeeReportItemSchema: FormFieldSchema[] = [
+  { name: 'id', label: 'Report ID', type: 'text', required: false }, // Often system generated
+  { name: 'title', label: 'Report Title', type: 'text', required: true },
+  { name: 'publicationDate', label: 'Publication Date', type: 'date', required: true },
+  { name: 'reportUrl', label: 'Report URL', type: 'url', required: true },
+  { name: 'summary', label: 'Summary (Optional)', type: 'textarea' },
+  { name: 'reportType', label: 'Report Type (Optional)', type: 'text', placeholder: 'e.g., Annual, Inquiry' }, // TODO: Select
+];
+
+export const committeeMeetingItemSchema: FormFieldSchema[] = [
+  { name: 'id', label: 'Meeting ID', type: 'text', required: false }, // Often system generated
+  { name: 'date', label: 'Date', type: 'date', required: true },
+  { name: 'title', label: 'Title (Optional)', type: 'text', placeholder: 'e.g., Discussion on Bill X' },
+  { name: 'agendaUrl', label: 'Agenda URL (Optional)', type: 'url' },
+  { name: 'minutesUrl', label: 'Minutes URL (Optional)', type: 'url' },
+  { name: 'summary', label: 'Summary (Optional)', type: 'textarea' },
+  { name: 'liveStreamUrl', label: 'Live Stream URL (Optional)', type: 'url' },
+];
+
+export const committeeActivityEventItemSchema: FormFieldSchema[] = [
+  { name: 'date', label: 'Date', type: 'date', required: true },
+  { name: 'event', label: 'Event', type: 'text', required: true, placeholder: 'e.g., New Inquiry Launched' },
+  { name: 'description', label: 'Description (Optional)', type: 'textarea' },
+  { name: 'relatedDocumentUrl', label: 'Related Document URL (Optional)', type: 'url' },
+];
+
+// Update committeeSchema to include these complex types
+export const fullCommitteeSchema: FormFieldSchema[] = [
+  ...committeeSchema.filter(f => !['tags'].includes(f.name)), // Remove tags if it was already in the simple one, to avoid duplication
+  { name: 'contactInfo', label: 'Contact Information', type: 'object', objectSchema: contactInfoSchema, required: false },
+  { name: 'billsReferred', label: 'Bills Referred', type: 'array', arrayItemSchema: { name: 'billReferred', label: 'Bill Referred', type: 'object', objectSchema: billReferredItemSchema } as FormFieldSchema },
+  { name: 'reports', label: 'Committee Reports', type: 'array', arrayItemSchema: { name: 'report', label: 'Committee Report', type: 'object', objectSchema: committeeReportItemSchema } as FormFieldSchema },
+  { name: 'meetings', label: 'Committee Meetings', type: 'array', arrayItemSchema: { name: 'meeting', label: 'Committee Meeting', type: 'object', objectSchema: committeeMeetingItemSchema } as FormFieldSchema },
+  { name: 'activityTimeline', label: 'Activity Timeline', type: 'array', arrayItemSchema: { name: 'activityEvent', label: 'Activity Event', type: 'object', objectSchema: committeeActivityEventItemSchema } as FormFieldSchema },
+  // Ensure 'tags' is correctly placed if it wasn't in the base or if it needs specific object schema for items
+  { name: 'tags', label: 'Tags', type: 'array', arrayItemSchema: { name: 'tagItem', label: 'Tag', type: 'text', placeholder:'Enter tag' } as FormFieldSchema, required: false },
+];
+
 
 export const constituencySchema: FormFieldSchema[] = [
   { name: 'name', label: 'Constituency Name', type: 'text', required: true },
@@ -284,7 +522,89 @@ export const constituencySchema: FormFieldSchema[] = [
   { name: 'registeredVoters', label: 'Registered Voters (Optional)', type: 'number' },
   { name: 'areaSqKm', label: 'Area (sq km) (Optional)', type: 'number' },
   // More complex fields like demographics, historical results, projects are admin-managed for now.
+  { name: 'slug', label: 'Slug', type: 'text', placeholder: 'URL-friendly identifier' },
+  { name: 'dataAiHint', label: 'AI Hint for Image', type: 'textarea', placeholder: 'Hint for image generation' },
+  { name: 'currentRepresentativeIds', label: 'Current Rep IDs (JSON Array)', type: 'textarea', placeholder: 'e.g., ["repId1", "repId2"]'},
+  { name: 'currentRepresentativeNames', label: 'Current Rep Names (JSON Array)', type: 'textarea', placeholder: 'e.g., ["Rep Name 1", "Rep Name 2"]'},
+  { name: 'tags', label: 'Tags', type: 'array', arrayItemSchema: { name: 'tag', label: 'Tag', type: 'text', placeholder: 'Enter a tag' } as FormFieldSchema },
 ];
+
+// --- Schemas for Constituency's complex fields ---
+export const keyDemographicEthnicGroupItemSchema: FormFieldSchema[] = [
+  { name: 'name', label: 'Group Name', type: 'text', required: true },
+  { name: 'percentage', label: 'Percentage', type: 'number', required: true, placeholder: 'e.g., 30.5' },
+];
+
+export const keyDemographicsSchema: FormFieldSchema[] = [
+  { name: 'literacyRate', label: 'Literacy Rate (Optional)', type: 'number', placeholder: 'e.g., 75.5' },
+  {
+    name: 'ethnicGroups',
+    label: 'Ethnic Groups',
+    type: 'array',
+    arrayItemSchema: { name: 'ethnicGroup', label: 'Ethnic Group', type: 'object', objectSchema: keyDemographicEthnicGroupItemSchema } as FormFieldSchema,
+  },
+];
+
+export const historicalElectionResultItemSchema: FormFieldSchema[] = [
+  { name: 'electionId', label: 'Election ID', type: 'text', required: true },
+  { name: 'electionName', label: 'Election Name', type: 'text', required: true },
+  { name: 'winnerPoliticianId', label: 'Winner Politician ID (Optional)', type: 'text' },
+  { name: 'winnerPoliticianName', label: 'Winner Politician Name (Optional)', type: 'text' },
+  { name: 'winningPartyId', label: 'Winning Party ID (Optional)', type: 'text' },
+  { name: 'winningPartyName', label: 'Winning Party Name (Optional)', type: 'text' },
+  { name: 'detailsUrl', label: 'Details URL (Optional)', type: 'url' },
+];
+
+export const developmentProjectItemSchema: FormFieldSchema[] = [
+  { name: 'id', label: 'Project ID', type: 'text', required: false }, // Often system generated
+  { name: 'name', label: 'Project Name', type: 'text', required: true },
+  { name: 'status', label: 'Status', type: 'text', required: true, placeholder: 'e.g., Planned, Ongoing, Completed' }, // TODO: Select
+  { name: 'description', label: 'Description (Optional)', type: 'textarea' },
+  { name: 'budget', label: 'Budget (Optional)', type: 'text', placeholder: 'e.g., NPR 500 Million' },
+  { name: 'startDate', label: 'Start Date (Optional)', type: 'date' },
+  { name: 'expectedCompletion', label: 'Expected Completion (Optional)', type: 'text', placeholder: 'e.g., YYYY-MM-DD or Q4 2025' },
+  { name: 'actualCompletionDate', label: 'Actual Completion Date (Optional)', type: 'date' },
+  { name: 'implementingAgency', label: 'Implementing Agency (Optional)', type: 'text' },
+  { name: 'sourceOfFunding', label: 'Source of Funding (Optional)', type: 'text' },
+];
+
+export const localIssueDocumentSchema: FormFieldSchema[] = [
+    { name: 'name', label: 'Document Name', type: 'text', required: true },
+    { name: 'url', label: 'Document URL', type: 'url', required: true },
+];
+
+export const localIssueItemSchema: FormFieldSchema[] = [
+  { name: 'id', label: 'Issue ID', type: 'text', required: false }, // Often system generated
+  { name: 'title', label: 'Issue Title', type: 'text', required: true },
+  { name: 'description', label: 'Description (Optional)', type: 'textarea' },
+  { name: 'reportedBy', label: 'Reported By (Optional)', type: 'text' },
+  { name: 'dateReported', label: 'Date Reported (Optional)', type: 'date' },
+  { name: 'status', label: 'Status', type: 'text', placeholder: 'e.g., Open, Addressed' }, // TODO: Select
+  { name: 'resolutionDetails', label: 'Resolution Details (Optional)', type: 'textarea' },
+  { name: 'severity', label: 'Severity (Optional)', type: 'text', placeholder: 'e.g., Low, Medium, High' }, // TODO: Select
+  {
+    name: 'relatedDocuments',
+    label: 'Related Documents',
+    type: 'array',
+    arrayItemSchema: { name: 'document', label: 'Document', type: 'object', objectSchema: localIssueDocumentSchema } as FormFieldSchema,
+  },
+];
+
+// Update constituencySchema to include these complex types
+const existingConstituencySchemaFields = constituencySchema.slice();
+export const fullConstituencySchema: FormFieldSchema[] = [
+    ...existingConstituencySchemaFields.filter(f => !['tags', 'currentRepresentativeIds', 'currentRepresentativeNames', 'slug', 'dataAiHint'].includes(f.name)), // Remove fields that will be re-added with proper types or structure
+    { name: 'slug', label: 'Slug', type: 'text', placeholder: 'URL-friendly identifier' },
+    { name: 'dataAiHint', label: 'AI Hint for Image', type: 'textarea', placeholder: 'Hint for image generation' },
+    { name: 'currentRepresentativeIds', label: 'Current Rep IDs (JSON Array)', type: 'textarea', placeholder: 'e.g., ["repId1", "repId2"]'},
+    { name: 'currentRepresentativeNames', label: 'Current Rep Names (JSON Array)', type: 'textarea', placeholder: 'e.g., ["Rep Name 1", "Rep Name 2"]'},
+    { name: 'keyDemographics', label: 'Key Demographics', type: 'object', objectSchema: keyDemographicsSchema, required: false },
+    { name: 'historicalElectionResults', label: 'Historical Election Results', type: 'array', arrayItemSchema: { name: 'electionResult', label: 'Historical Election Result', type: 'object', objectSchema: historicalElectionResultItemSchema } as FormFieldSchema },
+    { name: 'developmentProjects', label: 'Development Projects', type: 'array', arrayItemSchema: { name: 'devProject', label: 'Development Project', type: 'object', objectSchema: developmentProjectItemSchema } as FormFieldSchema },
+    { name: 'localIssues', label: 'Local Issues', type: 'array', arrayItemSchema: { name: 'localIssue', label: 'Local Issue', type: 'object', objectSchema: localIssueItemSchema } as FormFieldSchema },
+    { name: 'tags', label: 'Tags', type: 'array', arrayItemSchema: { name: 'tagItem', label: 'Tag', type: 'text', placeholder:'Enter tag' } as FormFieldSchema, required: false },
+];
+
 
 export const electionSchema: FormFieldSchema[] = [
   { name: 'name', label: 'Election Name', type: 'text', required: true, placeholder: 'e.g., General Election 2024' },
@@ -335,10 +655,10 @@ export const promiseSchema: FormFieldSchema[] = [
 
 export const entitySchemas: Record<EntityType, FormFieldSchema[]> = {
   Politician: politicianSchema,
-  Party: partySchema,
-  Bill: billSchema,
-  Committee: committeeSchema,
-  Constituency: constituencySchema,
+  Party: fullPartySchema,
+  Bill: fullBillSchema,
+  Committee: fullCommitteeSchema,
+  Constituency: fullConstituencySchema, // Use the extended schema for Constituency
   Election: electionSchema,
   News: newsSchema, // Mapped from NewsArticleLink
   Promise: promiseSchema, // Mapped from PromiseItem
