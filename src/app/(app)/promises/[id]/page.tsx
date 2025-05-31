@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { PromiseItem, PromiseStatus, PromiseEvidenceLink, PromiseStatusUpdate, NewsArticleLink } from '@/types/gov';
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Textarea } from '@/components/ui/textarea';
+// import { Textarea } from '@/components/ui/textarea'; // Removed Textarea
 
 const LOCAL_STORAGE_FOLLOWED_PROMISES_KEY = 'govtrackr_followed_promises';
 
@@ -49,7 +49,7 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
   const [isFollowingPromise, setIsFollowingPromise] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [commentText, setCommentText] = useState("");
+  // const [commentText, setCommentText] = useState(""); // Removed commentText state
   const [relatedNews, setRelatedNews] = useState<NewsArticleLink[]>([]);
 
   useEffect(() => {
@@ -132,10 +132,10 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
       });
       return;
     }
-    console.log("Promise Rating Submitted:", { promiseId: promise.id, rating: currentRating, comment: commentText });
+    console.log("Promise Rating Submitted:", { promiseId: promise.id, rating: currentRating });
     toast({
       title: "Review Submitted (Demo)",
-      description: `You rated this promise ${currentRating} star(s). Comment: ${commentText || 'No comment provided.'}`,
+      description: `You rated this promise ${currentRating} star(s).`, // Updated toast message
       duration: 5000,
     });
   };
@@ -248,16 +248,7 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
                   ))}
                 </div>
               </div>
-              <div>
-                <label htmlFor="promise-comment" className="mb-2 text-sm font-medium block">Your Comment (Optional):</label>
-                <Textarea
-                  id="promise-comment"
-                  placeholder={`Share your thoughts on this promise...`}
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  rows={4}
-                />
-              </div>
+              {/* Removed Textarea for comments */}
               <Button onClick={handleRatingSubmit} className="w-full sm:w-auto" disabled={currentRating === 0}>
                 Submit Review
               </Button>
