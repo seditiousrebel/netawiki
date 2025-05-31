@@ -1,13 +1,13 @@
 import Image from 'next/image';
-import { getPoliticianById, getPromisesByPolitician, mockParties } from '@/lib/mock-data';
+import { getPoliticianById, getPromisesByPolitician, mockParties, getBillsBySponsor } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
-import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership } from '@/types/gov';
+import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill } from '@/types/gov';
 
 export default function PoliticianProfilePage({ params }: { params: { id: string } }) {
   const politician = getPoliticianById(params.id);
@@ -18,6 +18,7 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
 
   const promises = getPromisesByPolitician(params.id);
   const party = politician.partyId ? mockParties.find(p => p.id === politician.partyId) : null;
+  const sponsoredBills = getBillsBySponsor(politician.id);
 
   const getStatusBadgeVariant = (status: CriminalRecord['status']) => {
     switch (status) {
@@ -249,12 +250,44 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
 
           <Card>
             <CardHeader>
-              <CardTitle className="font-headline text-xl">Political Journey</CardTitle>
+              <CardTitle className="font-headline text-xl">Career Timeline</CardTitle>
             </CardHeader>
             <CardContent>
               <TimelineDisplay items={formatPoliticalJourneyForTimeline(politician.politicalJourney)} />
             </CardContent>
           </Card>
+
+          {sponsoredBills.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary"/> Sponsored Bills
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {sponsoredBills.map((bill: Bill) => (
+                    <li key={bill.id} className="p-3 border rounded-md bg-secondary/50 hover:bg-secondary/70 transition-colors">
+                      <Link href={`/bills/${bill.id}`} className="font-semibold text-primary hover:underline">
+                        {bill.title} ({bill.billNumber})
+                      </Link>
+                      <div className="flex justify-between items-center mt-1">
+                        <p className="text-xs text-muted-foreground">
+                          Status: {bill.status}
+                        </p>
+                        {bill.sponsors.find(s => s.id === politician.id)?.type === 'Primary' && (
+                            <Badge variant="outline" className="text-xs">Primary Sponsor</Badge>
+                        )}
+                        {bill.sponsors.find(s => s.id === politician.id)?.type === 'Co-Sponsor' && (
+                             <Badge variant="secondary" className="text-xs">Co-Sponsor</Badge>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
           
           {politician.assetDeclarations && politician.assetDeclarations.length > 0 && (
             <Card>

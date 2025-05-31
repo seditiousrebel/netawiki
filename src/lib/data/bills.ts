@@ -44,3 +44,9 @@ export const mockBills: Bill[] = [
 export function getBillById(id: string): Bill | undefined {
   return mockBills.find(b => b.id === id);
 }
+
+export function getBillsBySponsor(politicianId: string): Bill[] {
+  return mockBills.filter(bill => 
+    bill.sponsors.some(sponsor => sponsor.id === politicianId)
+  );
+}
