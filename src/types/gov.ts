@@ -225,6 +225,7 @@ export type NewsArticleLink = {
   taggedElectionIds?: string[];
   taggedCommitteeIds?: string[];
   taggedConstituencyIds?: string[];
+  revisionHistory?: RevisionHistoryItem[];
 };
 
 export interface Party {
@@ -267,6 +268,7 @@ export interface Party {
   dataAiHint?: string;
   controversyIds?: string[];
   tags?: string[];
+  revisionHistory?: RevisionHistoryItem[];
 }
 
 export type VoteOption = 'Yea' | 'Nay' | 'Abstain' | 'Not Voting';
@@ -336,6 +338,7 @@ export interface Bill {
   committees?: string[];
   impact?: string; // Briefly, what laws it amends/repeals
   tags?: string[];
+  revisionHistory?: RevisionHistoryItem[];
 }
 
 export interface UserProfile {
@@ -431,6 +434,7 @@ export interface Controversy {
   legalProceedings?: ControversyLegalProceeding[];
   summaryOutcome?: string; // Overall summary of the outcome
   dataAiHint?: string; // For main image if any
+  revisionHistory?: RevisionHistoryItem[];
 }
 
 
@@ -488,6 +492,7 @@ export interface PromiseItem {
   evidenceLinks: PromiseEvidenceLink[];
   statusUpdateHistory?: PromiseStatusUpdate[]; // Timeline of status changes
   tags?: string[];
+  revisionHistory?: RevisionHistoryItem[];
 }
 
 // --- Election Hub Types ---
@@ -535,6 +540,7 @@ export interface Election {
   timelineEvents?: ElectionTimelineEvent[];
   tags?: string[];
   dataAiHint?: string; // For a representative image
+  revisionHistory?: RevisionHistoryItem[];
 }
 
 export type ElectionCandidateStatus =
@@ -636,6 +642,7 @@ export interface Committee {
   dissolutionDate?: string; // ISO Date string (if applicable)
   activityTimeline?: CommitteeActivityEvent[];
   dataAiHint?: string; // For a generic image placeholder
+  revisionHistory?: RevisionHistoryItem[];
 }
 
 // --- Constituency Types ---
@@ -706,6 +713,7 @@ export interface Constituency {
   localIssues?: LocalIssue[];
   dataAiHint?: string; // For image placeholder on list views
   tags?: string[];
+  revisionHistory?: RevisionHistoryItem[];
 }
 
 export interface Notification {

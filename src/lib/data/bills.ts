@@ -30,7 +30,24 @@ export const mockBills: Bill[] = [
     lastActionDescription: 'Committee hearing held.',
     impact: 'Amends the National Energy Policy Act of 2005 to include new incentives for solar and wind power.',
     tags: ['energy', 'climate-change', 'renewable-energy', 'government-bill'],
-    fullTextUrl: 'https://example.com/s567-text-v1.pdf'
+    fullTextUrl: 'https://example.com/s567-text-v1.pdf',
+    revisionHistory: [
+      {
+        id: 'rev-bill-001',
+        date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+        author: 'EditorAlice',
+        event: 'Bill Summary Updated',
+        details: 'Clarified language in the bill summary regarding funding allocation.',
+        suggestionId: 'sugg_bill_summ_abc'
+      },
+      {
+        id: 'rev-bill-002',
+        date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
+        author: 'AdminBob',
+        event: 'Sponsor List Amended',
+        details: 'Added co-sponsor Rep. Fictional based on parliamentary records.',
+      }
+    ]
   },
   {
     id: 'b2',

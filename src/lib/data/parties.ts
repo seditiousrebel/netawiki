@@ -122,6 +122,23 @@ export const mockParties: Party[] = [
     isNationalParty: true,
     controversyIds: ['c1'],
     tags: ['centrist', 'social-liberalism', 'green-policy'],
+    revisionHistory: [
+      {
+        id: 'rev-party-001',
+        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+        author: 'AdminUserBUP',
+        event: 'Party Details Updated',
+        details: 'Updated party manifesto link and contact information based on official website changes.',
+        suggestionId: 'sugg_party_contact_bup_xyz'
+      },
+      {
+        id: 'rev-party-002',
+        date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
+        author: 'System',
+        event: 'Party Record Created',
+        details: 'Initial party record created upon system migration.',
+      }
+    ]
   },
   {
     id: 'party2',

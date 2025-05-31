@@ -44,6 +44,23 @@ export const mockConstituencies: Constituency[] = [
     localIssues: kathmandu1Issues,
     dataAiHint: 'city map Kathmandu',
     tags: ['urban', 'capital-city', 'federal', 'high-density'],
+    revisionHistory: [
+      {
+        id: 'rev-constituency-001',
+        date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days ago
+        author: 'EditorBob',
+        event: 'Constituency Boundary Updated',
+        details: 'Minor adjustments to boundary map based on new survey data from the Department of Survey.',
+        suggestionId: 'sugg_const_boundary_xyz'
+      },
+      {
+        id: 'rev-constituency-002',
+        date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(), // 20 days ago
+        author: 'System',
+        event: 'Constituency Record Created',
+        details: 'Initial record for Kathmandu Constituency 1 created.',
+      }
+    ]
   },
   {
     id: 'const-prov-bag-ktm-pa-1a',

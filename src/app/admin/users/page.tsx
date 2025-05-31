@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/common/page-header';
+import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth';
 import {
   Table,
   TableHeader,
@@ -36,6 +37,13 @@ const getRoleBadgeVariant = (role: string): 'default' | 'secondary' | 'outline' 
 };
 
 export default function UserRoleManagementPage() {
+  const currentUser = getCurrentUser();
+
+  // For user management, let's use EDITOR_ROLES for now as per simplification
+  if (!canAccess(currentUser.role, EDITOR_ROLES)) {
+    return <div className="container mx-auto py-8 text-center">Access Denied. You do not have permission to view this page.</div>;
+  }
+
   return (
     <div className="container mx-auto py-8">
       <PageHeader

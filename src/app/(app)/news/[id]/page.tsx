@@ -9,16 +9,20 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ExternalLink, CalendarDays, UserCircle, Tag, Link as LinkIcon, CheckSquare, ShieldQuestion, Newspaper, ArrowLeft, Users, Flag, FileText, ListChecks, VoteIcon, ShieldAlert, Bookmark, BookmarkCheck, Star } from 'lucide-react';
+import { ExternalLink, CalendarDays, UserCircle, Tag, Link as LinkIcon, CheckSquare, ShieldQuestion, Newspaper, ArrowLeft, Users, Flag, FileText, ListChecks, VoteIcon, ShieldAlert, Bookmark, BookmarkCheck, Star, History, Download, Trash2, Edit } from 'lucide-react'; // Added Download, Trash2, Edit
 import { format } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
+import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
+import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
 
 const LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY = 'govtrackr_bookmarked_articles';
 
 export default function NewsArticlePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
-  const article = getNewsArticleByIdOrSlug(params.id);
+  const article = getNewsArticleByIdOrSlug(params.id); // Corrected function name
   const { toast } = useToast();
+  const currentUser = getCurrentUser();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
 
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
@@ -177,23 +181,40 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
           </div>
         }
         actions={
-            article.isAggregated && article.url ? (
-                <a href={article.url} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline" className="flex items-center gap-2">
-                        View Original Article <ExternalLink className="h-4 w-4" />
-                    </Button>
-                </a>
+          <div className="flex gap-2">
+            {/* Original actions based on article type */}
+            {article.isAggregated && article.url ? (
+              <a href={article.url} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="flex items-center gap-2">
+                  View Original Article <ExternalLink className="h-4 w-4" />
+                </Button>
+              </a>
             ) : (
-                 <Link href="/news">
-                    <Button variant="outline" className="flex items-center gap-2">
-                        <ArrowLeft className="h-4 w-4" /> Back to News
-                    </Button>
-                </Link>
-            )
+              <Link href="/news">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <ArrowLeft className="h-4 w-4" /> Back to News
+                </Button>
+              </Link>
+            )}
+            {/* Suggest Edit, Export, and Delete buttons */}
+            {!article.isAggregated && ( // Assuming suggest edit is not for aggregated articles
+                 <Button variant="outline" onClick={() => handleSuggestEditClick('Full Content', article.fullContent || article.summary || '')} >
+                    <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+                 </Button>
+            )}
+            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
+              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Article'}
+            </Button>
+            {canAccess(currentUser.role, ADMIN_ROLES) && (
+              <Button variant="destructive" onClick={handleDeleteArticle}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete Article
+              </Button>
+            )}
+          </div>
         }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div id="news-article-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           {article.dataAiHint && (
             <div className="mb-6 rounded-lg overflow-hidden shadow-lg">
@@ -291,6 +312,37 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
               <p className="text-muted-foreground">(Comments feature coming soon.)</p>
             </CardContent>
           </Card>
+
+          {/* Revision History Card - Assuming article.revisionHistory is available */}
+          {article.revisionHistory && article.revisionHistory.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <History className="h-5 w-5 text-primary"/> Revision History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-4">
+                  {article.revisionHistory.map((event) => (
+                    <li key={event.id} className="border-b pb-3 last:border-b-0">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-semibold text-md">{event.event}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(event.date).toLocaleDateString()} by {event.author}
+                        </span>
+                      </div>
+                      {event.details && <p className="text-sm text-foreground/80 mb-1">{event.details}</p>}
+                      {event.suggestionId && (
+                        <p className="text-xs text-muted-foreground">
+                          Based on suggestion: <Badge variant="outline" className="font-mono text-xs">{event.suggestionId}</Badge>
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div className="lg:col-span-1 space-y-6">
@@ -341,4 +393,23 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
       </div>
     </div>
   );
+
+  // Placeholder for SuggestEditForm integration
+  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+    // setSuggestionFieldName(fieldName); // Example state update
+    // setSuggestionOldValue(oldValue); // Example state update
+    // setIsSuggestEditModalOpen(true); // Example state update
+    toast({ title: "Suggest Edit Clicked (Placeholder)", description: `Field: ${fieldName}` });
+  };
+
+  async function handleExportPdf() {
+    if (!article) return;
+    const fileName = `article-${(article.slug || article.id).toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`;
+    await exportElementAsPDF('news-article-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  const handleDeleteArticle = () => {
+    if (!article) return;
+    alert(`Mock delete action for article: ${article.title}`);
+  };
 }

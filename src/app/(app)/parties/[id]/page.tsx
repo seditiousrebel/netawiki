@@ -5,16 +5,19 @@ import Image from 'next/image';
 import { getPartyById, mockPoliticians, getPartyNameById, getPromisesByPartyId, getControversiesByPartyId, getNewsByPartyId } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
+// import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth'; // No longer needed for this button
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge }
 from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone, DollarSign, VoteIcon, BookOpen, BarChart3, Newspaper, TrendingUp, Star } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone, DollarSign, VoteIcon, BookOpen, BarChart3, Newspaper, TrendingUp, Star, Download, Trash2 } from 'lucide-react'; // Added Download, Trash2
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; // useState was already imported
 import type { PromiseItem, LeadershipEvent, Party, PartyAlliance, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection, HistoricalManifesto, ElectionPerformanceRecord, NewsArticleLink, Controversy } from '@/types/gov';
 import { TimelineDisplay } from '@/components/common/timeline-display';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { exportElementAsPDF } from '@/lib/utils'; // Import PDF utility
+import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
 
 
 interface TimelineItem {
@@ -66,6 +69,8 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   const params = React.use(paramsPromise);
   const party = getPartyById(params.id);
   const { toast } = useToast();
+  const currentUser = getCurrentUser(); // Add current user
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const [formattedFoundedDate, setFormattedFoundedDate] = useState<string | null>(null);
   const [formattedDissolvedDate, setFormattedDissolvedDate] = useState<string | null>(null);
@@ -200,14 +205,24 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             )}
           </div>
         }
-        actions={
-          <Button variant="outline" onClick={handleSuggestEdit}>
-            <Edit className="mr-2 h-4 w-4" /> Suggest Edit
-          </Button>
-        }
+        actions={(
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleSuggestEdit}>
+              <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+            </Button>
+            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
+              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Party Details'}
+            </Button>
+            {canAccess(currentUser.role, ADMIN_ROLES) && (
+              <Button variant="destructive" onClick={handleDeleteParty}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete Party
+              </Button>
+            )}
+          </div>
+        )}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div id="party-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardContent className="p-0">
@@ -634,6 +649,37 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             </CardContent>
           </Card>
 
+          {/* Revision History Card - Assuming party.revisionHistory is available */}
+          {party.revisionHistory && party.revisionHistory.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <History className="h-5 w-5 text-primary"/> Revision History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-4">
+                  {party.revisionHistory.map((event) => (
+                    <li key={event.id} className="border-b pb-3 last:border-b-0">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-semibold text-md">{event.event}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(event.date).toLocaleDateString()} by {event.author}
+                        </span>
+                      </div>
+                      {event.details && <p className="text-sm text-foreground/80 mb-1">{event.details}</p>}
+                      {event.suggestionId && (
+                        <p className="text-xs text-muted-foreground">
+                          Based on suggestion: <Badge variant="outline" className="font-mono text-xs">{event.suggestionId}</Badge>
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
           {relatedNews && relatedNews.length > 0 && (
             <Card>
               <CardHeader>
@@ -667,7 +713,6 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                 <p className="text-xs pt-2 border-t">Note: Detailed analytics and visualizations will be implemented in future updates.</p>
             </CardContent>
           </Card>
-
 
           {party.wings && party.wings.length > 0 && (
             <Card>
@@ -811,6 +856,17 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
       </div>
     </div>
   );
+
+  async function handleExportPdf() {
+    if (!party) return;
+    const fileName = `party-${party.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
+    await exportElementAsPDF('party-details-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  const handleDeleteParty = () => {
+    if (!party) return;
+    alert(`Mock delete action for party: ${party.name}`);
+  };
 }
 
 

@@ -64,6 +64,23 @@ export const mockCommittees: Committee[] = [
     isActive: true,
     establishmentDate: '2018-08-01',
     dataAiHint: 'meeting room discussion',
+    revisionHistory: [
+      {
+        id: 'rev-committee-001',
+        date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+        author: 'AdminUserFinance',
+        event: 'Committee Mandate Updated',
+        details: 'Updated the committee mandate text to reflect new legislative responsibilities regarding digital currencies.',
+        suggestionId: 'sugg_committee_mandate_abc'
+      },
+      {
+        id: 'rev-committee-002',
+        date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+        author: 'System',
+        event: 'Committee Record Created',
+        details: 'Initial record for Finance Committee created.',
+      }
+    ]
   },
   {
     id: 'com2',
