@@ -17,41 +17,44 @@ const baseNavItemsConfig = [
 export function MobileBottomNav() {
   const pathname = usePathname();
   
-  // Initialize navItems with a server-safe profile link (guest user)
-  const [navItems, setNavItems] = useState(() => [
-    ...baseNavItemsConfig,
-    { href: `/profile/guestUser`, label: 'Profile', icon: UserCircle } 
-  ]);
+  const [navItems, setNavItems] = useState(() => {
+    // Initial server-safe state for the profile link
+    const initialProfileLink = `/profile/guestUser`; 
+    return [
+      ...baseNavItemsConfig,
+      { href: initialProfileLink, label: 'Profile', icon: UserCircle } 
+    ];
+  });
 
   useEffect(() => {
-    // This effect runs only on the client after hydration
-    const clientCurrentUser = getCurrentUser(); // Now it's safe to access localStorage
-    
-    // Determine the correct profile link based on the client-side user
+    const clientCurrentUser = getCurrentUser();
     const profileLink = clientCurrentUser.role !== 'Guest' 
-      ? `/profile/${clientCurrentUser.id || 'current-user'}` // Fallback if id is somehow undefined
-      : '/auth/login'; // For guests, link to login page
+      ? `/profile/${clientCurrentUser.id || 'current-user'}`
+      : '/auth/login';
 
     setNavItems([
       ...baseNavItemsConfig,
       { href: profileLink, label: 'Profile', icon: UserCircle }
     ]);
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, []);
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-t-lg z-40">
       <div className={`grid grid-cols-${navItems.length} items-center h-16`}>
         {navItems.map((item) => {
-          // Determine active state for the link
           let isActive;
           if (item.label === 'Profile' && item.href === '/auth/login') {
-            // Special case: if profile link points to login, check for /auth/login active state
             isActive = pathname.startsWith('/auth/login');
           } else if (item.href === '/feed' && pathname === '/') {
-            // Consider Feed active for the root path as well
             isActive = true;
           } else {
-            isActive = item.href !== "/" && pathname.startsWith(item.href);
+            // Ensure that for /profile/[userId], only /profile is matched, not deeper paths if any.
+            // And for other paths, ensure it's an exact match or startsWith for parent routes.
+            if (item.href.startsWith('/profile/')) {
+                isActive = pathname.startsWith('/profile/');
+            } else {
+                isActive = item.href !== "/" ? pathname.startsWith(item.href) : pathname === item.href;
+            }
           }
           
           return (
@@ -59,9 +62,7 @@ export function MobileBottomNav() {
               key={item.label}
               href={item.href}
               className={cn(
-                // Removed justify-center, icon and text will now align to the start of the flex container (Link)
-                // The grid parent's items-center will vertically center the Link block within its cell
-                'flex flex-row items-center gap-1 p-1 rounded-md transition-colors h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50', 
+                'flex flex-row items-center justify-center w-full h-full gap-1 p-1 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50', 
                 isActive ? 'text-primary font-semibold' : 'text-muted-foreground hover:text-primary'
               )}
               aria-current={isActive ? "page" : undefined}
@@ -75,3 +76,4 @@ export function MobileBottomNav() {
     </nav>
   );
 }
+
