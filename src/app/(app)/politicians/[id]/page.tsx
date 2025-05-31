@@ -2,15 +2,15 @@
 "use client";
 
 import Image from 'next/image';
-import { getPoliticianById, getPromisesByPolitician, mockParties, getBillsBySponsor, mockBills, getControversiesByPoliticianId } from '@/lib/mock-data';
+import { getPoliticianById, getPromisesByPolitician, mockParties, getBillsBySponsor, mockBills, getControversiesByPoliticianId, getNewsByPoliticianId } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon, Newspaper } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
-import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent } from '@/types/gov';
+import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent, NewsArticleLink } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
@@ -116,6 +116,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   const sponsoredBills = getBillsBySponsor(politician.id);
   const relatedControversies = getControversiesByPoliticianId(politician.id);
   const careerTimelineItems = formatCombinedCareerTimeline(politician.politicalJourney, politician.partyAffiliations);
+  const relatedNews = getNewsByPoliticianId(politician.id);
 
 
   const politicianVotes: PoliticianVote[] = [];
@@ -695,6 +696,27 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
                           View Source <ExternalLink className="h-3 w-3"/>
                         </a>
                       )}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {relatedNews && relatedNews.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><Newspaper className="text-primary"/> Related News</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {relatedNews.map((news: NewsArticleLink, idx: number) => (
+                    <li key={idx} className="text-sm border-b pb-2 last:border-b-0">
+                      <a href={news.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
+                        {news.title}
+                      </a>
+                      <p className="text-xs text-muted-foreground">{news.sourceName} - {new Date(news.publicationDate).toLocaleDateString()}</p>
+                      {news.summary && <p className="text-xs text-foreground/80 mt-1">{news.summary}</p>}
                     </li>
                   ))}
                 </ul>

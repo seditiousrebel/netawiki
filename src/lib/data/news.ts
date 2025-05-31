@@ -48,6 +48,26 @@ export const mockNewsArticles: NewsArticleLink[] = [
     publicationDate: "2024-06-15",
     summary: "The Green Future Party organized a large rally in the capital demanding stricter emission standards for industries.",
     taggedPartyIds: ['party3-fictional']
+  },
+  {
+    id: 'news6',
+    title: "Senator Democratia Speaks on Education Reform",
+    url: "https://example.com/news/democratia-education",
+    sourceName: "Education Today",
+    publicationDate: "2024-07-10",
+    summary: "Senator Alice Democratia outlined her vision for comprehensive education reform at a town hall meeting.",
+    taggedPoliticianIds: ['p1'],
+    taggedPartyIds: ['party1']
+  },
+  {
+    id: 'news7',
+    title: "Rep. Republicanus Debates Economic Policy",
+    url: "https://example.com/news/republicanus-economy",
+    sourceName: "Financial Chronicle",
+    publicationDate: "2024-07-05",
+    summary: "Representative Bob Republicanus engaged in a spirited debate on current economic policies with leading economists.",
+    taggedPoliticianIds: ['p2'],
+    taggedPartyIds: ['party2']
   }
 ];
 
