@@ -183,6 +183,23 @@ export type HistoricalManifesto = {
   description?: string;
 };
 
+export type ElectionPerformanceRecord = {
+  electionYear: string;
+  electionType: 'General' | 'Local' | 'Provincial' | 'National Assembly' | 'Other';
+  seatsContested?: number;
+  seatsWon: number;
+  votePercentage?: number;
+  notes?: string; // e.g., "Formed coalition government", "Significant gains in X region"
+};
+
+export type NewsArticleLink = {
+  title: string;
+  url: string;
+  sourceName: string;
+  publicationDate: string; // ISO Date string
+  summary?: string;
+};
+
 export interface Party {
   id: string;
   name: string;
@@ -205,7 +222,7 @@ export interface Party {
   ideology?: string[];
   detailedIdeologyDescription?: string;
   partyManifestoUrl?: string; 
-  historicalManifestos?: HistoricalManifesto[]; // New
+  historicalManifestos?: HistoricalManifesto[];
   parentPartyId?: string; 
   parentPartyName?: string; 
   splinterPartyIds?: string[]; 
@@ -217,6 +234,8 @@ export interface Party {
   stancesOnIssues?: PartyStance[]; 
   fundingSources?: FundingSource[]; 
   intraPartyElections?: IntraPartyElection[]; 
+  electionHistory?: ElectionPerformanceRecord[]; // New
+  relatedNews?: NewsArticleLink[]; // New
   isActive?: boolean;
   isNationalParty?: boolean;
   dataAiHint?: string;
@@ -362,3 +381,5 @@ export interface Controversy {
   summaryOutcome?: string; // Overall summary of the outcome
   dataAiHint?: string; // For main image if any
 }
+
+    

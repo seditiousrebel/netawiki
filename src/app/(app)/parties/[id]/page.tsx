@@ -9,12 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge }
 from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone, DollarSign, VoteIcon, BookOpen } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone, DollarSign, VoteIcon, BookOpen, BarChart3, Newspaper, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
-import type { PromiseItem, LeadershipEvent, Party, PartyAlliance, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection, HistoricalManifesto } from '@/types/gov';
+import type { PromiseItem, LeadershipEvent, Party, PartyAlliance, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection, HistoricalManifesto, ElectionPerformanceRecord, NewsArticleLink } from '@/types/gov';
 import { TimelineDisplay } from '@/components/common/timeline-display';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 
 interface TimelineItem {
   date: string;
@@ -531,6 +533,71 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               </CardContent>
             </Card>
           )}
+          
+          {party.electionHistory && party.electionHistory.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><BarChart3 className="text-primary"/> Election Performance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Year</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead className="text-right">Seats Won</TableHead>
+                      <TableHead className="text-right">Vote %</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {party.electionHistory.map((record: ElectionPerformanceRecord, idx: number) => (
+                      <TableRow key={idx}>
+                        <TableCell>{record.electionYear}</TableCell>
+                        <TableCell>{record.electionType}</TableCell>
+                        <TableCell className="text-right">{record.seatsWon}</TableCell>
+                        <TableCell className="text-right">{record.votePercentage ? `${record.votePercentage.toFixed(1)}%` : 'N/A'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <p className="text-xs text-muted-foreground mt-3">Note: Graphs and more detailed election analysis can be added in future updates.</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {party.relatedNews && party.relatedNews.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><Newspaper className="text-primary"/> Related News</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {party.relatedNews.map((news: NewsArticleLink, idx: number) => (
+                    <li key={idx} className="text-sm border-b pb-2 last:border-b-0">
+                      <a href={news.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
+                        {news.title}
+                      </a>
+                      <p className="text-xs text-muted-foreground">{news.sourceName} - {new Date(news.publicationDate).toLocaleDateString()}</p>
+                      {news.summary && <p className="text-xs text-foreground/80 mt-1">{news.summary}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><TrendingUp className="text-primary"/> Analytics Snapshot</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <p>Current Seat Distribution (Federal): [Data Unavailable - Graph Placeholder]</p>
+                <p>Current Seat Distribution (Provincial): [Data Unavailable - Graph Placeholder]</p>
+                <p>Estimated Member Count: [Data Unavailable]</p>
+                <p>Party Promise Fulfillment Rate (Overall): [Data Unavailable]</p>
+                <p className="text-xs pt-2 border-t">Note: Detailed analytics and visualizations will be implemented in future updates.</p>
+            </CardContent>
+          </Card>
 
 
           {party.wings && party.wings.length > 0 && (
@@ -676,6 +743,5 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
     </div>
   );
 }
-
 
     

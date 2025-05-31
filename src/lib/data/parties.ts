@@ -1,6 +1,6 @@
 
 
-import type { Party, LeadershipEvent, PartyAlliance, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection, HistoricalManifesto } from '@/types/gov';
+import type { Party, LeadershipEvent, PartyAlliance, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection, HistoricalManifesto, ElectionPerformanceRecord, NewsArticleLink } from '@/types/gov';
 
 const bupLeadershipHistory: LeadershipEvent[] = [
   { name: 'Arthur Founder', role: 'Founding Chair', startDate: '1990-07-04', endDate: '1998-06-30' },
@@ -63,6 +63,27 @@ const bupHistoricalManifestos: HistoricalManifesto[] = [
   { year: '2014', url: 'https://blueunity.example.com/manifesto-2014.pdf', description: 'Party platform for the 2014 National Assembly elections.' },
 ];
 
+const bupElectionHistory: ElectionPerformanceRecord[] = [
+  { electionYear: '2019', electionType: 'General', seatsContested: 150, seatsWon: 65, votePercentage: 35.5, notes: 'Formed a coalition government.' },
+  { electionYear: '2020', electionType: 'Local', seatsWon: 320, notes: 'Gained majority in 5 key municipalities.' },
+  { electionYear: '2024', electionType: 'General', seatsContested: 160, seatsWon: 72, votePercentage: 38.2, notes: 'Increased seat share.' },
+];
+
+const ragElectionHistory: ElectionPerformanceRecord[] = [
+  { electionYear: '2019', electionType: 'General', seatsContested: 140, seatsWon: 55, votePercentage: 30.1 },
+  { electionYear: '2024', electionType: 'General', seatsContested: 155, seatsWon: 60, votePercentage: 32.5, notes: 'Main opposition party.' },
+];
+
+const bupRelatedNews: NewsArticleLink[] = [
+  { title: "BUP Unveils New Climate Policy", url: "https://example.com/news/bup-climate", sourceName: "National Times", publicationDate: "2024-05-10", summary: "The Blue Unity Party today announced a comprehensive new policy aimed at accelerating the transition to renewable energy sources." },
+  { title: "Party Chair Vanguard Addresses Annual Conference", url: "https://example.com/news/vanguard-conference", sourceName: "Capital City Gazette", publicationDate: "2024-04-20", summary: "Eleanor Vanguard outlined the party's vision for the upcoming year, focusing on economic equity and social programs." }
+];
+
+const ragRelatedNews: NewsArticleLink[] = [
+  { title: "RAG Proposes Tax Reform Package", url: "https://example.com/news/rag-tax-reform", sourceName: "Economic Daily", publicationDate: "2024-06-01", summary: "The Red Alliance Group introduced a new tax reform package aimed at stimulating business investment." },
+];
+
+
 export const mockParties: Party[] = [
   {
     id: 'party1',
@@ -106,6 +127,8 @@ export const mockParties: Party[] = [
     stancesOnIssues: bupStances,
     fundingSources: bupFundingSources,
     intraPartyElections: bupIntraPartyElections,
+    electionHistory: bupElectionHistory,
+    relatedNews: bupRelatedNews,
     isActive: true,
     isNationalParty: true,
     controversyIds: ['c1'], 
@@ -149,6 +172,8 @@ export const mockParties: Party[] = [
     ],
     splitMergerHistory: ragSplitMergerHistory,
     stancesOnIssues: ragStances,
+    electionHistory: ragElectionHistory,
+    relatedNews: ragRelatedNews,
     isActive: false, 
     isNationalParty: false, 
     controversyIds: ['c2'], 
@@ -195,3 +220,5 @@ export function getPartyById(id: string): Party | undefined {
 export function getPartyNameById(id: string): string | undefined {
   return mockParties.find(p => p.id === id)?.name;
 }
+
+    
