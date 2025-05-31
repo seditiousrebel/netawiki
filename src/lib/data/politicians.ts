@@ -1,5 +1,5 @@
 
-import type { Politician, AssetDeclaration, CriminalRecord } from '@/types/gov';
+import type { Politician, AssetDeclaration, CriminalRecord, CommitteeMembership } from '@/types/gov';
 
 const aliceAssetDeclarations: AssetDeclaration[] = [
   { year: 2023, description: 'Primary Residence, Anytown', value: '$500,000 - $750,000', sourceUrl: 'https://example.com/alice-assets-2023.pdf' },
@@ -25,6 +25,18 @@ const bobCriminalRecords: CriminalRecord[] = [
     summary: 'A defamation lawsuit filed by a political opponent was dismissed by the court.',
   }
 ];
+
+const aliceCommitteeMemberships: CommitteeMembership[] = [
+  { committeeName: 'Senate Committee on Energy and Natural Resources', role: 'Member', startDate: '2021-01-20', endDate: 'Present' },
+  { committeeName: 'Joint Economic Committee', role: 'Member', startDate: '2022-03-10', endDate: 'Present' },
+  { committeeName: 'City Planning Oversight Committee', role: 'Chair', startDate: '2016-01-01', endDate: '2019-12-31'}
+];
+
+const bobCommitteeMemberships: CommitteeMembership[] = [
+    { committeeName: 'House Committee on Ways and Means', role: 'Member', startDate: '2019-01-15', endDate: 'Present' },
+    { committeeName: 'House Committee on Small Business', role: 'Ranking Member', startDate: '2023-01-10', endDate: 'Present' },
+];
+
 
 export const mockPoliticians: Politician[] = [
   {
@@ -57,6 +69,7 @@ export const mockPoliticians: Politician[] = [
     ],
     assetDeclarations: aliceAssetDeclarations,
     criminalRecords: [], // Alice has a clean record for now
+    committeeMemberships: aliceCommitteeMemberships,
     overallRating: 4.5,
     voteScore: 78,
   },
@@ -86,7 +99,9 @@ export const mockPoliticians: Politician[] = [
       { institution: 'Commerce Institute', degree: 'MBA', field: 'Business Administration', graduationYear: '2008' },
       { institution: 'Tech College', degree: 'B.S.', field: 'Economics', graduationYear: '2005' },
     ],
+    assetDeclarations: [],
     criminalRecords: bobCriminalRecords,
+    committeeMemberships: bobCommitteeMemberships,
     overallRating: 3.8,
     voteScore: 65,
   },

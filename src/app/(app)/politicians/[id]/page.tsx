@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3 } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
-import type { PromiseItem, AssetDeclaration, CriminalRecord } from '@/types/gov';
+import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership } from '@/types/gov';
 
 export default function PoliticianProfilePage({ params }: { params: { id: string } }) {
   const politician = getPoliticianById(params.id);
@@ -113,6 +113,31 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
               </ul>
             </CardContent>
           </Card>
+
+          {politician.committeeMemberships && politician.committeeMemberships.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <Landmark className="h-5 w-5 text-primary"/> Committee Memberships
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {politician.committeeMemberships.map((mem, idx) => (
+                    <li key={idx} className="text-sm">
+                      <p className="font-semibold">{mem.committeeName}</p>
+                      {mem.role && <p className="text-muted-foreground">{mem.role}</p>}
+                      {mem.startDate && (
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(mem.startDate).toLocaleDateString()} - {mem.endDate && mem.endDate !== 'Present' ? new Date(mem.endDate).toLocaleDateString() : 'Present'}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>

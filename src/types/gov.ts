@@ -46,6 +46,13 @@ export type CriminalRecord = {
   sourceUrl?: string;
 };
 
+export type CommitteeMembership = {
+  committeeName: string;
+  role?: string; // e.g., Chair, Member
+  startDate?: string;
+  endDate?: string; // 'Present' if ongoing
+};
+
 export interface Politician {
   id: string;
   name: string;
@@ -62,6 +69,7 @@ export interface Politician {
   education?: EducationEntry[];
   assetDeclarations?: AssetDeclaration[];
   criminalRecords?: CriminalRecord[];
+  committeeMemberships?: CommitteeMembership[];
   overallRating?: number; // e.g., 1-5 stars
   voteScore?: number; // e.g., 0-100%
   dataAiHint?: string;
