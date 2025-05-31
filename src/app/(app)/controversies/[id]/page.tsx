@@ -105,6 +105,23 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
             </Card>
           )}
 
+          {controversy.officialResponses && controversy.officialResponses.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><MessageSquare className="text-primary"/> Official Responses</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {controversy.officialResponses.map((response, idx) => (
+                  <div key={idx} className="text-sm border-l-4 border-primary/50 pl-3 py-1 bg-muted/30 rounded-r-sm">
+                    <p className="font-semibold">{response.entityName} <span className="text-xs text-muted-foreground">({format(new Date(response.date), 'MM/dd/yyyy')})</span></p>
+                    <blockquote className="italic text-foreground/80 mt-1">"{response.responseText}"</blockquote>
+                    {response.sourceUrl && <a href={response.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1 mt-1.5">View Source <ExternalLink className="h-3 w-3"/></a>}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
           {controversy.legalProceedings && controversy.legalProceedings.length > 0 && (
             <Card>
               <CardHeader>
@@ -183,23 +200,6 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
                     </li>
                   ))}
                 </ul>
-              </CardContent>
-            </Card>
-          )}
-
-          {controversy.officialResponses && controversy.officialResponses.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-headline text-xl flex items-center gap-2"><MessageSquare className="text-primary"/> Official Responses</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {controversy.officialResponses.map((response, idx) => (
-                  <div key={idx} className="text-sm border-l-4 border-primary/50 pl-3 py-1 bg-muted/30 rounded-r-sm">
-                    <p className="font-semibold">{response.entityName} <span className="text-xs text-muted-foreground">({format(new Date(response.date), 'MM/dd/yyyy')})</span></p>
-                    <blockquote className="italic text-foreground/80 mt-1">"{response.responseText}"</blockquote>
-                    {response.sourceUrl && <a href={response.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1 mt-1.5">View Source <ExternalLink className="h-3 w-3"/></a>}
-                  </div>
-                ))}
               </CardContent>
             </Card>
           )}
