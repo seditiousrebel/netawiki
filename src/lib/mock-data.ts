@@ -17,8 +17,8 @@ export const mockControversies: Controversy[] = _mockControversies;
 
 // Re-export all the getter functions directly from their source files
 export { getPoliticianById } from './data/politicians';
-export { getPartyById } from './data/parties';
-export { getPromisesByPolitician } from './data/promises';
+export { getPartyById, getPartyNameById } from './data/parties';
+export { getPromisesByPolitician, getPromisesByPartyId } from './data/promises';
 export { getBillById, getBillsBySponsor } from './data/bills';
 export { getControversyById, getControversiesByPoliticianId, getControversiesByPartyId } from './data/controversies';
 
@@ -30,5 +30,6 @@ export type {
     ControversyEvidenceLink,
     ControversyOfficialResponse,
     ControversyMediaCoverage,
-    ControversyLegalProceeding
+    ControversyLegalProceeding,
+    PromiseItem
 };

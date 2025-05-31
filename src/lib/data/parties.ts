@@ -9,7 +9,8 @@ export const mockParties: Party[] = [
     abbreviation: 'BUP',
     slug: 'blue-unity-party',
     leadership: [
-      { name: 'Eleanor Vanguard', role: 'Party Chair', politicianId: 'p3' }, // Assuming Eleanor is a placeholder for a politician
+      { name: 'Eleanor Vanguard', role: 'Party Chair', politicianId: 'p3' },
+      { name: 'Alice Democratia', role: 'Policy Head', politicianId: 'p1' },
       { name: 'John Smith', role: 'General Secretary' }
     ],
     contactInfo: { 
@@ -74,7 +75,7 @@ export const mockParties: Party[] = [
     splinterPartyNames: ['Neo-Libertarian Movement'],
     wings: [
       { name: 'Business Council', description: 'Connecting with and supporting the business community.' },
-      { name: 'Veterans Affairs Wing', keyLeaders: [{name: 'Colonel Strong'}]}
+      { name: 'Veterans Affairs Wing', keyLeaders: [{name: 'Colonel Strong', politicianId: 'p2' }]} // Assuming Col Strong is Bob R. for demo
     ],
     isActive: true,
     isNationalParty: true,

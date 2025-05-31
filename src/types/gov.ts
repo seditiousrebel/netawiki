@@ -159,7 +159,8 @@ export interface Party {
 
 export interface PromiseItem {
   id: string;
-  politicianId: string; // Link to Politician
+  politicianId?: string; // Link to Politician (can be optional if partyId is present)
+  partyId?: string; // Link to Party (new)
   title: string;
   description: string;
   dueDate?: string;

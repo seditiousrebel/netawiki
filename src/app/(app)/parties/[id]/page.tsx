@@ -2,15 +2,17 @@
 "use client";
 
 import Image from 'next/image';
-import { getPartyById, mockPoliticians, getPartyNameById } from '@/lib/mock-data';
+import { getPartyById, mockPoliticians, getPartyNameById, getPromisesByPartyId } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
+import type { PromiseItem } from '@/types/gov';
+
 
 export default function PartyProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
@@ -34,6 +36,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   }
   
   const partyMembers = mockPoliticians.filter(p => p.partyId === party.id);
+  const partyPromises = getPromisesByPartyId(party.id);
 
   const handleSuggestEdit = () => {
     toast({
@@ -109,9 +112,9 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                         <Image
                             src={party.flagUrl}
                             alt={`${party.name} Flag`}
-                            width={60} // Flags are often wider
+                            width={60} 
                             height={40}
-                            className="object-cover border rounded-md" // Use object-cover for flags
+                            className="object-cover border rounded-md"
                              data-ai-hint={party.dataAiHint || "party flag"}
                         />
                         </div>
@@ -227,7 +230,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
            {(party.detailedIdeologyDescription || party.partyManifestoUrl) && (
             <Card>
               <CardHeader>
-                <CardTitle className="font-headline text-xl flex items-center gap-2"><Milestone className="text-primary"/> Ideology & Platform</CardTitle>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><Milestone className="text-primary"/> Ideology &amp; Platform</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {party.detailedIdeologyDescription && <p className="text-foreground/80 whitespace-pre-line">{party.detailedIdeologyDescription}</p>}
@@ -245,17 +248,15 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
           {(party.parentPartyName || (party.splinterPartyNames && party.splinterPartyNames.length > 0) || (party.internationalAffiliations && party.internationalAffiliations.length > 0)) && (
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline text-xl flex items-center gap-2"><LinkIcon className="text-primary"/> Affiliations & Structure</CardTitle>
+                    <CardTitle className="font-headline text-xl flex items-center gap-2"><LinkIcon className="text-primary"/> Affiliations &amp; Structure</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
                     {party.parentPartyName && (
                         <p><span className="font-semibold">Parent Party:</span> {party.parentPartyName}
-                        {/* Future: Could link to parentPartyId if that page exists */}
                         </p>
                     )}
                     {party.splinterPartyNames && party.splinterPartyNames.length > 0 && (
                          <p><span className="font-semibold">Splinter Parties:</span> {party.splinterPartyNames.join(', ')}
-                         {/* Future: Could link to splinterPartyIds if those pages exist */}
                          </p>
                     )}
                     {party.internationalAffiliations && party.internationalAffiliations.length > 0 && (
@@ -306,20 +307,51 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><UserCheck className="text-primary"/> Notable Members</CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-2">
-                  {partyMembers.slice(0, 5).map(member => ( // Display first 5 members
+                <ul className="space-y-2 text-sm">
+                  {partyMembers.slice(0, 5).map(member => ( 
                     <li key={member.id}>
                       <Link href={`/politicians/${member.id}`} className="text-primary hover:underline">
                         {member.name}
                       </Link>
-                       {member.positions[0] && <span className="text-sm text-muted-foreground"> - {member.positions[0].title}</span>}
+                       {member.positions[0] && <span className="text-muted-foreground text-xs"> - {member.positions[0].title}</span>}
                     </li>
                   ))}
                 </ul>
                 {partyMembers.length > 5 && (
-                    // TODO: Link to a filtered politician list or a dedicated party members page
-                    <Button variant="link" className="p-0 h-auto text-primary mt-2">View all members</Button>
+                    <Link href={`/politicians?partyId=${party.id}`} className="mt-2 inline-block">
+                        <Button variant="link" className="p-0 h-auto text-primary text-sm">View all members...</Button>
+                    </Link>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {partyPromises.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><ClipboardList className="text-primary"/> Party Promises</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {partyPromises.map((promise: PromiseItem) => (
+                    <li key={promise.id} className="p-3 border rounded-md bg-secondary/50">
+                      <Link href={`/promises#${promise.id}`} className="font-semibold text-primary hover:underline">
+                        {promise.title}
+                      </Link>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Status: {promise.status} {promise.dueDate && `(Due: ${new Date(promise.dueDate).toLocaleDateString()})`}
+                      </p>
+                       {promise.politicianId && mockPoliticians.find(p=>p.id === promise.politicianId) && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                            Promised by: <Link href={`/politicians/${promise.politicianId}`} className="text-primary/80 hover:underline"> {mockPoliticians.find(p=>p.id === promise.politicianId)?.name}</Link>
+                        </p>
+                       )}
+                    </li>
+                  ))}
+                </ul>
+                 <Link href="/promises" className="mt-4 inline-block">
+                  <Button variant="link" className="p-0 h-auto text-primary text-sm">View all promises</Button>
+               </Link>
               </CardContent>
             </Card>
           )}
