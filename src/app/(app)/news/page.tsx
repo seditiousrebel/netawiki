@@ -15,19 +15,19 @@ import { Label } from '@/components/ui/label';
 import { ArrowRight, FileText, ExternalLink, SearchIcon, CheckSquare, ShieldQuestion } from 'lucide-react';
 import type { NewsArticleLink, NewsArticleCategory } from '@/types/gov';
 import { format } from 'date-fns';
-import { Button } from '@/components/ui/button'; // Added
-import { PlusCircle } from 'lucide-react'; // Added
-import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form'; // Added
-import { entitySchemas } from '@/lib/schemas'; // Added
-import type { EntityType } from '@/lib/data/suggestions'; // Added
-import { getCurrentUser, isUserLoggedIn } from '@/lib/auth'; // Added
-import { useRouter } from 'next/navigation'; // Added
-import { useToast } from "@/hooks/use-toast"; // Added
+// Removed duplicate import: import { Button } from '@/components/ui/button'; 
+import { PlusCircle } from 'lucide-react'; 
+import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form'; 
+import { entitySchemas } from '@/lib/schemas'; 
+import type { EntityType } from '@/lib/data/suggestions'; 
+import { getCurrentUser, isUserLoggedIn } from '@/lib/auth'; 
+import { useRouter } from 'next/navigation'; 
+import { useToast } from "@/hooks/use-toast"; 
 
 export default function NewsPage() {
-  const router = useRouter(); // Added
-  const { toast } = useToast(); // Added
-  const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false); // Added
+  const router = useRouter(); 
+  const { toast } = useToast(); 
+  const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false); 
   const [articles, setArticles] = useState<NewsArticleLink[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<NewsArticleLink[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,7 +79,7 @@ export default function NewsPage() {
     setFilteredArticles(tempArticles);
   }, [articles, searchTerm, selectedCategory, sortOption]);
 
-  const handleOpenSuggestModal = () => { // Added
+  const handleOpenSuggestModal = () => { 
     if (isUserLoggedIn()) {
       setIsSuggestModalOpen(true);
     } else {
@@ -87,7 +87,7 @@ export default function NewsPage() {
     }
   };
 
-  const handleSuggestSubmit = (formData: any) => { // Added
+  const handleSuggestSubmit = (formData: any) => { 
     console.log('New News Suggestion:', formData);
     toast({
       title: "Suggestion Submitted",
@@ -101,14 +101,14 @@ export default function NewsPage() {
       <PageHeader
         title="News & Articles"
         description="Stay updated with the latest political news, analyses, and fact-checks."
-        actions={ // Added actions prop
+        actions={ 
           <Button variant="default" onClick={handleOpenSuggestModal}>
             <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Article
           </Button>
         }
       />
 
-      {isSuggestModalOpen && entitySchemas.News && ( // Added SuggestNewEntryForm
+      {isSuggestModalOpen && entitySchemas.News && ( 
         <SuggestNewEntryForm
           isOpen={isSuggestModalOpen}
           onOpenChange={setIsSuggestModalOpen}
@@ -167,7 +167,7 @@ export default function NewsPage() {
               {article.dataAiHint && (
                  <div className="sm:w-1/4 md:w-1/5 lg:w-1/6 flex-shrink-0">
                     <Image
-                        src={`https://placehold.co/300x200.png`} // Placeholder image
+                        src={`https://placehold.co/300x200.png`} 
                         alt={article.title}
                         width={300}
                         height={200}
