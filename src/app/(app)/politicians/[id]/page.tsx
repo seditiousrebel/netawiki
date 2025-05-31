@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon, Newspaper, History, Download, Trash2 } from 'lucide-react'; // Added Download and Trash2 icons
-import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
+import { TimelineDisplay, formatCombinedCareerTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent, NewsArticleLink } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
@@ -271,6 +271,19 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     // Reset form (optional)
     // setCurrentRating(0);
     // setCommentText("");
+  };
+
+  async function handleExportPdfWrapper() {
+    if (!politician) return;
+    const fileName = `politician-${politician.name.toLowerCase().replace(/\s+/g, '-')}-profile.pdf`;
+    // Call the utility function
+    await exportElementAsPDF('politician-profile-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  const handleDelete = () => {
+    if (!politician) return;
+    alert(`Mock delete action for politician: ${politician.name}`);
+    // console.log(`Attempting to delete politician: ${politician.id} - ${politician.name}`);
   };
 
   return (
@@ -910,17 +923,4 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
       </div>
     </div>
   );
-
-  async function handleExportPdfWrapper() { // Renamed to avoid conflict if any, and to signify it's a wrapper
-    if (!politician) return;
-    const fileName = `politician-${politician.name.toLowerCase().replace(/\s+/g, '-')}-profile.pdf`;
-    // Call the utility function
-    await exportElementAsPDF('politician-profile-export-area', fileName, setIsGeneratingPdf);
-  }
-
-  const handleDelete = () => {
-    if (!politician) return;
-    alert(`Mock delete action for politician: ${politician.name}`);
-    // console.log(`Attempting to delete politician: ${politician.id} - ${politician.name}`);
-  };
 }
