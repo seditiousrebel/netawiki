@@ -1,3 +1,6 @@
+
+"use client";
+
 import { getBillById } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
@@ -7,13 +10,23 @@ import { Edit, Users, CalendarDays, CheckSquare, XSquare, ExternalLink, Landmark
 import Link from 'next/link';
 import { TimelineDisplay, formatAmendmentsForTimeline } from '@/components/common/timeline-display';
 import type { VoteRecord } from '@/types/gov';
+import { useToast } from "@/hooks/use-toast";
 
 export default function BillDetailsPage({ params }: { params: { id: string } }) {
   const bill = getBillById(params.id);
+  const { toast } = useToast();
 
   if (!bill) {
     return <p>Bill not found.</p>;
   }
+
+  const handleSuggestEdit = () => {
+    toast({
+      title: "Suggest Edit Feature",
+      description: "This functionality is under development. Approved suggestions will update the content. You can see mock suggestions being managed on the /admin/suggestions page.",
+      duration: 6000,
+    });
+  };
 
   return (
     <div>
@@ -21,7 +34,7 @@ export default function BillDetailsPage({ params }: { params: { id: string } }) 
         title={`${bill.title} (${bill.billNumber})`}
         description={`Introduced on ${new Date(bill.introducedDate).toLocaleDateString()}`}
         actions={
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleSuggestEdit}>
             <Edit className="mr-2 h-4 w-4" /> Suggest Edit
           </Button>
         }

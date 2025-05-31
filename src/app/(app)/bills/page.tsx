@@ -1,3 +1,6 @@
+
+"use client";
+
 import { PageHeader } from '@/components/common/page-header';
 import { mockBills } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,10 +9,19 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowRight, FileText, Edit } from 'lucide-react';
 import type { Bill } from '@/types/gov';
-
+import { useToast } from "@/hooks/use-toast";
 
 export default function BillsPage() {
   const bills = mockBills;
+  const { toast } = useToast();
+
+  const handleSuggestEdit = () => {
+    toast({
+      title: "Suggest Edit Feature",
+      description: "This functionality is under development. Approved suggestions will update the content. You can see mock suggestions being managed on the /admin/suggestions page.",
+      duration: 6000,
+    });
+  };
 
   return (
     <div>
@@ -55,7 +67,7 @@ export default function BillsPage() {
                 )}
               </CardContent>
               <CardFooter className="flex justify-between items-center">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" onClick={handleSuggestEdit}>
                   <Edit className="mr-2 h-3 w-3" /> Suggest Edit
                 </Button>
                 <Link href={`/bills/${bill.id}`}>

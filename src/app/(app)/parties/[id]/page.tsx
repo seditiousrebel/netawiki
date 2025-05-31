@@ -1,3 +1,6 @@
+
+"use client";
+
 import Image from 'next/image';
 import { getPartyById, mockPoliticians } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
@@ -5,9 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from "@/hooks/use-toast";
 
 export default function PartyProfilePage({ params }: { params: { id: string } }) {
   const party = getPartyById(params.id);
+  const { toast } = useToast();
 
   if (!party) {
     return <p>Party not found.</p>;
@@ -15,13 +20,21 @@ export default function PartyProfilePage({ params }: { params: { id: string } })
   
   const partyMembers = mockPoliticians.filter(p => p.partyId === party.id);
 
+  const handleSuggestEdit = () => {
+    toast({
+      title: "Suggest Edit Feature",
+      description: "This functionality is under development. Approved suggestions will update the content. You can see mock suggestions being managed on the /admin/suggestions page.",
+      duration: 6000,
+    });
+  };
+
   return (
     <div>
       <PageHeader
         title={party.name}
         description="Detailed information about the political party."
         actions={
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleSuggestEdit}>
             <Edit className="mr-2 h-4 w-4" /> Suggest Edit
           </Button>
         }

@@ -1,3 +1,6 @@
+
+"use client";
+
 import Image from 'next/image';
 import { getPoliticianById, getPromisesByPolitician, mockParties, getBillsBySponsor } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
@@ -8,9 +11,11 @@ import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill } from '@/types/gov';
+import { useToast } from "@/hooks/use-toast";
 
 export default function PoliticianProfilePage({ params }: { params: { id: string } }) {
   const politician = getPoliticianById(params.id);
+  const { toast } = useToast();
   
   if (!politician) {
     return <p>Politician not found.</p>;
@@ -27,13 +32,21 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
         return 'destructive';
       case 'Alleged':
       case 'Under Investigation':
-        return 'secondary'; // or a yellow/orange if defined
+        return 'secondary'; 
       case 'Acquitted':
       case 'Dismissed':
-        return 'default'; // or a green if defined
+        return 'default'; 
       default:
         return 'outline';
     }
+  };
+
+  const handleSuggestEdit = () => {
+    toast({
+      title: "Suggest Edit Feature",
+      description: "This functionality is under development. Approved suggestions will update the content. You can see mock suggestions being managed on the /admin/suggestions page.",
+      duration: 6000,
+    });
   };
 
 
@@ -43,7 +56,7 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
         title={politician.name}
         description={politician.positions[0]?.title || 'Public Figure'}
         actions={
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleSuggestEdit}>
             <Edit className="mr-2 h-4 w-4" /> Suggest Edit
           </Button>
         }
@@ -218,7 +231,7 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                 )}
                 {politician.voteScore !== undefined && (
                   <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-primary" /> {/* Using Users icon as placeholder for vote score concept */}
+                    <Users className="h-5 w-5 text-primary" /> 
                     <span className="font-semibold text-lg">{politician.voteScore}%</span>
                     <span className="text-sm text-muted-foreground">Vote Score (Hypothetical)</span>
                   </div>

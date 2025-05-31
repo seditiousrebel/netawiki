@@ -1,3 +1,6 @@
+
+"use client";
+
 import { PageHeader } from '@/components/common/page-header';
 import { mockPromises, mockPoliticians } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink, Edit, User, CalendarClock, CheckCircle, XCircle, RefreshCw, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import type { PromiseStatus, PromiseItem } from '@/types/gov';
+import { useToast } from "@/hooks/use-toast";
 
 function getStatusColor(status: PromiseStatus): string {
   switch (status) {
@@ -30,6 +34,15 @@ function getStatusIcon(status: PromiseStatus) {
 
 export default function PromisesPage() {
   const promises = mockPromises;
+  const { toast } = useToast();
+
+  const handleSuggestEdit = () => {
+    toast({
+      title: "Suggest Edit Feature",
+      description: "This functionality is under development. Approved suggestions will update the content. You can see mock suggestions being managed on the /admin/suggestions page.",
+      duration: 6000,
+    });
+  };
 
   return (
     <div>
@@ -90,7 +103,7 @@ export default function PromisesPage() {
                   )}
                 </CardContent>
                 <CardFooter className="flex justify-end">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" onClick={handleSuggestEdit}>
                     <Edit className="mr-2 h-3 w-3" /> Suggest Edit
                   </Button>
                 </CardFooter>
