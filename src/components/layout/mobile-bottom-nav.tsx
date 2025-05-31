@@ -2,35 +2,58 @@
 "use client";
 
 import Link from 'next/link';
-import { Compass, Grid3X3, UserCircle, Home } from 'lucide-react'; // Updated icons
+import { Home, Grid3X3, UserCircle } from 'lucide-react'; // Updated icons
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { getCurrentUser } from '@/lib/auth'; // To construct profile link
+import React, { useState, useEffect } from 'react'; // Import useState and useEffect
 
-const navItems = [
-  { href: '/feed', label: 'Feed', icon: Home }, // Changed Home to Feed, kept Home icon for familiarity
-  { href: '/explore', label: 'Explore', icon: Grid3X3 }, // Used Grid3X3 for Explore
-  { href: `/profile/current-user`, label: 'Profile', icon: UserCircle }, // Dynamic profile link
+// Base navigation items, Profile link will be added dynamically
+const baseNavItemsConfig = [
+  { href: '/feed', label: 'Feed', icon: Home },
+  { href: '/explore', label: 'Explore', icon: Grid3X3 },
 ];
 
 export function MobileBottomNav() {
   const pathname = usePathname();
-  const currentUser = getCurrentUser(); // Get current user to construct profile link
+  
+  // Initialize navItems with a server-safe profile link (guest user)
+  const [navItems, setNavItems] = useState(() => [
+    ...baseNavItemsConfig,
+    { href: `/profile/guestUser`, label: 'Profile', icon: UserCircle } 
+  ]);
 
-  // Update profile link dynamically based on user ID
-  const dynamicNavItems = navItems.map(item => {
-    if (item.label === 'Profile') {
-      return { ...item, href: `/profile/${currentUser.id || 'current-user'}` };
-    }
-    return item;
-  });
+  useEffect(() => {
+    // This effect runs only on the client after hydration
+    const clientCurrentUser = getCurrentUser(); // Now it's safe to access localStorage
+    
+    // Determine the correct profile link based on the client-side user
+    const profileLink = clientCurrentUser.role !== 'Guest' 
+      ? `/profile/${clientCurrentUser.id || 'current-user'}` // Fallback if id is somehow undefined
+      : '/auth/login'; // For guests, link to login page
+
+    setNavItems([
+      ...baseNavItemsConfig,
+      { href: profileLink, label: 'Profile', icon: UserCircle }
+    ]);
+  }, []); // Empty dependency array ensures this runs once on mount
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-t-lg z-40">
-      {/* Switched to CSS Grid for equal distribution */}
-      <div className={`grid grid-cols-${dynamicNavItems.length} items-center h-16`}>
-        {dynamicNavItems.map((item) => {
-          const isActive = (pathname === '/' && item.href === '/feed') || (item.href !== "/" && pathname.startsWith(item.href));
+      <div className={`grid grid-cols-${navItems.length} items-center h-16`}>
+        {navItems.map((item) => {
+          // Determine active state for the link
+          let isActive;
+          if (item.label === 'Profile' && item.href === '/auth/login') {
+            // Special case: if profile link points to login, check for /auth/login active state
+            isActive = pathname.startsWith('/auth/login');
+          } else if (item.href === '/feed' && pathname === '/') {
+            // Consider Feed active for the root path as well
+            isActive = true;
+          } else {
+            isActive = item.href !== "/" && pathname.startsWith(item.href);
+          }
+          
           return (
             <Link
               key={item.label}
