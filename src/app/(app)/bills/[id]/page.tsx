@@ -170,7 +170,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
               <CardContent className="space-y-4">
                 {bill.votingResults.house && (
                   <div>
-                    <h3 className="font-semibold text-md mb-1">House Vote ({format(new Date(bill.votingResults.house.date), 'MM/dd/yyyy')}): 
+                    <h3 className="font-semibold text-md mb-1 flex items-center">House Vote ({format(new Date(bill.votingResults.house.date), 'MM/dd/yyyy')}):
                       <Badge variant={bill.votingResults.house.passed ? "default" : "destructive"} className="ml-2">
                         {bill.votingResults.house.passed ? 'Passed' : 'Failed'}
                       </Badge>
@@ -187,7 +187,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                 )}
                  {bill.votingResults.senate && (
                   <div>
-                    <h3 className="font-semibold text-md mb-1">Senate Vote ({format(new Date(bill.votingResults.senate.date), 'MM/dd/yyyy')}):
+                    <h3 className="font-semibold text-md mb-1 flex items-center">Senate Vote ({format(new Date(bill.votingResults.senate.date), 'MM/dd/yyyy')}):
                       <Badge variant={bill.votingResults.senate.passed ? "default" : "destructive"} className="ml-2">
                         {bill.votingResults.senate.passed ? 'Passed' : 'Failed'}
                       </Badge>
@@ -277,12 +277,12 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
               <CardTitle className="font-headline text-xl flex items-center gap-2"><Clock className="text-primary"/> Key Dates</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1.5 text-sm text-muted-foreground">
-              <p><ShieldCheck className="inline-block h-4 w-4 mr-1 text-primary/70" /> Status: 
-                 <Badge variant={bill.status === 'Became Law' ? 'default' : 'secondary'} 
+              <div className="flex items-center gap-1"><ShieldCheck className="inline-block h-4 w-4 mr-1 text-primary/70" /> Status:
+                 <Badge variant={bill.status === 'Became Law' ? 'default' : 'secondary'}
                         className={`ml-1 ${bill.status === 'Became Law' ? 'bg-green-500 text-white' : ''}`}>
                     {bill.status}
                 </Badge>
-              </p>
+              </div>
               <p><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Introduced: {format(new Date(bill.introducedDate), 'MMMM dd, yyyy')}</p>
               {bill.keyDates?.committeeReferral && <p><GitBranch className="inline-block h-4 w-4 mr-1 text-primary/70" /> Committee Referral: {format(new Date(bill.keyDates.committeeReferral), 'MMMM dd, yyyy')}</p>}
               {bill.keyDates?.passedLowerHouse && <p><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Lower House: {format(new Date(bill.keyDates.passedLowerHouse), 'MMMM dd, yyyy')}</p>}
@@ -293,7 +293,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
               {bill.lastActionDescription && <p className="text-xs mt-1">{bill.lastActionDescription}</p>}
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="font-headline text-xl flex items-center gap-2"><Users className="text-primary"/> Sponsors</CardTitle>
@@ -311,7 +311,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
               </ul>
             </CardContent>
           </Card>
-          
+
           {bill.committees && bill.committees.length > 0 && (
              <Card>
                 <CardHeader>
@@ -337,7 +337,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                 </CardContent>
             </Card>
           )}
-          
+
           {bill.tags && bill.tags.length > 0 && (
              <Card>
                 <CardHeader>
