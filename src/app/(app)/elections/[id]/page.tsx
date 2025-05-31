@@ -1,18 +1,21 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { getElectionById, getCandidatesByElectionId, getPoliticianById, getPartyById, getNewsByElectionId } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { CalendarDays, Users, VoteIcon, MapPin, BarChart3, UserCircle, Flag, ExternalLink, CheckCircle, Award, Newspaper, History } from 'lucide-react';
+import { CalendarDays, Users, VoteIcon, MapPin, BarChart3, UserCircle, Flag, ExternalLink, CheckCircle, Award, Newspaper, History, Star, UserPlus } from 'lucide-react';
 import type { Election, ElectionCandidate, ElectionStatus, Politician, Party, NewsArticleLink, ElectionTimelineEvent } from '@/types/gov';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { TimelineDisplay, formatElectionTimelineEventsForTimeline } from '@/components/common/timeline-display';
+import { useToast } from "@/hooks/use-toast";
+
+const LOCAL_STORAGE_FOLLOWED_ELECTIONS_KEY = 'govtrackr_followed_elections';
 
 function getElectionStatusBadgeVariant(status: ElectionStatus) {
   // Same as list page, can be refactored to a common util if needed
@@ -31,6 +34,25 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
   const candidates = election ? getCandidatesByElectionId(election.id) : [];
   const relatedNews = election ? getNewsByElectionId(election.id) : [];
   const timelineItems = election?.timelineEvents ? formatElectionTimelineEventsForTimeline(election.timelineEvents) : [];
+  const { toast } = useToast();
+
+  const [isFollowingElection, setIsFollowingElection] = useState(false);
+  const [currentRating, setCurrentRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+
+  useEffect(() => {
+    if (election) {
+      try {
+        const followedItemsStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_ELECTIONS_KEY);
+        if (followedItemsStr) {
+          const followedIds: string[] = JSON.parse(followedItemsStr);
+          setIsFollowingElection(followedIds.includes(election.id));
+        }
+      } catch (error) {
+        console.error("Error reading followed elections from localStorage:", error);
+      }
+    }
+  }, [election]);
 
 
   if (!election) {
@@ -45,6 +67,59 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
       </div>
     );
   }
+
+  const handleFollowElectionToggle = () => {
+    if (!election) return;
+    const newFollowingState = !isFollowingElection;
+    setIsFollowingElection(newFollowingState);
+
+    try {
+      const followedItemsStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_ELECTIONS_KEY);
+      let followedIds: string[] = followedItemsStr ? JSON.parse(followedItemsStr) : [];
+
+      if (newFollowingState) {
+        if (!followedIds.includes(election.id)) {
+          followedIds.push(election.id);
+        }
+      } else {
+        followedIds = followedIds.filter(id => id !== election.id);
+      }
+      localStorage.setItem(LOCAL_STORAGE_FOLLOWED_ELECTIONS_KEY, JSON.stringify(followedIds));
+       toast({
+        title: newFollowingState ? `Following Election: "${election.name.substring(0,30)}..."` : `Unfollowed Election: "${election.name.substring(0,30)}..."`,
+        description: newFollowingState ? "You'll receive updates for this election (demo)." : "You will no longer receive updates (demo).",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error updating followed elections in localStorage:", error);
+      toast({
+        title: "Could not update follow status",
+        description: "There was an issue saving your follow preference. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      setIsFollowingElection(!newFollowingState); // Revert state
+    }
+  };
+
+  const handleRatingSubmit = () => {
+    if (currentRating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please select a star rating before submitting.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    console.log("Election Rating Submitted:", { electionId: election.id, rating: currentRating });
+    toast({
+      title: "Review Submitted (Demo)",
+      description: `You rated this election ${currentRating} star(s).`,
+      duration: 5000,
+    });
+  };
+
 
   return (
     <div>
@@ -174,6 +249,38 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
               </CardContent>
             </Card>
           )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center gap-2">
+                <Star className="h-5 w-5 text-primary" /> Rate this Election
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="mb-2 text-sm font-medium">Your Rating:</p>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`h-7 w-7 cursor-pointer transition-colors ${
+                        (hoverRating || currentRating) >= star
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : 'text-gray-300 hover:text-yellow-300'
+                      }`}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      onClick={() => setCurrentRating(star)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <Button onClick={handleRatingSubmit} className="w-full sm:w-auto" disabled={currentRating === 0}>
+                Submit Review
+              </Button>
+            </CardContent>
+          </Card>
+
         </div>
 
         <div className="lg:col-span-1 space-y-6">
@@ -205,9 +312,19 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
               <p className="text-muted-foreground text-sm">(Detailed voter turnout analysis will be displayed here in future updates.)</p>
             </CardContent>
           </Card>
+           <Button
+            onClick={handleFollowElectionToggle}
+            className="w-full"
+            variant={isFollowingElection ? "outline" : "default"}
+          >
+            {isFollowingElection ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+            {isFollowingElection ? `Following Election` : `Follow Election`}
+          </Button>
         </div>
       </div>
     </div>
   );
 }
 
+
+    

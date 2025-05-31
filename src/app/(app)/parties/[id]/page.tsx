@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge }
 from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone, DollarSign, VoteIcon, BookOpen, BarChart3, Newspaper, TrendingUp } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone, DollarSign, VoteIcon, BookOpen, BarChart3, Newspaper, TrendingUp, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
@@ -72,6 +72,8 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   const [leadershipTimelineItems, setLeadershipTimelineItems] = useState<TimelineItem[]>([]);
   const [splitMergerTimelineItems, setSplitMergerTimelineItems] = useState<TimelineItem[]>([]);
   const [isFollowingParty, setIsFollowingParty] = useState(false);
+  const [currentRating, setCurrentRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
 
 
   useEffect(() => {
@@ -157,6 +159,24 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
       title: newFollowingState ? `Following ${party.name}` : `Unfollowed ${party.name}`,
       description: newFollowingState ? "You'll receive updates for this party (demo)." : "You will no longer receive updates (demo).",
       duration: 3000,
+    });
+  };
+
+  const handleRatingSubmit = () => {
+    if (currentRating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please select a star rating before submitting.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    console.log("Party Rating Submitted:", { partyId: party.id, rating: currentRating });
+    toast({
+      title: "Review Submitted (Demo)",
+      description: `You rated ${party.name} ${currentRating} star(s).`,
+      duration: 5000,
     });
   };
 
@@ -489,7 +509,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                                    className={stance.stance === 'Supports' ? 'bg-green-500 text-white' : stance.stance === 'Opposes' ? 'bg-red-500 text-white' : ''}>
                                    {stance.stance}
                       </Badge>
-                      {stance.dateOfStance && <span className="text-xs text-muted-foreground">({new Date(stance.dateOfStance).toLocaleDateString()})</span>}
+                      {stance.dateOfStance && <span className="text-xs text-muted-foreground ml-2">({new Date(stance.dateOfStance).toLocaleDateString()})</span>}
                     </div>
                     {stance.statement && <p className="text-foreground/80 mt-1 italic">"{stance.statement}"</p>}
                     {stance.statementUrl && (
@@ -580,6 +600,37 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               </CardContent>
             </Card>
           )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center gap-2">
+                <Star className="h-5 w-5 text-primary" /> Rate this Party
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="mb-2 text-sm font-medium">Your Rating:</p>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`h-7 w-7 cursor-pointer transition-colors ${
+                        (hoverRating || currentRating) >= star
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : 'text-gray-300 hover:text-yellow-300'
+                      }`}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      onClick={() => setCurrentRating(star)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <Button onClick={handleRatingSubmit} className="w-full sm:w-auto" disabled={currentRating === 0}>
+                Submit Review
+              </Button>
+            </CardContent>
+          </Card>
 
           {relatedNews && relatedNews.length > 0 && (
             <Card>
@@ -759,3 +810,6 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
     </div>
   );
 }
+
+
+    
