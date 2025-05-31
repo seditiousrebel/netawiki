@@ -30,6 +30,7 @@ export type PartyAffiliation = {
 export type LeadershipMember = {
   name: string;
   role: string;
+  politicianId?: string; // Optional link to Politician profile
 };
 
 export type PromiseStatus = 'Pending' | 'In Progress' | 'Fulfilled' | 'Partially Fulfilled' | 'Broken' | 'Stalled' | 'Modified' | 'Cancelled';
@@ -117,16 +118,41 @@ export interface Politician {
   controversyIds?: string[]; // New: Link to controversies
 }
 
+export type PartyWing = {
+  name: string;
+  keyLeaders?: Array<{name: string, politicianId?: string}>;
+  description?: string;
+};
+
 export interface Party {
   id: string;
   name: string;
+  nepaliName?: string;
+  abbreviation?: string;
+  slug?: string;
   leadership: LeadershipMember[];
   contactInfo: ContactInfo;
+  headquartersAddress?: string;
   logoUrl: string; // URL to image
-  history: string; // Could be markdown or a structured object
+  flagUrl?: string;
   electionSymbolUrl: string; // URL to image
-  ideology?: string[];
+  partyColorHex?: string;
+  history: string; // Renamed to aboutParty in requirements, but keeping history for now and will use `aboutParty` for the detailed rich text.
+  aboutParty?: string; // history, mission, structure - rich text
   foundedDate?: string;
+  dissolvedDate?: string;
+  registrationNumber?: string;
+  ideology?: string[];
+  detailedIdeologyDescription?: string;
+  partyManifestoUrl?: string; // { latest?: string; historical?: string[]; };
+  parentPartyId?: string; // Link to another party ID
+  parentPartyName?: string; // Denormalized for display
+  splinterPartyIds?: string[]; // Links to other party IDs
+  splinterPartyNames?: string[]; // Denormalized for display
+  internationalAffiliations?: string[];
+  wings?: PartyWing[];
+  isActive?: boolean;
+  isNationalParty?: boolean;
   dataAiHint?: string;
   controversyIds?: string[]; // New: Link to controversies
 }
