@@ -2,22 +2,20 @@
 "use client";
 
 import Link from 'next/link';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet'; // Added SheetHeader, SheetTitle
 import { Button } from '@/components/ui/button';
 import { Menu, Search, UserCircle, ShieldCheck } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation'; // Combined useRouter import
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/gov';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import NotificationBell from './NotificationBell';
 
 // Simplified navLinks for the main app header
 const navLinks = [
-  { href: '/feed', label: 'My Feed' }, // Changed from Home to My Feed
+  { href: '/feed', label: 'My Feed' },
   { href: '/explore', label: 'Explore' },
-  // Entity-specific links are removed and will be in AppEntitySidebar
 ];
 
 export function AppHeader() {
@@ -25,26 +23,26 @@ export function AppHeader() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSheetOpen, setIsSheetOpen] = useState(false); // To control sheet state for title
 
   useEffect(() => {
-    // Simulate fetching user data
     const simulatedEmail = typeof window !== 'undefined' ? localStorage.getItem('simulatedUserEmail') : null;
     if (simulatedEmail === 'bhup0004@gmail.com') {
       setUser({ id: 'adminUser', name: 'Bhup Admin', email: 'bhup0004@gmail.com', followedPoliticians: [], followedParties: [] });
     } else if (simulatedEmail === 'seditiousrebel@gmail.com') {
       setUser({ id: 'memberUser', name: 'Seditious Rebel', email: 'seditiousrebel@gmail.com', followedPoliticians: [], followedParties: [] });
     } else if (typeof window !== 'undefined' && localStorage.getItem('currentUserRole') && localStorage.getItem('currentUserRole') !== 'Guest') {
-        // Fallback to generic mock user if a role is set and it's not Guest
         setUser({ id: 'mockUser', name: 'Demo User', email: 'mockuser@example.com', followedPoliticians: [], followedParties: [] });
     } else {
         setUser(null);
     }
-  }, [pathname]); // Re-check user on path change in case of localStorage updates
+  }, [pathname]);
 
   const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setIsSheetOpen(false); // Close sheet on search
     }
   };
 
@@ -56,14 +54,13 @@ export function AppHeader() {
           <span>GovTrackr</span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center space-x-1 text-sm font-medium"> {/* Reduced space-x-2 to space-x-1 */}
+        <nav className="hidden lg:flex items-center space-x-1 text-sm font-medium">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={cn(
-                'transition-colors hover:text-primary px-2.5 py-1.5 rounded-md text-sm', // Adjusted padding slightly
+                'transition-colors hover:text-primary px-2.5 py-1.5 rounded-md text-sm',
                 (pathname === '/' && link.href === '/') || (link.href !== '/' && pathname.startsWith(link.href))
                   ? 'text-primary bg-primary/10 font-semibold'
                   : 'text-foreground/70'
@@ -79,8 +76,8 @@ export function AppHeader() {
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search..." // Shortened placeholder
-              className="h-9 pl-8 pr-2 w-40 lg:w-56 xl:w-64" // Slightly adjusted widths
+              placeholder="Search..."
+              className="h-9 pl-8 pr-2 w-40 lg:w-56 xl:w-64"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -89,14 +86,14 @@ export function AppHeader() {
           <NotificationBell />
 
           {user ? (
-            <Link href={`/profile/${user.id}`}> {/* Link to dynamic profile page */}
-              <Button variant="ghost" className="gap-1.5 px-2 sm:px-3"> {/* Reduced gap */}
+            <Link href={`/profile/${user.id}`}>
+              <Button variant="ghost" className="gap-1.5 px-2 sm:px-3">
                 <UserCircle className="h-5 w-5" />
                 <span className="hidden sm:inline text-sm">{user.name || 'Profile'}</span>
               </Button>
             </Link>
           ) : (
-            <div className="hidden md:flex items-center gap-1"> {/* Reduced gap */}
+            <div className="hidden md:flex items-center gap-1">
               <Link href="/auth/login">
                 <Button variant="ghost" size="sm">Log In</Button>
               </Link>
@@ -106,17 +103,19 @@ export function AppHeader() {
             </div>
           )}
 
-          {/* Mobile Navigation */}
           <div className="lg:hidden">
-            <Sheet>
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] sm:w-[320px]"> {/* Slightly reduced width */}
-                <nav className="flex flex-col space-y-3 mt-6"> {/* Reduced space-y and mt */}
+              <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+                <SheetHeader>
+                  <SheetTitle className="sr-only">Menu</SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col space-y-3 mt-6">
                    <form onSubmit={handleSearchSubmit} className="relative mb-2">
                     <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
@@ -132,18 +131,19 @@ export function AppHeader() {
                       key={link.href}
                       href={link.href}
                       className={cn(
-                        'text-base transition-colors hover:text-primary p-2.5 rounded-md', // Adjusted padding
+                        'text-base transition-colors hover:text-primary p-2.5 rounded-md',
                          (pathname === '/' && link.href === '/') || (link.href !== '/' && pathname.startsWith(link.href))
                           ? 'text-primary font-semibold bg-primary/10'
                           : 'text-foreground/80'
                       )}
+                      onClick={() => setIsSheetOpen(false)} // Close sheet on link click
                     >
                       {link.label}
                     </Link>
                   ))}
-                  <div className="pt-3 border-t"> {/* Reduced pt */}
+                  <div className="pt-3 border-t">
                      {user ? (
-                        <Link href={`/profile/${user.id}`}>
+                        <Link href={`/profile/${user.id}`} onClick={() => setIsSheetOpen(false)}>
                           <Button variant="ghost" className="w-full justify-start gap-2 text-base">
                             <UserCircle className="h-5 w-5" />
                             Profile
@@ -151,10 +151,10 @@ export function AppHeader() {
                         </Link>
                       ) : (
                         <>
-                          <Link href="/auth/login" className="block w-full">
+                          <Link href="/auth/login" className="block w-full" onClick={() => setIsSheetOpen(false)}>
                             <Button variant="outline" className="w-full text-base mb-2">Log In</Button>
                           </Link>
-                          <Link href="/auth/signup" className="block w-full">
+                          <Link href="/auth/signup" className="block w-full" onClick={() => setIsSheetOpen(false)}>
                             <Button variant="default" className="w-full text-base bg-accent hover:bg-accent/90 text-accent-foreground">Sign Up</Button>
                           </Link>
                         </>
