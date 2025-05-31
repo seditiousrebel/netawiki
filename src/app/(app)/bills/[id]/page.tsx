@@ -6,7 +6,7 @@ import { getBillById, getNewsByBillId, getCommitteeByName } from '@/lib/mock-dat
 import { PageHeader } from '@/components/common/page-header';
 import { useNotificationStore } from "@/lib/notifications"; // Added useNotificationStore
 import { Button } from '@/components/ui/button';
-import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth';
+// import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth'; // No longer needed for this button
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,7 +27,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
   const params = React.use(paramsPromise);
   const bill = getBillById(params.id);
   const { toast } = useToast();
-  const currentUser = getCurrentUser();
+  // const currentUser = getCurrentUser(); // No longer needed for this button
 
   const [relatedNews, setRelatedNews] = useState<NewsArticleLink[]>([]);
   const [isFollowingBill, setIsFollowingBill] = useState(false);
@@ -143,11 +143,11 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                 {bill.billType && <Badge variant="outline">{bill.billType}</Badge>}
             </div>
         }
-        actions={canAccess(currentUser.role, EDITOR_ROLES) ? (
+        actions={(
           <Button variant="outline" onClick={handleSuggestEdit}>
             <Edit className="mr-2 h-4 w-4" /> Suggest Edit
           </Button>
-        ) : null}
+        )}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

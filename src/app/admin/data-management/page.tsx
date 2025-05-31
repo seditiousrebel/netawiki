@@ -1,7 +1,7 @@
 "use client";
 
 import { PageHeader } from '@/components/common/page-header';
-import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
+import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Download } from 'lucide-react';
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input'; // For the disabled file input
 export default function DataManagementPage() {
   const currentUser = getCurrentUser();
 
-  if (!canAccess(currentUser.role, ADMIN_ROLES)) {
+  if (!canAccess(currentUser.role, EDITOR_ROLES)) {
     return <div className="container mx-auto py-8 text-center">Access Denied. You do not have permission to view this page.</div>;
   }
 

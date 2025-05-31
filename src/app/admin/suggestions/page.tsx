@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Check, X, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { EditSuggestion } from '@/types/gov';
-import { getCurrentUser, canAccess, EDITOR_ROLES, ADMIN_ROLES } from '@/lib/auth';
+import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth'; // ADMIN_ROLES no longer needed for button logic here
 import {
   mockEditSuggestions as initialEditSuggestions,
   mockNewEntrySuggestions as initialNewEntrySuggestions,
@@ -140,17 +140,11 @@ export default function AdminSuggestionsPage() {
                       </p>
                   )}
                 </CardContent>
-                {suggestion.status === 'Pending' && canAccess(currentUser.role, ADMIN_ROLES) && (
+                {suggestion.status === 'Pending' && canAccess(currentUser.role, EDITOR_ROLES) && (
                   <CardFooter className="flex justify-end gap-2">
                     <Button variant="outline" size="sm" onClick={() => alert(`Viewing item related to ${suggestion.contentId} (mock)`)}><Eye className="mr-1 h-4 w-4" /> View Item</Button>
                     <Button variant="destructive" size="sm" onClick={() => handleReject(suggestion.id, 'edit')}><X className="mr-1 h-4 w-4" /> Reject</Button>
                     <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleApprove(suggestion.id, 'edit')}><Check className="mr-1 h-4 w-4" /> Approve</Button>
-                  </CardFooter>
-                )}
-                {suggestion.status === 'Pending' && !canAccess(currentUser.role, ADMIN_ROLES) && canAccess(currentUser.role, EDITOR_ROLES) && (
-                  <CardFooter className="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" onClick={() => alert(`Viewing item related to ${suggestion.contentId} (mock)`)}><Eye className="mr-1 h-4 w-4" /> View Item</Button>
-                    <p className="text-xs text-muted-foreground">Admin privileges required to approve/reject.</p>
                   </CardFooter>
                 )}
               </Card>
@@ -231,16 +225,11 @@ export default function AdminSuggestionsPage() {
                       </p>
                   )}
                 </CardContent>
-                {suggestion.status === 'PendingNewEntry' && canAccess(currentUser.role, ADMIN_ROLES) && (
+                {suggestion.status === 'PendingNewEntry' && canAccess(currentUser.role, EDITOR_ROLES) && (
                   <CardFooter className="flex justify-end gap-2">
                     {/* <Button variant="outline" size="sm"><Eye className="mr-1 h-4 w-4" /> View (N/A)</Button> */}
                     <Button variant="destructive" size="sm" onClick={() => handleReject(suggestion.id, 'new')}><X className="mr-1 h-4 w-4" /> Reject</Button>
                     <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => handleApprove(suggestion.id, 'new')}><Check className="mr-1 h-4 w-4" /> Approve</Button>
-                  </CardFooter>
-                )}
-                {suggestion.status === 'PendingNewEntry' && !canAccess(currentUser.role, ADMIN_ROLES) && canAccess(currentUser.role, EDITOR_ROLES) && (
-                  <CardFooter className="flex justify-end gap-2">
-                    <p className="text-xs text-muted-foreground">Admin privileges required to approve/reject.</p>
                   </CardFooter>
                 )}
               </Card>

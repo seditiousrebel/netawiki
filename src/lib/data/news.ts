@@ -17,6 +17,23 @@ export const mockNewsArticles: NewsArticleLink[] = [
     dataAiHint: "solar panels wind turbines",
     taggedPartyIds: ['party1'],
     taggedPromiseIds: ['pr1'],
+    revisionHistory: [
+      {
+        id: 'rev-news-news1-001',
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+        author: 'EditorBob',
+        event: 'News Summary Corrected',
+        details: 'Corrected a factual error in the news summary regarding the date of the policy announcement.',
+      },
+      {
+        id: 'rev-news-news1-002',
+        date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+        author: 'UserJane',
+        event: 'Topic Tag Added',
+        details: 'Added "green economy" to topics.',
+        suggestionId: 'sugg_news_tag_add_greenecon'
+      }
+    ]
   },
   { 
     id: 'news2',

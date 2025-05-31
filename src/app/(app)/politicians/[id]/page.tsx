@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon, Newspaper, History } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon, Newspaper, History, Download } from 'lucide-react'; // Added Download
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent, NewsArticleLink } from '@/types/gov';
@@ -17,7 +17,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { SuggestEditForm } from '@/components/common/suggest-edit-form';
 import { useNotificationStore } from "@/lib/notifications"; // Added useNotificationStore
 import ScoreBarChart from '@/components/charts/ScoreBarChart'; // Import ScoreBarChart
-import { getCurrentUser, canAccess, EDITOR_ROLES, ADMIN_ROLES } from '@/lib/auth';
+import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth'; // ADMIN_ROLES kept for now, but not for these sections
+import { exportElementAsPDF } from '@/lib/utils'; // Import the new utility
 
 interface PoliticianVote extends VoteRecord {
   billId: string;
@@ -71,7 +72,7 @@ function formatCombinedCareerTimeline(
 
 export default function PoliticianProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
-  const currentUser = getCurrentUser();
+  const currentUser = getCurrentUser(); // Kept for ADMIN_ROLES checks elsewhere
   const politician = getPoliticianById(params.id);
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
@@ -79,6 +80,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   const [hoverRating, setHoverRating] = useState(0);
   const [commentText, setCommentText] = useState("");
 
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
   const [suggestionFieldName, setSuggestionFieldName] = useState('');
   const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
@@ -286,11 +288,16 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             )}
           </div>
         }
-        actions={canAccess(currentUser.role, EDITOR_ROLES) ? (
-          <Button variant="outline" onClick={handleSuggestBioEdit}>
-            <Edit className="mr-2 h-4 w-4" /> Suggest Edit for Bio
-          </Button>
-        ) : null}
+        actions={(
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleSuggestBioEdit}>
+              <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+            </Button>
+            <Button variant="outline" onClick={handleExportPdfWrapper} disabled={isGeneratingPdf}>
+              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export to PDF'}
+            </Button>
+          </div>
+        )}
       />
 
       {politician && (
@@ -305,7 +312,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
         />
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div id="politician-profile-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardContent className="p-0">
@@ -751,7 +758,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             </Card>
           )}
 
-          {canAccess(currentUser.role, ADMIN_ROLES) && politician.assetDeclarations && politician.assetDeclarations.length > 0 && (
+          {politician.assetDeclarations && politician.assetDeclarations.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="font-headline text-xl flex items-center gap-2">
@@ -776,7 +783,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             </Card>
           )}
 
-          {canAccess(currentUser.role, ADMIN_ROLES) && politician.criminalRecords && politician.criminalRecords.length > 0 && (
+          {politician.criminalRecords && politician.criminalRecords.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="font-headline text-xl flex items-center gap-2">
@@ -898,4 +905,11 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
       </div>
     </div>
   );
+
+  async function handleExportPdfWrapper() { // Renamed to avoid conflict if any, and to signify it's a wrapper
+    if (!politician) return;
+    const fileName = `politician-${politician.name.toLowerCase().replace(/\s+/g, '-')}-profile.pdf`;
+    // Call the utility function
+    await exportElementAsPDF('politician-profile-export-area', fileName, setIsGeneratingPdf);
+  }
 }

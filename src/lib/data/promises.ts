@@ -29,6 +29,23 @@ export const mockPromises: PromiseItem[] = [
       { date: '2023-03-01', status: 'In Progress', description: 'Construction started in 3 major parks.', fulfillmentPercentage: 40, updatedBy: 'System' }
     ],
     tags: ['urban-renewal', 'public-spaces', 'environment', 'accessibility'],
+    revisionHistory: [
+      {
+        id: 'rev-promise-pr1-001',
+        date: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(), // 12 days ago
+        author: 'AdminUser',
+        event: 'Promise Status Updated',
+        details: 'Status changed from "In Progress" (30%) to "In Progress" (40%) with new park groundbreaking ceremonies.',
+        suggestionId: 'sugg_promise_status_update_def'
+      },
+      {
+        id: 'rev-promise-pr1-002',
+        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+        author: 'EditorBob',
+        event: 'Evidence Link Added',
+        details: 'Added new link to news article about groundbreaking ceremony.',
+      }
+    ]
   },
   {
     id: 'pr2',

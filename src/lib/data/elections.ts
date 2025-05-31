@@ -28,6 +28,23 @@ export const mockElections: Election[] = [
     timelineEvents: generalElection2024Timeline,
     tags: ['parliamentary', 'federal'],
     dataAiHint: 'election voting poll',
+    revisionHistory: [
+      {
+        id: 'rev-election-gen2024-001',
+        date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
+        author: 'EditorAlice',
+        event: 'Election Candidate List Updated',
+        details: 'Added candidate John Doe (Independent) to KTM-2 constituency after successful registration appeal.',
+        suggestionId: 'sugg_election_candidate_new_xyz'
+      },
+      {
+        id: 'rev-election-gen2024-002',
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+        author: 'SystemUpdate',
+        event: 'Polling Station Count Updated',
+        details: 'Total polling stations increased from 21950 to 22000 based on EC final list.',
+      }
+    ]
   },
   {
     id: 'provBag2023',

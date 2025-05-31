@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
-import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
+import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth';
 
 const mockAuditLogEntries = [
   { id: 'al001', timestamp: new Date(Date.now() - 3600000).toISOString(), user: 'AdminUser', action: 'Politician Profile Update', details: 'Updated bio for Alice Democratia (p1) via suggestion sugg_bio_p1_abc.' },
@@ -26,7 +26,7 @@ const mockAuditLogEntries = [
 export default function AuditLogPage() {
   const currentUser = getCurrentUser();
 
-  if (!canAccess(currentUser.role, ADMIN_ROLES)) {
+  if (!canAccess(currentUser.role, EDITOR_ROLES)) {
     return <div className="container mx-auto py-8 text-center">Access Denied. You do not have permission to view this page.</div>;
   }
 

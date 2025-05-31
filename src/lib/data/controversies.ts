@@ -40,6 +40,23 @@ const mockControversiesData: Controversy[] = [
         { court: 'National Accountability Court', caseNumber: 'NAB-REF-005-2023', status: 'Preliminary Hearings', date: '2024-02-01', summary: 'Initial hearings to determine admissibility of evidence and frame charges.'}
     ],
     dataAiHint: 'financial documents investigation',
+    revisionHistory: [
+      {
+        id: 'rev-controversy-c1-001',
+        date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(), // 8 days ago
+        author: 'SystemUpdate',
+        event: 'Controversy Status Change',
+        details: 'Status changed from "Alleged" to "Under Investigation" based on NAB official announcement.',
+      },
+      {
+        id: 'rev-controversy-c1-002',
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+        author: 'EditorJane',
+        event: 'New Evidence Link Added',
+        details: 'Added link to leaked financial audit summary.',
+        suggestionId: 'sugg_cont_c1_evidence_new'
+      }
+    ]
   },
   {
     id: 'c2',
