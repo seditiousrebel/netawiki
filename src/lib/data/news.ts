@@ -56,14 +56,15 @@ export const mockNewsArticles: NewsArticleLink[] = [
     url: "https://example.com/news/infrastructure-talks",
     sourceName: "Political Review Weekly",
     publicationDate: "2024-07-01",
-    summary: "Leaders from BUP and RAG met today to discuss potential bipartisan cooperation on the upcoming national infrastructure bill. Senator Alice Democratia and Representative Bob Republicanus were present. The Clean Energy Act (S. 567) was a key topic.",
+    summary: "Leaders from BUP and RAG met today to discuss potential bipartisan cooperation on the upcoming national infrastructure bill. Senator Alice Democratia and Representative Bob Republicanus were present. The Clean Energy Act (S. 567) was a key topic, currently under review by the Finance Committee.",
     isAggregated: true,
     category: "Legislative" as NewsArticleCategory,
     topics: ["bipartisanship", "infrastructure", "energy policy"],
     dataAiHint: "politicians meeting handshake",
     taggedPartyIds: ['party1', 'party2'],
     taggedPoliticianIds: ['p1', 'p2'],
-    taggedBillIds: ['b1']
+    taggedBillIds: ['b1'],
+    taggedCommitteeIds: ['com1'],
   },
   {
     id: 'news5',
@@ -197,8 +198,23 @@ Senator X's claim that infrastructure spending increased by 50% in the last fisc
     isFactCheck: true,
     isAggregated: false,
     dataAiHint: "fact check truth magnifying glass",
-    taggedPoliticianIds: ["p1"], // Assuming Senator X is Alice Democratia for linking
-    taggedPromiseIds: ["pr1"], // Related to infrastructure
+    taggedPoliticianIds: ["p1"], 
+    taggedPromiseIds: ["pr1"], 
+  },
+  {
+    id: 'news9',
+    slug: 'finance-committee-report-released',
+    title: "Finance Committee Releases Annual Oversight Report",
+    sourceName: "Parliamentary Press Service",
+    publicationDate: "2024-03-02",
+    summary: "The House Finance Committee, chaired by Alice Democratia, released its annual oversight report today, detailing findings on public expenditure and fiscal management for the past year.",
+    category: "Legislative" as NewsArticleCategory,
+    topics: ["public finance", "government audit", "parliamentary oversight"],
+    isAggregated: true,
+    url: "https://example.com/finance-committee-report-news",
+    dataAiHint: "report document government",
+    taggedCommitteeIds: ['com1'],
+    taggedPoliticianIds: ['p1']
   }
 ];
 
@@ -244,4 +260,10 @@ export function getNewsByElectionId(electionId: string): NewsArticleLink[] {
   return mockNewsArticles.filter(article => 
     article.taggedElectionIds?.includes(electionId)
   ).sort((a, b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
+}
+
+export function getNewsByCommitteeId(committeeId: string): NewsArticleLink[] {
+    return mockNewsArticles.filter(article => 
+        article.taggedCommitteeIds?.includes(committeeId)
+    ).sort((a, b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
 }

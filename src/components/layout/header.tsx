@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Search, UserCircle, ShieldCheck, Home, VoteIcon, NewspaperIcon } from 'lucide-react'; // Added NewspaperIcon
+import { Menu, Search, UserCircle, ShieldCheck, Users, Landmark, ClipboardList, ShieldAlert, Vote, FileText } from 'lucide-react'; // Added icons
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/gov';
@@ -18,7 +18,8 @@ const navLinks = [
   { href: '/promises', label: 'Promises' },
   { href: '/controversies', label: 'Controversies' },
   { href: '/elections', label: 'Elections' },
-  { href: '/news', label: 'News' }, // New News link
+  { href: '/committees', label: 'Committees' }, // New Committee link
+  { href: '/news', label: 'News' },
   { href: '/feed', label: 'My Feed' },
 ];
 
@@ -28,8 +29,6 @@ export function AppHeader() {
 
   // Simulate user login state
   useEffect(() => {
-    // In a real app, you'd fetch user data or check auth status
-    // For now, simulate a logged-in user after a delay
     const timer = setTimeout(() => {
        // setUser({ id: 'user123', email: 'user@example.com', name: 'Demo User', followedPoliticians: [], followedParties: [] });
     }, 100);
@@ -46,15 +45,15 @@ export function AppHeader() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+        <nav className="hidden md:flex items-center space-x-4 text-sm font-medium">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               className={cn(
-                'transition-colors hover:text-primary',
+                'transition-colors hover:text-primary px-2 py-1 rounded-md',
                 (pathname === '/' && link.href === '/') || (link.href !== '/' && pathname.startsWith(link.href))
-                  ? 'text-primary' 
+                  ? 'text-primary bg-primary/10' 
                   : 'text-foreground/70'
               )}
             >
@@ -103,9 +102,9 @@ export function AppHeader() {
                       key={link.href}
                       href={link.href}
                       className={cn(
-                        'text-lg transition-colors hover:text-primary',
+                        'text-lg transition-colors hover:text-primary p-2 rounded-md',
                          (pathname === '/' && link.href === '/') || (link.href !== '/' && pathname.startsWith(link.href))
-                          ? 'text-primary font-semibold' 
+                          ? 'text-primary font-semibold bg-primary/10' 
                           : 'text-foreground/80'
                       )}
                     >

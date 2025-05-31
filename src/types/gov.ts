@@ -211,6 +211,7 @@ export type NewsArticleLink = {
   taggedBillIds?: string[];
   taggedControversyIds?: string[];
   taggedElectionIds?: string[];
+  taggedCommitteeIds?: string[];
 };
 
 export interface Party {
@@ -473,12 +474,6 @@ export interface PromiseItem {
   evidenceLinks: PromiseEvidenceLink[];
   statusUpdateHistory?: PromiseStatusUpdate[]; // Timeline of status changes
   tags?: string[];
-
-  // Future considerations (not implemented in this phase)
-  // commentsCount?: number;
-  // verificationRating?: number;
-  // sdgTags?: string[]; // UN Sustainable Development Goals
-  // userFollowersCount?: number;
 }
 
 // --- Election Hub Types ---
@@ -523,8 +518,8 @@ export interface Election {
   totalRegisteredVoters?: number;
   totalVotesCast?: number;
   pollingStationsCount?: number;
-  timelineEvents?: ElectionTimelineEvent[]; // New
-  tags?: string[]; // e.g., ["parliamentary", "presidential"]
+  timelineEvents?: ElectionTimelineEvent[];
+  tags?: string[];
   dataAiHint?: string; // For a representative image
 }
 
@@ -557,25 +552,66 @@ export interface ElectionCandidate {
   ballotNumber?: string | number;
 }
 
-// Future: ConstituencyElectionResult might be useful for detailed views per constituency
-// export interface ConstituencyElectionResult {
-//   electionId: string;
-//   constituencyId: string;
-//   constituencyName: string;
-//   totalRegisteredVoters: number;
-//   totalVotesCast: number;
-//   validVotes: number;
-//   invalidVotes: number;
-//   voterTurnoutPercentage: number;
-//   candidates: Array<{
-//     politicianId: string;
-//     politicianName: string;
-//     partyId?: string;
-//     partyName?: string;
-//     votes: number;
-//     isWinner: boolean;
-//   }>;
-//   winnerPoliticianId?: string; // Could be null in certain PR systems or if no clear winner immediately
-//   winnerPartyId?: string;
-// }
+// --- Committee Types ---
+export type CommitteeType = 'Thematic' | 'Special' | 'House Committee' | 'Joint Committee' | 'Sub-Committee' | string;
 
+export type CommitteeMemberLink = {
+  politicianId: string;
+  politicianName: string; // Denormalized
+  role: 'Chairperson' | 'Member' | 'Secretary' | 'Vice-Chairperson' | string; // Allow for other roles
+  startDate?: string;
+  endDate?: string; // or 'Present'
+};
+
+export type CommitteeMeeting = {
+  id: string;
+  date: string; // ISO Date string
+  title?: string; // e.g., "Discussion on Bill X"
+  agendaUrl?: string;
+  minutesUrl?: string;
+  summary?: string; // Brief summary if full minutes not available
+  liveStreamUrl?: string;
+};
+
+export type CommitteeReport = {
+  id: string;
+  title: string;
+  publicationDate: string; // ISO Date string
+  reportUrl: string;
+  summary?: string;
+  reportType?: 'Annual' | 'Inquiry' | 'Bill Review' | 'Other';
+};
+
+export type BillReferredToCommittee = {
+  billId: string;
+  billName: string; // Denormalized
+  billNumber?: string; // Denormalized
+  referralDate: string; // ISO Date string
+  status?: 'Under Review' | 'Reported Out' | 'Pending' | string; // Status within the committee
+  committeeReportId?: string; // Link to the committee's report on this bill
+};
+
+export interface Committee {
+  id: string;
+  slug?: string;
+  name: string;
+  nepaliName?: string;
+  committeeType: CommitteeType;
+  house?: 'House of Representatives' | 'National Assembly' | 'Provincial Assembly Name' | string; // e.g., "Bagmati Provincial Assembly"
+  mandate?: string; // Terms of Reference (can be markdown/html)
+  members?: CommitteeMemberLink[];
+  contactInfo?: {
+    email?: string;
+    phone?: string;
+    officeAddress?: string;
+    website?: string;
+  };
+  meetings?: CommitteeMeeting[];
+  reports?: CommitteeReport[];
+  billsReferred?: BillReferredToCommittee[];
+  tags?: string[];
+  isActive?: boolean; // Is the committee currently active/formed?
+  establishmentDate?: string; // ISO Date string
+  dissolutionDate?: string; // ISO Date string (if applicable)
+  dataAiHint?: string; // For a generic image placeholder
+}

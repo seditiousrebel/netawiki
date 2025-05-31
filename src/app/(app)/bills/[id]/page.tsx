@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { getBillById, getNewsByBillId } from '@/lib/mock-data';
+import { getBillById, getNewsByBillId, getCommitteeByName } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +16,10 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
 
 const LOCAL_STORAGE_FOLLOWED_BILLS_KEY = 'govtrackr_followed_bills';
+
+// Helper to generate slug from name
+const toSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+
 
 export default function BillDetailsPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
@@ -171,7 +175,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                 {bill.votingResults.house && (
                   <div>
                     <h3 className="font-semibold text-md mb-1 flex items-center">House Vote ({format(new Date(bill.votingResults.house.date), 'MM/dd/yyyy')}):
-                      <Badge variant={bill.votingResults.house.passed ? "default" : "destructive"} className="ml-2">
+                      <Badge variant={bill.votingResults.house.passed ? "default" : "destructive"} className={`ml-2 ${bill.votingResults.house.passed ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
                         {bill.votingResults.house.passed ? 'Passed' : 'Failed'}
                       </Badge>
                     </h3>
@@ -188,7 +192,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                  {bill.votingResults.senate && (
                   <div>
                     <h3 className="font-semibold text-md mb-1 flex items-center">Senate Vote ({format(new Date(bill.votingResults.senate.date), 'MM/dd/yyyy')}):
-                      <Badge variant={bill.votingResults.senate.passed ? "default" : "destructive"} className="ml-2">
+                      <Badge variant={bill.votingResults.senate.passed ? "default" : "destructive"} className={`ml-2 ${bill.votingResults.senate.passed ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
                         {bill.votingResults.senate.passed ? 'Passed' : 'Failed'}
                       </Badge>
                     </h3>
@@ -246,7 +250,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                 <ul className="space-y-3">
                   {relatedNews.map((news: NewsArticleLink, idx: number) => (
                     <li key={idx} className="text-sm border-b pb-2 last:border-b-0">
-                      <a href={news.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
+                      <a href={news.url || `/news/${news.slug || news.id}`} target={news.url && news.isAggregated ? "_blank" : "_self"} rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
                         {news.title}
                       </a>
                       <p className="text-xs text-muted-foreground">{news.sourceName} - {format(new Date(news.publicationDate), 'MM/dd/yyyy')}</p>
@@ -265,10 +269,10 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
               <CardTitle className="font-headline text-xl flex items-center gap-2"><Info className="text-primary"/> Legislative Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              {bill.billType && <p><span className="font-semibold">Type:</span> {bill.billType}</p>}
-              {bill.responsibleMinistry && <p><span className="font-semibold">Responsible Ministry:</span> {bill.responsibleMinistry}</p>}
-              {bill.houseOfIntroduction && <p><span className="font-semibold">Introduced In:</span> {bill.houseOfIntroduction}</p>}
-              {bill.parliamentarySession && <p><span className="font-semibold">Session:</span> {bill.parliamentarySession}</p>}
+              {bill.billType && <div><span className="font-semibold">Type:</span> {bill.billType}</div>}
+              {bill.responsibleMinistry && <div><span className="font-semibold">Responsible Ministry:</span> {bill.responsibleMinistry}</div>}
+              {bill.houseOfIntroduction && <div><span className="font-semibold">Introduced In:</span> {bill.houseOfIntroduction}</div>}
+              {bill.parliamentarySession && <div><span className="font-semibold">Session:</span> {bill.parliamentarySession}</div>}
             </CardContent>
           </Card>
 
@@ -283,14 +287,14 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                     {bill.status}
                 </Badge>
               </div>
-              <p><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Introduced: {format(new Date(bill.introducedDate), 'MMMM dd, yyyy')}</p>
-              {bill.keyDates?.committeeReferral && <p><GitBranch className="inline-block h-4 w-4 mr-1 text-primary/70" /> Committee Referral: {format(new Date(bill.keyDates.committeeReferral), 'MMMM dd, yyyy')}</p>}
-              {bill.keyDates?.passedLowerHouse && <p><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Lower House: {format(new Date(bill.keyDates.passedLowerHouse), 'MMMM dd, yyyy')}</p>}
-              {bill.keyDates?.passedUpperHouse && <p><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Upper House: {format(new Date(bill.keyDates.passedUpperHouse), 'MMMM dd, yyyy')}</p>}
-              {bill.keyDates?.assent && <p><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Assented: {format(new Date(bill.keyDates.assent), 'MMMM dd, yyyy')}</p>}
-              {bill.keyDates?.effectiveDate && <p><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Effective: {format(new Date(bill.keyDates.effectiveDate), 'MMMM dd, yyyy')}</p>}
-              {bill.lastActionDate && <p><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Last Action: {format(new Date(bill.lastActionDate), 'MMMM dd, yyyy')}</p>}
-              {bill.lastActionDescription && <p className="text-xs mt-1">{bill.lastActionDescription}</p>}
+              {bill.introducedDate && <div className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Introduced: {format(new Date(bill.introducedDate), 'MMMM dd, yyyy')}</div>}
+              {bill.keyDates?.committeeReferral && <div className="flex items-center gap-1"><GitBranch className="inline-block h-4 w-4 mr-1 text-primary/70" /> Committee Referral: {format(new Date(bill.keyDates.committeeReferral), 'MMMM dd, yyyy')}</div>}
+              {bill.keyDates?.passedLowerHouse && <div className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Lower House: {format(new Date(bill.keyDates.passedLowerHouse), 'MMMM dd, yyyy')}</div>}
+              {bill.keyDates?.passedUpperHouse && <div className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Upper House: {format(new Date(bill.keyDates.passedUpperHouse), 'MMMM dd, yyyy')}</div>}
+              {bill.keyDates?.assent && <div className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Assented: {format(new Date(bill.keyDates.assent), 'MMMM dd, yyyy')}</div>}
+              {bill.keyDates?.effectiveDate && <div className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Effective: {format(new Date(bill.keyDates.effectiveDate), 'MMMM dd, yyyy')}</div>}
+              {bill.lastActionDate && <div className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Last Action: {format(new Date(bill.lastActionDate), 'MMMM dd, yyyy')}</div>}
+              {bill.lastActionDescription && <p className="text-xs mt-1 pl-5">{bill.lastActionDescription}</p>}
             </CardContent>
           </Card>
 
@@ -319,9 +323,25 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                 </CardHeader>
                 <CardContent>
                 <ul className="space-y-1">
-                    {bill.committees.map((committee, idx) => (
-                    <li key={idx} className="text-sm text-foreground/80">{committee}</li>
-                    ))}
+                    {bill.committees.map((committeeName, idx) => {
+                      const committeeSlug = toSlug(committeeName);
+                      const committee = getCommitteeByName(committeeName); // Assuming this function exists now
+                      return (
+                        <li key={idx} className="text-sm text-foreground/80">
+                           {committee && committee.slug ? (
+                            <Link href={`/committees/${committee.slug}`} className="text-primary hover:underline">
+                                {committeeName}
+                            </Link>
+                           ) : committee && committee.id ? (
+                             <Link href={`/committees/${committee.id}`} className="text-primary hover:underline">
+                                {committeeName}
+                            </Link>
+                           ) : (
+                             <span>{committeeName}</span>
+                           )}
+                        </li>
+                      );
+                    })}
                 </ul>
                 </CardContent>
             </Card>
@@ -333,7 +353,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                   <CardTitle className="font-headline text-xl flex items-center gap-2"><Layers className="text-primary"/> Impact</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-foreground/80">{bill.impact}</p>
+                  <p className="text-sm text-foreground/80 whitespace-pre-line">{bill.impact}</p>
                 </CardContent>
             </Card>
           )}

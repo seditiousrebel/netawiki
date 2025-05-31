@@ -1,0 +1,143 @@
+
+import type { Committee, CommitteeMemberLink, CommitteeMeeting, CommitteeReport, BillReferredToCommittee } from '@/types/gov';
+import { mockPoliticians } from './politicians'; // To get politician names
+import { mockBills } from './bills'; // To get bill names/numbers
+
+const getPoliticianName = (id: string) => mockPoliticians.find(p => p.id === id)?.name || 'Unknown Politician';
+const getBillDetails = (id: string) => mockBills.find(b => b.id === id);
+
+const financeCommitteeMembers: CommitteeMemberLink[] = [
+  { politicianId: 'p1', politicianName: getPoliticianName('p1'), role: 'Chairperson', startDate: '2023-01-15' },
+  { politicianId: 'p2', politicianName: getPoliticianName('p2'), role: 'Member', startDate: '2023-01-15' },
+  // Add more fictional members if needed
+];
+
+const publicAccountsCommitteeMembers: CommitteeMemberLink[] = [
+  { politicianId: 'p2', politicianName: getPoliticianName('p2'), role: 'Chairperson', startDate: '2023-02-01' },
+  { politicianId: 'p1', politicianName: getPoliticianName('p1'), role: 'Member', startDate: '2023-02-01' },
+  // Add more members
+];
+
+const financeCommitteeMeetings: CommitteeMeeting[] = [
+  { id: 'm1fc', date: '2024-07-15', title: 'Budget Review Meeting', agendaUrl: 'https://example.com/fc-agenda-20240715.pdf', summary: 'Discussed the Q3 budget performance and upcoming Q4 allocations.' },
+  { id: 'm2fc', date: '2024-06-20', title: 'Hearing on Economic Stimulus Package', minutesUrl: 'https://example.com/fc-minutes-20240620.pdf' },
+];
+
+const financeCommitteeReports: CommitteeReport[] = [
+  { id: 'r1fc', title: 'Annual Financial Oversight Report 2023', publicationDate: '2024-03-01', reportUrl: 'https://example.com/fc-annual-report-2023.pdf', reportType: 'Annual' },
+];
+
+const financeBillsReferred: BillReferredToCommittee[] = [
+  { billId: 'b1', billName: getBillDetails('b1')?.title || 'Clean Energy Act 2024', billNumber: getBillDetails('b1')?.billNumber, referralDate: '2024-03-18', status: 'Reported Out' },
+];
+
+const publicAccountsBillsReferred: BillReferredToCommittee[] = [
+   { billId: 'b2', billName: getBillDetails('b2')?.title || 'Digital Literacy For All Act', billNumber: getBillDetails('b2')?.billNumber, referralDate: '2023-10-01', status: 'Under Review' },
+];
+
+
+export const mockCommittees: Committee[] = [
+  {
+    id: 'com1',
+    slug: 'finance-committee',
+    name: 'Finance Committee',
+    nepaliName: 'अर्थ समिति',
+    committeeType: 'Thematic',
+    house: 'House of Representatives',
+    mandate: 'To examine public revenue and expenditure, financial bills, and overall economic policies of the government. It also oversees the functioning of the Ministry of Finance and related public financial institutions.',
+    members: financeCommitteeMembers,
+    contactInfo: {
+      email: 'finance.committee@parliament.gov.example',
+      phone: '01-5551234',
+      officeAddress: 'Room 301, Parliament Building, Capital City',
+      website: 'https://parliament.gov.example/committees/finance'
+    },
+    meetings: financeCommitteeMeetings,
+    reports: financeCommitteeReports,
+    billsReferred: financeBillsReferred,
+    tags: ['economy', 'budget', 'taxation', 'public-finance'],
+    isActive: true,
+    establishmentDate: '2018-08-01',
+    dataAiHint: 'meeting room discussion',
+  },
+  {
+    id: 'com2',
+    slug: 'public-accounts-committee',
+    name: 'Public Accounts Committee',
+    nepaliName: 'सार्वजनिक लेखा समिति',
+    committeeType: 'House Committee',
+    house: 'National Assembly',
+    mandate: 'To scrutinize the accounts showing the appropriation of sums granted by Parliament for the expenditure of the Government, the annual financial accounts of the Government and such other accounts laid before the House as the Committee may think fit.',
+    members: publicAccountsCommitteeMembers,
+    contactInfo: {
+      email: 'pac@parliament.gov.example',
+      officeAddress: 'Room 205, Parliament Building, Capital City'
+    },
+    billsReferred: publicAccountsBillsReferred,
+    tags: ['accountability', 'audit', 'public-spending', 'transparency'],
+    isActive: true,
+    establishmentDate: '2019-01-10',
+    dataAiHint: 'government building audit',
+  },
+  {
+    id: 'com3',
+    slug: 'education-health-committee',
+    name: 'Education and Health Committee',
+    committeeType: 'Thematic',
+    house: 'House of Representatives',
+    mandate: 'To deliberate on policies and legislation concerning education, health, culture, sports, and social welfare. Oversees relevant ministries.',
+    members: [
+      { politicianId: 'p1', politicianName: getPoliticianName('p1'), role: 'Member', startDate: '2023-01-15' },
+    ],
+    tags: ['education', 'healthcare', 'social-welfare', 'culture'],
+    isActive: true,
+    dataAiHint: 'classroom students books',
+  },
+  {
+    id: 'com4',
+    slug: 'committee-on-energy-and-natural-resources',
+    name: 'Senate Committee on Energy and Natural Resources', // Match exact name from bill for linking
+    committeeType: 'House Committee', // Assuming Senate is a "House"
+    house: 'Senate',
+    mandate: 'Oversees matters related to energy policy, natural resources, public lands, and indigenous affairs.',
+    members: [
+        { politicianId: 'p1', politicianName: getPoliticianName('p1'), role: 'Member' }
+    ],
+    billsReferred: [
+      { billId: 'b1', billName: getBillDetails('b1')?.title || 'Clean Energy Act 2024', billNumber: getBillDetails('b1')?.billNumber, referralDate: '2024-03-18', status: 'Under Review' },
+    ],
+    tags: ['energy', 'environment', 'natural-resources'],
+    isActive: true,
+    dataAiHint: 'power lines solar panel',
+  },
+    {
+    id: 'com5',
+    slug: 'house-committee-on-education-and-labor',
+    name: 'House Committee on Education and Labor', // Match exact name from bill for linking
+    committeeType: 'House Committee',
+    house: 'House',
+    mandate: 'Jurisdiction over education and workforce programs.',
+    members: [
+        { politicianId: 'p2', politicianName: getPoliticianName('p2'), role: 'Member' }
+    ],
+    billsReferred: [
+      { billId: 'b2', billName: getBillDetails('b2')?.title || 'Digital Literacy For All Act', billNumber: getBillDetails('b2')?.billNumber, referralDate: '2023-10-01', status: 'Reported Out' },
+    ],
+    tags: ['education', 'labor', 'workforce'],
+    isActive: true,
+    dataAiHint: 'students graduation cap',
+  }
+];
+
+export function getAllCommittees(): Committee[] {
+  return mockCommittees;
+}
+
+export function getCommitteeById(idOrSlug: string): Committee | undefined {
+  return mockCommittees.find(c => c.id === idOrSlug || c.slug === idOrSlug);
+}
+
+export function getCommitteeByName(name: string): Committee | undefined {
+  const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+  return mockCommittees.find(c => c.name === name || c.slug === slug);
+}
