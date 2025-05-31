@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { TimelineDisplay, formatPromiseStatusUpdatesForTimeline } from '@/components/common/timeline-display';
-import { Edit, Users2, User, ClipboardList, AlertTriangle, Info, FileText, CalendarClock, CalendarCheck2, Percent, Landmark, Link2, ExternalLink, History } from 'lucide-react';
+import { Edit, Users2, User, ClipboardList, AlertTriangle, Info, FileText, CalendarClock, CalendarCheck2, Percent, Landmark, Link2, ExternalLink, History, CheckCircle, RefreshCw, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
-import type { PromiseItem, PromiseStatus, PromiseEvidenceLink } from '@/types/gov'; // Assuming PromiseItem has statusUpdateHistory
+import type { PromiseItem, PromiseStatus, PromiseEvidenceLink, PromiseStatusUpdate } from '@/types/gov';
 import React from 'react';
 
 function getStatusVisuals(status: PromiseStatus): { icon: React.ReactNode; badgeClass: string; } {
@@ -37,7 +37,8 @@ function getStatusVisuals(status: PromiseStatus): { icon: React.ReactNode; badge
   }
 }
 
-export default function PromiseDetailPage({ params }: { params: { id: string } }) {
+export default function PromiseDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+  const params = React.use(paramsPromise);
   const promise = getPromiseById(params.id);
   const { toast } = useToast();
 
@@ -203,4 +204,3 @@ export default function PromiseDetailPage({ params }: { params: { id: string } }
     </div>
   );
 }
-
