@@ -10,12 +10,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, Landmark, Building, CalendarDays, FileText, ExternalLink, Mail, Phone, Globe, ListChecks, Newspaper, MessageSquare, Activity } from 'lucide-react';
 import { format } from 'date-fns';
-import type { Committee, CommitteeMemberLink, CommitteeMeeting, CommitteeReport, BillReferredToCommittee, NewsArticleLink } from '@/types/gov';
+import type { Committee, CommitteeMemberLink, CommitteeMeeting, CommitteeReport, BillReferredToCommittee, NewsArticleLink, CommitteeActivityEvent } from '@/types/gov';
+import { TimelineDisplay, formatCommitteeActivityForTimeline } from '@/components/common/timeline-display';
 
 function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
   const committee = getCommitteeById(params.id);
   const relatedNews = committee ? getNewsByCommitteeId(committee.id) : [];
+  const activityTimelineItems = committee?.activityTimeline ? formatCommitteeActivityForTimeline(committee.activityTimeline) : [];
+
 
   if (!committee) {
     return (
@@ -76,7 +79,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                         {billRef.billName} {billRef.billNumber && `(${billRef.billNumber})`}
                       </Link>
                       <p className="text-xs text-muted-foreground">Referred: {format(new Date(billRef.referralDate), 'MMMM dd, yyyy')}</p>
-                      {billRef.status && <p className="text-xs">Status: <Badge variant="outline" className="text-xs">{billRef.status}</Badge></p>}
+                      {billRef.status && <p className="text-xs">Committee Status: <Badge variant="outline" className="text-xs">{billRef.status}</Badge></p>}
                     </div>
                   );
                 })}
@@ -124,6 +127,17 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                 </CardContent>
             </Card>
           )}
+
+          {activityTimelineItems.length > 0 && (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-primary"/>Activity Timeline</CardTitle>
+                </CardHeader>
+                <CardContent>
+                   <TimelineDisplay items={activityTimelineItems} />
+                </CardContent>
+            </Card>
+           )}
         </div>
 
         <div className="lg:col-span-1 space-y-6">
@@ -199,7 +213,8 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                 </Card>
             )}
             
-            <Card>
+           {!activityTimelineItems.length && ( // Only show placeholder if no timeline data
+             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-primary"/>Activity Timeline</CardTitle>
                 </CardHeader>
@@ -207,6 +222,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                    <p className="text-muted-foreground text-sm">(Detailed committee activity timeline will be available in future updates.)</p>
                 </CardContent>
             </Card>
+           )}
 
         </div>
       </div>

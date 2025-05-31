@@ -1,5 +1,5 @@
 
-import type { PoliticalJourneyEvent, BillTimelineEvent, PromiseStatusUpdate, ControversyUpdate, ElectionTimelineEvent } from '@/types/gov';
+import type { PoliticalJourneyEvent, BillTimelineEvent, PromiseStatusUpdate, ControversyUpdate, ElectionTimelineEvent, CommitteeActivityEvent } from '@/types/gov';
 
 interface TimelineItem {
   date: string;
@@ -90,6 +90,15 @@ export function formatControversyUpdatesForTimeline(updates: ControversyUpdate[]
 }
 
 export function formatElectionTimelineEventsForTimeline(events: ElectionTimelineEvent[]): TimelineItem[] {
+  return events.map(event => ({
+    date: event.date,
+    title: event.event,
+    description: event.description,
+    relatedDocumentUrl: event.relatedDocumentUrl,
+  }));
+}
+
+export function formatCommitteeActivityForTimeline(events: CommitteeActivityEvent[]): TimelineItem[] {
   return events.map(event => ({
     date: event.date,
     title: event.event,

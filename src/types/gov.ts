@@ -587,8 +587,15 @@ export type BillReferredToCommittee = {
   billName: string; // Denormalized
   billNumber?: string; // Denormalized
   referralDate: string; // ISO Date string
-  status?: 'Under Review' | 'Reported Out' | 'Pending' | string; // Status within the committee
+  status?: 'Under Review by Committee' | 'Reported Out by Committee' | 'Pending Committee Hearing' | 'Hearing Held' | string; // Status within the committee
   committeeReportId?: string; // Link to the committee's report on this bill
+};
+
+export type CommitteeActivityEvent = {
+  date: string; // ISO Date string
+  event: string; // e.g., "New Inquiry Launched: Topic X", "Public Hearing Held for Y Bill", "Report on Z Issue Submitted to Parliament"
+  description?: string;
+  relatedDocumentUrl?: string;
 };
 
 export interface Committee {
@@ -613,5 +620,6 @@ export interface Committee {
   isActive?: boolean; // Is the committee currently active/formed?
   establishmentDate?: string; // ISO Date string
   dissolutionDate?: string; // ISO Date string (if applicable)
+  activityTimeline?: CommitteeActivityEvent[]; // New
   dataAiHint?: string; // For a generic image placeholder
 }

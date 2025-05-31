@@ -1,5 +1,5 @@
 
-import type { Committee, CommitteeMemberLink, CommitteeMeeting, CommitteeReport, BillReferredToCommittee } from '@/types/gov';
+import type { Committee, CommitteeMemberLink, CommitteeMeeting, CommitteeReport, BillReferredToCommittee, CommitteeActivityEvent } from '@/types/gov';
 import { mockPoliticians } from './politicians'; // To get politician names
 import { mockBills } from './bills'; // To get bill names/numbers
 
@@ -9,13 +9,11 @@ const getBillDetails = (id: string) => mockBills.find(b => b.id === id);
 const financeCommitteeMembers: CommitteeMemberLink[] = [
   { politicianId: 'p1', politicianName: getPoliticianName('p1'), role: 'Chairperson', startDate: '2023-01-15' },
   { politicianId: 'p2', politicianName: getPoliticianName('p2'), role: 'Member', startDate: '2023-01-15' },
-  // Add more fictional members if needed
 ];
 
 const publicAccountsCommitteeMembers: CommitteeMemberLink[] = [
   { politicianId: 'p2', politicianName: getPoliticianName('p2'), role: 'Chairperson', startDate: '2023-02-01' },
   { politicianId: 'p1', politicianName: getPoliticianName('p1'), role: 'Member', startDate: '2023-02-01' },
-  // Add more members
 ];
 
 const financeCommitteeMeetings: CommitteeMeeting[] = [
@@ -28,11 +26,17 @@ const financeCommitteeReports: CommitteeReport[] = [
 ];
 
 const financeBillsReferred: BillReferredToCommittee[] = [
-  { billId: 'b1', billName: getBillDetails('b1')?.title || 'Clean Energy Act 2024', billNumber: getBillDetails('b1')?.billNumber, referralDate: '2024-03-18', status: 'Reported Out' },
+  { billId: 'b1', billName: getBillDetails('b1')?.title || 'Clean Energy Act 2024', billNumber: getBillDetails('b1')?.billNumber, referralDate: '2024-03-18', status: 'Reported Out by Committee' },
 ];
 
 const publicAccountsBillsReferred: BillReferredToCommittee[] = [
-   { billId: 'b2', billName: getBillDetails('b2')?.title || 'Digital Literacy For All Act', billNumber: getBillDetails('b2')?.billNumber, referralDate: '2023-10-01', status: 'Under Review' },
+   { billId: 'b2', billName: getBillDetails('b2')?.title || 'Digital Literacy For All Act', billNumber: getBillDetails('b2')?.billNumber, referralDate: '2023-10-01', status: 'Under Review by Committee' },
+];
+
+const financeCommitteeActivity: CommitteeActivityEvent[] = [
+  { date: '2024-05-01', event: 'Inquiry Launched: National Tax System Review', description: 'The committee initiated a comprehensive review of the current national tax system.' },
+  { date: '2024-06-10', event: 'Public Hearing: Proposed Banking Sector Reforms', description: 'Held public consultations with stakeholders from the banking industry and consumer groups.', relatedDocumentUrl: 'https://example.com/hearing-notice-banking.pdf'},
+  { date: '2024-07-20', event: 'Report Submitted: Mid-Year Budget Performance', description: 'Submitted its mid-year budget performance analysis report to the Parliament.'}
 ];
 
 
@@ -55,6 +59,7 @@ export const mockCommittees: Committee[] = [
     meetings: financeCommitteeMeetings,
     reports: financeCommitteeReports,
     billsReferred: financeBillsReferred,
+    activityTimeline: financeCommitteeActivity,
     tags: ['economy', 'budget', 'taxation', 'public-finance'],
     isActive: true,
     establishmentDate: '2018-08-01',
@@ -104,7 +109,7 @@ export const mockCommittees: Committee[] = [
         { politicianId: 'p1', politicianName: getPoliticianName('p1'), role: 'Member' }
     ],
     billsReferred: [
-      { billId: 'b1', billName: getBillDetails('b1')?.title || 'Clean Energy Act 2024', billNumber: getBillDetails('b1')?.billNumber, referralDate: '2024-03-18', status: 'Under Review' },
+      { billId: 'b1', billName: getBillDetails('b1')?.title || 'Clean Energy Act 2024', billNumber: getBillDetails('b1')?.billNumber, referralDate: '2024-03-18', status: 'Under Review by Committee' },
     ],
     tags: ['energy', 'environment', 'natural-resources'],
     isActive: true,
@@ -121,7 +126,7 @@ export const mockCommittees: Committee[] = [
         { politicianId: 'p2', politicianName: getPoliticianName('p2'), role: 'Member' }
     ],
     billsReferred: [
-      { billId: 'b2', billName: getBillDetails('b2')?.title || 'Digital Literacy For All Act', billNumber: getBillDetails('b2')?.billNumber, referralDate: '2023-10-01', status: 'Reported Out' },
+      { billId: 'b2', billName: getBillDetails('b2')?.title || 'Digital Literacy For All Act', billNumber: getBillDetails('b2')?.billNumber, referralDate: '2023-10-01', status: 'Reported Out by Committee' },
     ],
     tags: ['education', 'labor', 'workforce'],
     isActive: true,
