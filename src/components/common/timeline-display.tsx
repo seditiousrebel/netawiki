@@ -1,4 +1,5 @@
-import type { PoliticalJourneyEvent, Amendment } from '@/types/gov';
+
+import type { PoliticalJourneyEvent, Amendment, PromiseStatusUpdate, PromiseStatus } from '@/types/gov';
 
 interface TimelineItem {
   date: string;
@@ -16,16 +17,20 @@ export function TimelineDisplay({ items, title }: TimelineDisplayProps) {
     return <p className="text-muted-foreground">No timeline information available.</p>;
   }
 
+  // Sort items by date, most recent first, if not already sorted.
+  // This assumes `item.date` can be parsed by `new Date()`.
+  const sortedItems = [...items].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
   return (
     <div>
       {title && <h3 className="text-xl font-headline font-semibold mb-4 text-primary">{title}</h3>}
       <div className="relative pl-6 after:absolute after:inset-y-0 after:w-0.5 after:bg-border after:left-0">
-        {items.map((item, index) => (
+        {sortedItems.map((item, index) => (
           <div key={index} className="relative mb-6 pl-4 group">
             <div className="absolute -left-[calc(1.5rem+2px)] top-1.5 w-3 h-3 rounded-full bg-primary border-2 border-background group-hover:scale-125 transition-transform"></div>
             <p className="font-semibold text-foreground">{item.title}</p>
             <p className="text-sm text-muted-foreground mb-1">{new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-            {item.description && <p className="text-sm text-foreground/80">{item.description}</p>}
+            {item.description && <p className="text-sm text-foreground/80 whitespace-pre-line">{item.description}</p>}
           </div>
         ))}
       </div>
@@ -39,7 +44,7 @@ export function formatPoliticalJourneyForTimeline(journeyEvents: PoliticalJourne
     date: event.date,
     title: event.event,
     description: event.description,
-  })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  })); // Sorting is now handled by TimelineDisplay
 }
 
 export function formatAmendmentsForTimeline(amendments: Amendment[]): TimelineItem[] {
@@ -47,5 +52,24 @@ export function formatAmendmentsForTimeline(amendments: Amendment[]): TimelineIt
     date: amendment.date,
     title: `Amendment ${amendment.status || 'Proposed'}`,
     description: amendment.description,
-  })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  })); // Sorting is now handled by TimelineDisplay
+}
+
+export function formatPromiseStatusUpdatesForTimeline(statusUpdates: PromiseStatusUpdate[]): TimelineItem[] {
+  return statusUpdates.map(update => {
+    let title = `Status changed to: ${update.status}`;
+    if (update.fulfillmentPercentage !== undefined) {
+      title += ` (${update.fulfillmentPercentage}%)`;
+    }
+    
+    let desc = update.description || '';
+    if (update.updatedBy) {
+      desc += `\n(Updated by: ${update.updatedBy})`;
+    }
+    return {
+      date: update.date,
+      title: title,
+      description: desc.trim() || undefined,
+    };
+  }); // Sorting is now handled by TimelineDisplay
 }

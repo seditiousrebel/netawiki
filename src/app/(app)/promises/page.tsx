@@ -6,7 +6,7 @@ import { mockPromises, mockPoliticians, mockParties } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Edit, User, CalendarClock, CheckCircle, XCircle, RefreshCw, AlertTriangle, Building, Users2, Percent, Landmark, CalendarCheck2, Info, Link2, FileText } from 'lucide-react';
+import { ExternalLink, Edit, User, CalendarClock, CheckCircle, XCircle, RefreshCw, AlertTriangle, Building, Users2, Percent, Landmark, CalendarCheck2, Info, Link2, FileText, ArrowRight, History, ClipboardList } from 'lucide-react';
 import Link from 'next/link';
 import type { PromiseStatus, PromiseItem, PromiseEvidenceLink } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
@@ -70,7 +70,7 @@ export default function PromisesPage() {
         );
       }
     }
-    return <span className="flex items-center gap-1"><User className="h-3.5 w-3.5"/> Unknown Promiser</span>;
+    return <span className="flex items-center gap-1"><ClipboardList className="h-3.5 w-3.5"/> Unknown Promiser</span>;
   };
 
   return (
@@ -83,14 +83,16 @@ export default function PromisesPage() {
         <div className="space-y-6">
           {promises.map((promise: PromiseItem) => {
             const { icon: statusIcon, badgeClass } = getStatusVisuals(promise.status);
+            const detailPageUrl = `/promises/${promise.slug || promise.id}`;
             return (
               <Card key={promise.id} id={promise.id} className="shadow-md hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex-grow">
-                      <CardTitle className="font-headline text-xl text-primary mb-1">
-                        {/* Placeholder for individual promise page link: <Link href={`/promises/${promise.slug || promise.id}`}>{promise.title}</Link> */}
-                        {promise.title}
+                      <CardTitle className="font-headline text-xl mb-1">
+                        <Link href={detailPageUrl} className="text-primary hover:underline">
+                          {promise.title}
+                        </Link>
                       </CardTitle>
                       <div className="text-sm text-muted-foreground space-y-0.5">
                         <p className="flex items-center gap-1.5">
@@ -111,7 +113,7 @@ export default function PromisesPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-foreground/80 mb-4 whitespace-pre-line">{promise.description}</p>
+                  <p className="text-foreground/80 mb-4 line-clamp-3 whitespace-pre-line">{promise.description}</p>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-xs text-muted-foreground mb-4">
                     {promise.datePromised && <p className="flex items-center gap-1.5"><CalendarClock className="h-3.5 w-3.5 text-primary/70"/>Promised: {new Date(promise.datePromised).toLocaleDateString()}</p>}
@@ -157,14 +159,13 @@ export default function PromisesPage() {
                     </div>
                   )}
                 </CardContent>
-                <CardFooter className="flex justify-end pt-2">
-                  {/* Link to individual promise page will go here eventually */}
-                  {/* <Link href={`/promises/${promise.slug || promise.id}`}>
-                    <Button variant="outline" size="sm">View Details <ArrowRight className="ml-2 h-4 w-4" /></Button>
-                  </Link> */}
+                <CardFooter className="flex justify-between items-center pt-2">
                   <Button variant="ghost" size="sm" onClick={() => handleSuggestEdit(promise.id)}>
                     <Edit className="mr-2 h-3 w-3" /> Suggest Edit
                   </Button>
+                  <Link href={detailPageUrl}>
+                    <Button variant="outline" size="sm">View Details <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                  </Link>
                 </CardFooter>
               </Card>
             );

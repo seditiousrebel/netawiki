@@ -23,10 +23,10 @@ export const mockNewsArticles: NewsArticleLink[] = _mockNewsArticles;
 // Re-export all the getter functions directly from their source files
 export { getPoliticianById } from './data/politicians';
 export { getPartyById, getPartyNameById } from './data/parties';
-export { getPromisesByPolitician, getPromisesByPartyId } from './data/promises';
+export { getPromisesByPolitician, getPromisesByPartyId, getPromiseById } from './data/promises';
 export { getBillById, getBillsBySponsor } from './data/bills';
 export { getControversyById, getControversiesByPoliticianId, getControversiesByPartyId } from './data/controversies';
-export { getNewsByPartyId, getNewsByPoliticianId } from './data/news'; // Added getNewsByPoliticianId
+export { getNewsByPartyId, getNewsByPoliticianId } from './data/news';
 
 // Re-export types that might be used by pages directly (though ideally pages import from @/types/gov)
 export type {
@@ -40,3 +40,4 @@ export type {
     PromiseItem,
     NewsArticleLink
 };
+

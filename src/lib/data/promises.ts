@@ -26,7 +26,7 @@ export const mockPromises: PromiseItem[] = [
     statusUpdateHistory: [
       { date: '2020-02-01', status: 'Pending', description: 'Promise made during election campaign.' },
       { date: '2021-06-15', status: 'In Progress', description: 'Budget allocated and planning phase initiated.', fulfillmentPercentage: 10 },
-      { date: '2023-03-01', status: 'In Progress', description: 'Construction started in 3 major parks.', fulfillmentPercentage: 40 }
+      { date: '2023-03-01', status: 'In Progress', description: 'Construction started in 3 major parks.', fulfillmentPercentage: 40, updatedBy: 'System' }
     ],
   },
   {
@@ -52,9 +52,9 @@ export const mockPromises: PromiseItem[] = [
     ],
     statusUpdateHistory: [
       { date: '2020-03-15', status: 'Pending', description: 'Promise announced.'},
-      { date: '2022-01-10', status: 'In Progress', description: 'Negotiations with teacher unions started.', fulfillmentPercentage: 25 },
+      { date: '2022-01-10', status: 'In Progress', description: 'Negotiations with teacher unions started.', fulfillmentPercentage: 25, updatedBy: 'AdminUser1' },
       { date: '2023-07-01', status: 'Partially Fulfilled', description: '5% increase implemented.', fulfillmentPercentage: 50 },
-      { date: '2024-05-20', status: 'Fulfilled', description: 'Remaining 5% increase and associated benefits finalized.', fulfillmentPercentage: 100 }
+      { date: '2024-05-20', status: 'Fulfilled', description: 'Remaining 5% increase and associated benefits finalized.', fulfillmentPercentage: 100, updatedBy: 'System' }
     ],
   },
   {
@@ -139,7 +139,7 @@ export const mockPromises: PromiseItem[] = [
     sourceDetails: 'Town Hall Meeting, District X, Feb 15, 2022',
     geographicScope: 'Constituency', // Or District
     expectedFulfillmentDate: '2022-08-01',
-    status: 'Cancelled' as PromiseStatus, // This 'Cancelled' means the promise itself (to cancel the project) might be considered 'Fulfilled' if the project was indeed cancelled. Or it could mean the *effort* to cancel was cancelled. Let's assume the project was indeed stopped.
+    status: 'Fulfilled' as PromiseStatus, // The promise was TO CANCEL, and it was.
     actualFulfillmentDate: '2022-07-20', // Date project was officially cancelled
     fulfillmentPercentage: 100,
     reasonForStatus: 'Promise was to cancel the project, and the project was officially halted by the local council following advocacy.',
@@ -149,7 +149,7 @@ export const mockPromises: PromiseItem[] = [
     ],
     statusUpdateHistory: [
        { date: '2022-02-15', status: 'Pending', description: 'Pledged to work towards cancelling the project.'},
-       { date: '2022-07-20', status: 'Fulfilled', description: 'Highway project officially cancelled by council vote.', fulfillmentPercentage: 100 }
+       { date: '2022-07-20', status: 'Fulfilled', description: 'Highway project officially cancelled by council vote.', fulfillmentPercentage: 100, updatedBy: 'CommunityActionGroup' }
     ],
   }
 ];
@@ -160,4 +160,8 @@ export function getPromisesByPolitician(politicianId: string): PromiseItem[] {
 
 export function getPromisesByPartyId(partyId: string): PromiseItem[] {
   return mockPromises.filter(p => p.partyId === partyId);
+}
+
+export function getPromiseById(id: string): PromiseItem | undefined {
+  return mockPromises.find(p => p.id === id || p.slug === id);
 }
