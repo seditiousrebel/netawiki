@@ -2,17 +2,17 @@
 "use client";
 
 import Image from 'next/image';
-import { getPartyById, mockPoliticians, getPartyNameById, getPromisesByPartyId } from '@/lib/mock-data';
+import { getPartyById, mockPoliticians, getPartyNameById, getPromisesByPartyId, getControversiesByPartyId } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge }
 from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
-import type { PromiseItem, LeadershipEvent, Party, PartyAlliance } from '@/types/gov';
+import type { PromiseItem, LeadershipEvent, Party, PartyAlliance, Controversy } from '@/types/gov';
 import { TimelineDisplay } from '@/components/common/timeline-display';
 
 interface TimelineItem {
@@ -91,6 +91,8 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   
   const partyMembers = mockPoliticians.filter(p => p.partyId === party.id);
   const partyPromises = getPromisesByPartyId(party.id);
+  const relatedControversies = getControversiesByPartyId(party.id);
+
 
   const handleSuggestEdit = () => {
     toast({
@@ -490,6 +492,42 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               </CardContent>
             </Card>
           )}
+          
+          {relatedControversies.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <ShieldAlert className="h-5 w-5 text-primary"/> Associated Controversies
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {relatedControversies.map((controversy: Controversy) => (
+                    <li key={controversy.id} className="p-3 border rounded-md bg-secondary/50 hover:bg-secondary/70 transition-colors">
+                      <Link href={`/controversies/${controversy.id}`} className="font-semibold text-primary hover:underline">
+                        {controversy.title}
+                      </Link>
+                      <div className="flex justify-between items-center mt-1">
+                        <p className="text-xs text-muted-foreground">
+                          Status: {controversy.status}
+                        </p>
+                        <Badge variant={
+                            controversy.severityIndicator === 'Critical' || controversy.severityIndicator === 'High' ? 'destructive' :
+                            controversy.severityIndicator === 'Medium' ? 'secondary' : 'outline'
+                        } className="text-xs">
+                           Severity: {controversy.severityIndicator}
+                        </Badge>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/controversies" className="mt-4 inline-block">
+                   <Button variant="link" className="p-0 h-auto text-primary text-sm">View all controversies</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+
 
           <Button 
             onClick={handleFollowPartyToggle} 

@@ -65,7 +65,7 @@ export const mockParties: Party[] = [
     alliances: bupAlliances,
     isActive: true,
     isNationalParty: true,
-    controversyIds: ['c1'],
+    controversyIds: ['c1'], // Linked to Project Nova Funding Scandal
   },
   {
     id: 'party2',
@@ -106,7 +106,7 @@ export const mockParties: Party[] = [
     ],
     isActive: false, 
     isNationalParty: false, 
-    controversyIds: ['c2'],
+    controversyIds: ['c2'], // Linked to Election Campaign Speech Incident
   },
   {
     id: 'party3-fictional',

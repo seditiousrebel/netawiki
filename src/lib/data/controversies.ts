@@ -9,7 +9,8 @@ const mockControversiesData: Controversy[] = [
     description: 'Allegations surrounding the misappropriation of funds allocated for "Project Nova", a major infrastructure initiative. Several high-profile figures are implicated.',
     involvedEntities: [
       { type: 'politician', id: 'p1', name: 'Alice Democratia', role: 'Overseeing Committee Chair (alleged involvement)' },
-      { type: 'organization', id: 'org1', name: 'Nova Corp Inc.', role: 'Primary Contractor' }
+      { type: 'organization', id: 'org1', name: 'Nova Corp Inc.', role: 'Primary Contractor' },
+      { type: 'party', id: 'party1', name: 'Blue Unity Party', role: 'Party in Power during project approval (alleged)'}
     ],
     dates: { started: '2023-05-10' },
     period: 'Mid-2023 to Present',
