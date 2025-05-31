@@ -197,7 +197,7 @@ export type NewsArticleLink = {
   taggedPartyIds?: string[];
   taggedPoliticianIds?: string[];
   taggedPromiseIds?: string[];
-  taggedBillIds?: string[]; // New
+  taggedBillIds?: string[];
 };
 
 export interface Party {
@@ -466,5 +466,3 @@ export interface PromiseItem {
   // sdgTags?: string[]; // UN Sustainable Development Goals
   // userFollowersCount?: number;
 }
-
-    

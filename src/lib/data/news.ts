@@ -34,13 +34,14 @@ export const mockNewsArticles: NewsArticleLink[] = [
   },
   {
     id: 'news4',
-    title: "Cross-Party Talks on Infrastructure Begin",
+    title: "Cross-Party Talks on Infrastructure Begin, Clean Energy Act Discussed",
     url: "https://example.com/news/infrastructure-talks",
     sourceName: "Political Review Weekly",
     publicationDate: "2024-07-01",
-    summary: "Leaders from BUP and RAG met today to discuss potential bipartisan cooperation on the upcoming national infrastructure bill. Senator Alice Democratia and Representative Bob Republicanus were present.",
+    summary: "Leaders from BUP and RAG met today to discuss potential bipartisan cooperation on the upcoming national infrastructure bill. Senator Alice Democratia and Representative Bob Republicanus were present. The Clean Energy Act (S. 567) was a key topic.",
     taggedPartyIds: ['party1', 'party2'],
-    taggedPoliticianIds: ['p1', 'p2']
+    taggedPoliticianIds: ['p1', 'p2'],
+    taggedBillIds: ['b1']
   },
   {
     id: 'news5',
@@ -71,6 +72,16 @@ export const mockNewsArticles: NewsArticleLink[] = [
     summary: "Representative Bob Republicanus engaged in a spirited debate on current economic policies with leading economists.",
     taggedPoliticianIds: ['p2'],
     taggedPartyIds: ['party2']
+  },
+  {
+    id: 'news8',
+    title: "Digital Literacy Act (H.R. 1230) Gains Traction, Public Support Grows",
+    url: "https://example.com/news/digital-literacy-act-support",
+    sourceName: "Tech Forward News",
+    publicationDate: "2024-01-25",
+    summary: "The Digital Literacy For All Act (H.R. 1230) is receiving widespread public support as it moves through legislative stages. Experts laud its potential impact.",
+    taggedBillIds: ['b2'],
+    taggedPoliticianIds: ['p2', 'p1']
   }
 ];
 
@@ -89,5 +100,11 @@ export function getNewsByPoliticianId(politicianId: string): NewsArticleLink[] {
 export function getNewsByPromiseId(promiseId: string): NewsArticleLink[] {
   return mockNewsArticles.filter(article => 
     article.taggedPromiseIds?.includes(promiseId)
+  ).sort((a, b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
+}
+
+export function getNewsByBillId(billId: string): NewsArticleLink[] {
+  return mockNewsArticles.filter(article => 
+    article.taggedBillIds?.includes(billId)
   ).sort((a, b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
 }
