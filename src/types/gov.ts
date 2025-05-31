@@ -72,6 +72,7 @@ export interface Politician {
   committeeMemberships?: CommitteeMembership[];
   overallRating?: number; // e.g., 1-5 stars
   voteScore?: number; // e.g., 0-100%
+  promiseFulfillmentRate?: number; // e.g., 0-100%
   dataAiHint?: string;
 }
 

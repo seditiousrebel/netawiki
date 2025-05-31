@@ -72,6 +72,7 @@ export const mockPoliticians: Politician[] = [
     committeeMemberships: aliceCommitteeMemberships,
     overallRating: 4.5,
     voteScore: 78,
+    promiseFulfillmentRate: 50, // (1 fulfilled / 2 total promises) * 100
   },
   {
     id: 'p2',
@@ -104,6 +105,7 @@ export const mockPoliticians: Politician[] = [
     committeeMemberships: bobCommitteeMemberships,
     overallRating: 3.8,
     voteScore: 65,
+    promiseFulfillmentRate: 0, // (0 fulfilled / 2 total promises) * 100
   },
 ];
 

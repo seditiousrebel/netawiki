@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3 } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership } from '@/types/gov';
@@ -200,14 +200,14 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
         </div>
 
         <div className="lg:col-span-2 space-y-8">
-          {(politician.overallRating !== undefined || politician.voteScore !== undefined) && (
+          {(politician.overallRating !== undefined || politician.voteScore !== undefined || politician.promiseFulfillmentRate !== undefined) && (
             <Card>
               <CardHeader>
                 <CardTitle className="font-headline text-xl flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-primary"/> Analytics Snapshot
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
                 {politician.overallRating !== undefined && (
                   <div className="flex items-center gap-2">
                     <Star className="h-5 w-5 text-yellow-400" />
@@ -222,7 +222,14 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                     <span className="text-sm text-muted-foreground">Vote Score (Hypothetical)</span>
                   </div>
                 )}
-                 <p className="text-xs text-muted-foreground pt-2 border-t">
+                {politician.promiseFulfillmentRate !== undefined && (
+                  <div className="flex items-center gap-2">
+                    <ListChecks className="h-5 w-5 text-green-500" />
+                    <span className="font-semibold text-lg">{politician.promiseFulfillmentRate}%</span>
+                    <span className="text-sm text-muted-foreground">Promise Fulfillment</span>
+                  </div>
+                )}
+                 <p className="text-xs text-muted-foreground pt-2 border-t mt-2">
                     Note: Analytics data is for demonstration purposes.
                 </p>
               </CardContent>
