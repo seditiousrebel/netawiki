@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Search, UserCircle, ShieldCheck, LogOut, SettingsIcon } from 'lucide-react'; // Added SettingsIcon
+import { Menu, Search, UserCircle, ShieldCheck, LogOut, SettingsIcon, Compass, Home as HomeIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/gov';
@@ -26,10 +26,11 @@ const mainNavLinks = [
   { href: '/explore', label: 'Explore' },
 ];
 
-const mobileSheetNavLinks = [ // Separate for mobile sheet if needed, or combine
-  { href: '/feed', label: 'My Feed' },
-  { href: '/explore', label: 'Explore' },
-  { href: '/settings', label: 'Settings', icon: SettingsIcon }, // Added settings here
+// Updated mobileSheetNavLinks to remove Settings as a top-level item
+const mobileSheetNavLinks = [
+  { href: '/feed', label: 'My Feed', icon: HomeIcon },
+  { href: '/explore', label: 'Explore', icon: Compass },
+  // Settings will be grouped with profile actions below if user is logged in
 ];
 
 
@@ -210,6 +211,12 @@ export function AppHeader() {
                             <Button variant="ghost" className="w-full justify-start gap-2 text-base p-2.5">
                               <UserCircle className="h-5 w-5" />
                               My Profile
+                            </Button>
+                          </Link>
+                          <Link href="/settings" onClick={() => setIsSheetOpen(false)}>
+                            <Button variant="ghost" className="w-full justify-start gap-2 text-base p-2.5">
+                              <SettingsIcon className="h-5 w-5" />
+                              Settings
                             </Button>
                           </Link>
                            <Button variant="ghost" className="w-full justify-start gap-2 text-base p-2.5 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={handleLogout}>
