@@ -8,12 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { CalendarDays, Users, VoteIcon, MapPin, BarChart3, UserCircle, Flag, ExternalLink, CheckCircle, Award, Newspaper, History, Star, UserPlus } from 'lucide-react';
+import { CalendarDays, Users, VoteIcon, MapPin, BarChart3, UserCircle, Flag, ExternalLink, CheckCircle, Award, Newspaper, History, Star, UserPlus, Download, Trash2, Edit } from 'lucide-react'; // Added Download, Trash2, Edit
 import type { Election, ElectionCandidate, ElectionStatus, Politician, Party, NewsArticleLink, ElectionTimelineEvent } from '@/types/gov';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { TimelineDisplay, formatElectionTimelineEventsForTimeline } from '@/components/common/timeline-display';
 import { useToast } from "@/hooks/use-toast";
+import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
+import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
 
 const LOCAL_STORAGE_FOLLOWED_ELECTIONS_KEY = 'govtrackr_followed_elections';
 
@@ -35,6 +37,8 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
   const relatedNews = election ? getNewsByElectionId(election.id) : [];
   const timelineItems = election?.timelineEvents ? formatElectionTimelineEventsForTimeline(election.timelineEvents) : [];
   const { toast } = useToast();
+  const currentUser = getCurrentUser();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
 
   const [isFollowingElection, setIsFollowingElection] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
@@ -136,9 +140,24 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
             </span>
           </div>
         }
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => handleSuggestEditClick('Description', election.description || '')} >
+              <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+            </Button>
+            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
+              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Election Details'}
+            </Button>
+            {canAccess(currentUser.role, ADMIN_ROLES) && (
+              <Button variant="destructive" onClick={handleDeleteElection}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete Election
+              </Button>
+            )}
+          </div>
+        }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div id="election-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           <Card>
             <CardHeader>
@@ -354,6 +373,25 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
       </div>
     </div>
   );
+
+  // Placeholder for SuggestEditForm integration
+  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+    // setSuggestionFieldName(fieldName); // Example state update
+    // setSuggestionOldValue(oldValue); // Example state update
+    // setIsSuggestEditModalOpen(true); // Example state update
+    toast({ title: "Suggest Edit Clicked (Placeholder)", description: `Field: ${fieldName}` });
+  };
+
+  async function handleExportPdf() {
+    if (!election) return;
+    const fileName = `election-${election.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
+    await exportElementAsPDF('election-details-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  const handleDeleteElection = () => {
+    if (!election) return;
+    alert(`Mock delete action for election: ${election.name}`);
+  };
 }
 
 

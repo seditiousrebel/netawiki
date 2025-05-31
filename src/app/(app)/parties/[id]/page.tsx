@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge }
 from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone, DollarSign, VoteIcon, BookOpen, BarChart3, Newspaper, TrendingUp, Star, Download } from 'lucide-react'; // Added Download
+import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone, DollarSign, VoteIcon, BookOpen, BarChart3, Newspaper, TrendingUp, Star, Download, Trash2 } from 'lucide-react'; // Added Download, Trash2
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react'; // useState was already imported
@@ -17,6 +17,7 @@ import type { PromiseItem, LeadershipEvent, Party, PartyAlliance, PartySplitMerg
 import { TimelineDisplay } from '@/components/common/timeline-display';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { exportElementAsPDF } from '@/lib/utils'; // Import PDF utility
+import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
 
 
 interface TimelineItem {
@@ -68,7 +69,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   const params = React.use(paramsPromise);
   const party = getPartyById(params.id);
   const { toast } = useToast();
-  // const currentUser = getCurrentUser(); // No longer needed for this button
+  const currentUser = getCurrentUser(); // Add current user
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const [formattedFoundedDate, setFormattedFoundedDate] = useState<string | null>(null);
@@ -212,6 +213,11 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
               <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Party Details'}
             </Button>
+            {canAccess(currentUser.role, ADMIN_ROLES) && (
+              <Button variant="destructive" onClick={handleDeleteParty}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete Party
+              </Button>
+            )}
           </div>
         )}
       />
@@ -856,6 +862,11 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
     const fileName = `party-${party.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
     await exportElementAsPDF('party-details-export-area', fileName, setIsGeneratingPdf);
   }
+
+  const handleDeleteParty = () => {
+    if (!party) return;
+    alert(`Mock delete action for party: ${party.name}`);
+  };
 }
 
 

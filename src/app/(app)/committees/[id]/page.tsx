@@ -8,11 +8,13 @@ import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Landmark, Building, CalendarDays, FileText, ExternalLink, Mail, Phone, Globe, ListChecks, Newspaper, MessageSquare, Activity, Star, UserPlus, CheckCircle, History } from 'lucide-react';
+import { Users, Landmark, Building, CalendarDays, FileText, ExternalLink, Mail, Phone, Globe, ListChecks, Newspaper, MessageSquare, Activity, Star, UserPlus, CheckCircle, History, Download, Trash2, Edit } from 'lucide-react'; // Added Download, Trash2, Edit
 import { format } from 'date-fns';
 import type { Committee, CommitteeMemberLink, CommitteeMeeting, CommitteeReport, BillReferredToCommittee, NewsArticleLink, CommitteeActivityEvent } from '@/types/gov';
 import { TimelineDisplay, formatCommitteeActivityForTimeline } from '@/components/common/timeline-display';
 import { useToast } from "@/hooks/use-toast";
+import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
+import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
 
 const LOCAL_STORAGE_FOLLOWED_COMMITTEES_KEY = 'govtrackr_followed_committees';
 
@@ -22,6 +24,8 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
   const relatedNews = committee ? getNewsByCommitteeId(committee.id) : [];
   const activityTimelineItems = committee?.activityTimeline ? formatCommitteeActivityForTimeline(committee.activityTimeline) : [];
   const { toast } = useToast();
+  const currentUser = getCurrentUser();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
 
   const [isFollowingCommittee, setIsFollowingCommittee] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
@@ -124,9 +128,24 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
             )}
           </div>
         }
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => handleSuggestEditClick('Description', committee.description || '')} >
+              <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+            </Button>
+            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
+              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Committee Details'}
+            </Button>
+            {canAccess(currentUser.role, ADMIN_ROLES) && (
+              <Button variant="destructive" onClick={handleDeleteCommittee}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete Committee
+              </Button>
+            )}
+          </div>
+        }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div id="committee-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {committee.mandate && (
             <Card>
@@ -373,6 +392,25 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
       </div>
     </div>
   );
+
+  // Placeholder for SuggestEditForm integration - This function needs to be defined if used
+  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+    // setSuggestionFieldName(fieldName); // Example state update
+    // setSuggestionOldValue(oldValue); // Example state update
+    // setIsSuggestEditModalOpen(true); // Example state update
+    toast({ title: "Suggest Edit Clicked (Placeholder)", description: `Field: ${fieldName}` });
+  };
+
+  async function handleExportPdf() {
+    if (!committee) return;
+    const fileName = `committee-${committee.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
+    await exportElementAsPDF('committee-details-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  const handleDeleteCommittee = () => {
+    if (!committee) return;
+    alert(`Mock delete action for committee: ${committee.name}`);
+  };
 }
 
 export default CommitteeDetailPage;

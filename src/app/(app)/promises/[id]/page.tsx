@@ -9,12 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { TimelineDisplay, formatPromiseStatusUpdatesForTimeline } from '@/components/common/timeline-display';
-import { Edit, Users2, User, ClipboardList, AlertTriangle, Info, FileText, CalendarClock, CalendarCheck2, Percent, Landmark, Link2, ExternalLink, History, CheckCircle, RefreshCw, XCircle, Star, UserPlus, Newspaper, Tag } from 'lucide-react';
+import { Edit, Users2, User, ClipboardList, AlertTriangle, Info, FileText, CalendarClock, CalendarCheck2, Percent, Landmark, Link2, ExternalLink, History, CheckCircle, RefreshCw, XCircle, Star, UserPlus, Newspaper, Tag, Download, Trash2 } from 'lucide-react'; // Added Download, Trash2
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import type { PromiseItem, PromiseStatus, PromiseEvidenceLink, PromiseStatusUpdate, NewsArticleLink } from '@/types/gov';
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
+import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
 
 const LOCAL_STORAGE_FOLLOWED_PROMISES_KEY = 'govtrackr_followed_promises';
 
@@ -45,7 +47,8 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
   const params = React.use(paramsPromise);
   const promise = getPromiseById(params.id);
   const { toast } = useToast();
-  // const currentUser = getCurrentUser(); // No longer needed for this button
+  const currentUser = getCurrentUser();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
 
   const [isFollowingPromise, setIsFollowingPromise] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
@@ -168,14 +171,24 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
       <PageHeader
         title={promise.title}
         description={<div className="text-sm text-muted-foreground">Promised by: {promiserLink}</div>}
-        actions={(
-          <Button variant="outline" onClick={handleSuggestEdit}>
-            <Edit className="mr-2 h-4 w-4" /> Suggest Edit
-          </Button>
-        )}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => handleSuggestEditClick('Description', promise.description)} >
+              <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+            </Button>
+            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
+              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Promise Details'}
+            </Button>
+            {canAccess(currentUser.role, ADMIN_ROLES) && (
+              <Button variant="destructive" onClick={handleDeletePromise}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete Promise
+              </Button>
+            )}
+          </div>
+        }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div id="promise-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           <Card>
             <CardHeader>
@@ -386,4 +399,23 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
       </div>
     </div>
   );
+
+  // Placeholder for SuggestEditForm integration
+  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+    // setSuggestionFieldName(fieldName); // Example state update
+    // setSuggestionOldValue(oldValue); // Example state update
+    // setIsSuggestEditModalOpen(true); // Example state update
+    toast({ title: "Suggest Edit Clicked (Placeholder)", description: `Field: ${fieldName}` });
+  };
+
+  async function handleExportPdf() {
+    if (!promise) return;
+    const fileName = `promise-${promise.title.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
+    await exportElementAsPDF('promise-details-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  const handleDeletePromise = () => {
+    if (!promise) return;
+    alert(`Mock delete action for promise: ${promise.title}`);
+  };
 }

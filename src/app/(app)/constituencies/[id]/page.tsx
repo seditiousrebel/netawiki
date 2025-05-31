@@ -11,9 +11,11 @@ import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Users, User, Type, Code, Building, Globe, Landmark, History, Package, Newspaper, AlertTriangle, Edit, Info, CheckCircle, Layers, Star, UserPlus } from 'lucide-react';
+import { MapPin, Users, User, Type, Code, Building, Globe, Landmark, History, Package, Newspaper, AlertTriangle, Edit, Info, CheckCircle, Layers, Star, UserPlus, Download, Trash2 } from 'lucide-react'; // Added Download and Trash2
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
+import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
+import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
 
 const LOCAL_STORAGE_FOLLOWED_CONSTITUENCIES_KEY = 'govtrackr_followed_constituencies';
 
@@ -22,7 +24,8 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
   const constituency = getConstituencyById(params.id);
   const relatedNews = constituency ? getNewsByConstituencyId(constituency.id) : [];
   const { toast } = useToast();
-  // const currentUser = getCurrentUser(); // No longer needed for this button
+  const currentUser = getCurrentUser();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
 
   const [isFollowingConstituency, setIsFollowingConstituency] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
@@ -127,14 +130,24 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
             <span className="flex items-center gap-1 text-muted-foreground"><MapPin className="h-4 w-4"/>{constituency.district}, {constituency.province}</span>
           </div>
         }
-        actions={(
-           <Button variant="outline" onClick={handleSuggestEdit}>
-            <Edit className="mr-2 h-4 w-4" /> Suggest Edit
-          </Button>
-        )}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => handleSuggestEditClick('Description', constituency.description || '')} >
+              <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+            </Button>
+            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
+              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Constituency Details'}
+            </Button>
+            {canAccess(currentUser.role, ADMIN_ROLES) && (
+              <Button variant="destructive" onClick={handleDeleteConstituency}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete Constituency
+              </Button>
+            )}
+          </div>
+        }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div id="constituency-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {constituency.dataAiHint && (
              <Card className="overflow-hidden">
@@ -394,4 +407,23 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
       </div>
     </div>
   );
+
+  // Placeholder for SuggestEditForm integration - This function needs to be defined if used
+  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+    // setSuggestionFieldName(fieldName); // Example state update
+    // setSuggestionOldValue(oldValue); // Example state update
+    // setIsSuggestEditModalOpen(true); // Example state update
+    toast({ title: "Suggest Edit Clicked (Placeholder)", description: `Field: ${fieldName}`});
+  };
+
+  async function handleExportPdf() {
+    if (!constituency) return;
+    const fileName = `constituency-${constituency.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
+    await exportElementAsPDF('constituency-details-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  const handleDeleteConstituency = () => {
+    if (!constituency) return;
+    alert(`Mock delete action for constituency: ${constituency.name}`);
+  };
 }

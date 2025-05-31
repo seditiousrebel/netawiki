@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon, Newspaper, History, Download } from 'lucide-react'; // Added Download
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon, Newspaper, History, Download, Trash2 } from 'lucide-react'; // Added Download and Trash2 icons
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent, NewsArticleLink } from '@/types/gov';
@@ -291,11 +291,16 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
         actions={(
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleSuggestBioEdit}>
-              <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+              <Edit className="mr-2 h-4 w-4" /> Suggest Edit for Bio
             </Button>
             <Button variant="outline" onClick={handleExportPdfWrapper} disabled={isGeneratingPdf}>
               <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export to PDF'}
             </Button>
+            {canAccess(currentUser.role, ADMIN_ROLES) && (
+              <Button variant="destructive" onClick={handleDelete}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete Politician
+              </Button>
+            )}
           </div>
         )}
       />
@@ -912,4 +917,10 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     // Call the utility function
     await exportElementAsPDF('politician-profile-export-area', fileName, setIsGeneratingPdf);
   }
+
+  const handleDelete = () => {
+    if (!politician) return;
+    alert(`Mock delete action for politician: ${politician.name}`);
+    // console.log(`Attempting to delete politician: ${politician.id} - ${politician.name}`);
+  };
 }

@@ -6,16 +6,17 @@ import { getBillById, getNewsByBillId, getCommitteeByName } from '@/lib/mock-dat
 import { PageHeader } from '@/components/common/page-header';
 import { useNotificationStore } from "@/lib/notifications"; // Added useNotificationStore
 import { Button } from '@/components/ui/button';
-// import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth'; // No longer needed for this button
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Users, CalendarDays, CheckSquare, XSquare, ExternalLink, Landmark, FileText, ListCollapse, BookOpen, Info, Tag, Layers, Building, Clock, GitBranch, ShieldCheck, Newspaper, Star, UserPlus, CheckCircle, History } from 'lucide-react';
+import { Edit, Users, CalendarDays, CheckSquare, XSquare, ExternalLink, Landmark, FileText, ListCollapse, BookOpen, Info, Tag, Layers, Building, Clock, GitBranch, ShieldCheck, Newspaper, Star, UserPlus, CheckCircle, History, Download, Trash2 } from 'lucide-react'; // Added Download and Trash2
 import Link from 'next/link';
 import { TimelineDisplay, formatBillTimelineEventsForTimeline } from '@/components/common/timeline-display';
 import type { VoteRecord, BillTimelineEvent, NewsArticleLink, Bill } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
+import { exportElementAsPDF } from '@/lib/utils'; // Assuming this will be added for export
+import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
 
 const LOCAL_STORAGE_FOLLOWED_BILLS_KEY = 'govtrackr_followed_bills';
 
@@ -27,7 +28,8 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
   const params = React.use(paramsPromise);
   const bill = getBillById(params.id);
   const { toast } = useToast();
-  // const currentUser = getCurrentUser(); // No longer needed for this button
+  const currentUser = getCurrentUser();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
 
   const [relatedNews, setRelatedNews] = useState<NewsArticleLink[]>([]);
   const [isFollowingBill, setIsFollowingBill] = useState(false);
@@ -143,14 +145,25 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                 {bill.billType && <Badge variant="outline">{bill.billType}</Badge>}
             </div>
         }
-        actions={(
-          <Button variant="outline" onClick={handleSuggestEdit}>
-            <Edit className="mr-2 h-4 w-4" /> Suggest Edit
-          </Button>
-        )}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => handleSuggestEditClick('Summary', bill.summary)}>
+              <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+            </Button>
+            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
+              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Bill Details'}
+            </Button>
+            {canAccess(currentUser.role, ADMIN_ROLES) && (
+              <Button variant="destructive" onClick={handleDeleteBill}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete Bill
+              </Button>
+            )}
+          </div>
+        }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Add an ID to the main content wrapper for PDF export targeting */}
+      <div id="bill-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           <Card>
             <CardHeader>
@@ -434,4 +447,23 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
       </div>
     </div>
   );
+
+  // Placeholder for SuggestEditForm integration
+  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+    // setSuggestionFieldName(fieldName);
+    // setSuggestionOldValue(oldValue);
+    // setIsSuggestEditModalOpen(true);
+    toast({ title: "Suggest Edit Clicked (Placeholder)", description: `Field: ${fieldName}`});
+  };
+
+  async function handleExportPdf() {
+    if (!bill) return;
+    const fileName = `bill-${bill.billNumber.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
+    await exportElementAsPDF('bill-details-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  function handleDeleteBill() { // Changed to function declaration for consistency
+    if (!bill) return;
+    alert(`Mock delete action for bill: ${bill.title} (${bill.billNumber})`);
+  }
 }

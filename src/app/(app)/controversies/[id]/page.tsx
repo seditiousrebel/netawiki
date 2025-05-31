@@ -7,12 +7,14 @@ import { Button } from '@/components/ui/button';
 // import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth'; // No longer needed for this button
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Users, CalendarDays, FileText, ExternalLink, ShieldAlert, AlertTriangle, MessageSquare, Building, Tag, ListChecks, Scale, Briefcase, Milestone, Newspaper, BookOpen, Star, UserPlus, CheckCircle, History } from 'lucide-react';
+import { Edit, Users, CalendarDays, FileText, ExternalLink, ShieldAlert, AlertTriangle, MessageSquare, Building, Tag, ListChecks, Scale, Briefcase, Milestone, Newspaper, BookOpen, Star, UserPlus, CheckCircle, History, Download, Trash2 } from 'lucide-react'; // Added Download, Trash2
 import Link from 'next/link';
 import type { Controversy, InvolvedEntity, ControversyUpdate, ControversyEvidenceLink, ControversyOfficialResponse, ControversyMediaCoverage, ControversyLegalProceeding } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { TimelineDisplay, formatControversyUpdatesForTimeline } from '@/components/common/timeline-display';
 import React, { useState, useEffect } from 'react';
+import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
+import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
 import { format } from 'date-fns';
 
 const LOCAL_STORAGE_FOLLOWED_CONTROVERSIES_KEY = 'govtrackr_followed_controversies';
@@ -21,7 +23,8 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
   const params = React.use(paramsPromise);
   const controversy = getControversyById(params.id);
   const { toast } = useToast();
-  // const currentUser = getCurrentUser(); // No longer needed for this button
+  const currentUser = getCurrentUser();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
 
   const [isFollowingControversy, setIsFollowingControversy] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
@@ -143,14 +146,24 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
             {controversy.period && !controversy.dates?.started && <span className="text-muted-foreground">Period: {controversy.period}</span>}
           </div>
         }
-        actions={(
-          <Button variant="outline" onClick={handleSuggestEdit}>
-            <Edit className="mr-2 h-4 w-4" /> Suggest Edit
-          </Button>
-        )}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => handleSuggestEditClick('Summary', controversy.summaryOutcome || controversy.description)} >
+              <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+            </Button>
+            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
+              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Controversy Details'}
+            </Button>
+            {canAccess(currentUser.role, ADMIN_ROLES) && (
+              <Button variant="destructive" onClick={handleDeleteControversy}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete Controversy
+              </Button>
+            )}
+          </div>
+        }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div id="controversy-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           <Card>
             <CardHeader>
@@ -372,5 +385,24 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
       </div>
     </div>
   );
+
+  // Placeholder for SuggestEditForm integration
+  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+    // setSuggestionFieldName(fieldName); // Example state update
+    // setSuggestionOldValue(oldValue); // Example state update
+    // setIsSuggestEditModalOpen(true); // Example state update
+    toast({ title: "Suggest Edit Clicked (Placeholder)", description: `Field: ${fieldName}` });
+  };
+
+  async function handleExportPdf() {
+    if (!controversy) return;
+    const fileName = `controversy-${controversy.title.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
+    await exportElementAsPDF('controversy-details-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  const handleDeleteControversy = () => {
+    if (!controversy) return;
+    alert(`Mock delete action for controversy: ${controversy.title}`);
+  };
 }
     
