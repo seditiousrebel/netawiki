@@ -62,6 +62,8 @@ export interface Politician {
   education?: EducationEntry[];
   assetDeclarations?: AssetDeclaration[];
   criminalRecords?: CriminalRecord[];
+  overallRating?: number; // e.g., 1-5 stars
+  voteScore?: number; // e.g., 0-100%
   dataAiHint?: string;
 }
 

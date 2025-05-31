@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3 } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord } from '@/types/gov';
@@ -175,6 +175,35 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
         </div>
 
         <div className="lg:col-span-2 space-y-8">
+          {(politician.overallRating !== undefined || politician.voteScore !== undefined) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-primary"/> Analytics Snapshot
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {politician.overallRating !== undefined && (
+                  <div className="flex items-center gap-2">
+                    <Star className="h-5 w-5 text-yellow-400" />
+                    <span className="font-semibold text-lg">{politician.overallRating.toFixed(1)} / 5.0</span>
+                    <span className="text-sm text-muted-foreground">Overall Rating</span>
+                  </div>
+                )}
+                {politician.voteScore !== undefined && (
+                  <div className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" /> {/* Using Users icon as placeholder for vote score concept */}
+                    <span className="font-semibold text-lg">{politician.voteScore}%</span>
+                    <span className="text-sm text-muted-foreground">Vote Score (Hypothetical)</span>
+                  </div>
+                )}
+                 <p className="text-xs text-muted-foreground pt-2 border-t">
+                    Note: Analytics data is for demonstration purposes.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
            {politician.bio && (
             <Card>
               <CardHeader>

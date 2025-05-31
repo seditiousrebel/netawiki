@@ -57,6 +57,8 @@ export const mockPoliticians: Politician[] = [
     ],
     assetDeclarations: aliceAssetDeclarations,
     criminalRecords: [], // Alice has a clean record for now
+    overallRating: 4.5,
+    voteScore: 78,
   },
   {
     id: 'p2',
@@ -85,6 +87,8 @@ export const mockPoliticians: Politician[] = [
       { institution: 'Tech College', degree: 'B.S.', field: 'Economics', graduationYear: '2005' },
     ],
     criminalRecords: bobCriminalRecords,
+    overallRating: 3.8,
+    voteScore: 65,
   },
 ];
 
