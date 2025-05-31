@@ -133,20 +133,20 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
                       </CardHeader>
                       <CardContent className="text-sm space-y-1.5 pt-0 pl-6 ml-[calc(48px+0.75rem)]"> {/* Indent content to align with name */}
                         {party && (
-                          <p className="flex items-center gap-1">
+                          <div className="flex items-center gap-1">
                             <Flag className="h-4 w-4 text-muted-foreground"/> Party: {' '}
                             <Link href={`/parties/${party.id}`} className="text-primary hover:underline">
                               {party.name}
                             </Link>
-                            {candidate.partySymbolUrl && <Image src={candidate.partySymbolUrl} alt={`${party.name} Symbol`} width={20} height={20} className="ml-1" />}
-                          </p>
+                            {candidate.partySymbolUrl && <Image src={candidate.partySymbolUrl} alt={`${party.name} Symbol`} width={20} height={20} className="ml-1" data-ai-hint={party.dataAiHint || "party symbol"} />}
+                          </div>
                         )}
                         {!party && candidate.partyName && (
-                             <p className="flex items-center gap-1"><Flag className="h-4 w-4 text-muted-foreground"/> Affiliation: {candidate.partyName}</p>
+                             <div className="flex items-center gap-1"><Flag className="h-4 w-4 text-muted-foreground"/> Affiliation: {candidate.partyName}</div>
                         )}
-                        {candidate.ballotNumber && <p>Ballot No: <Badge variant="outline">{candidate.ballotNumber}</Badge></p>}
-                        <p>Status: <Badge variant={candidate.status === "Elected" ? "default" : "secondary"} className={candidate.status === "Elected" ? "bg-green-600 text-white" : ""}>{candidate.status}</Badge></p>
-                        {candidate.votesReceived !== undefined && <p>Votes: {candidate.votesReceived.toLocaleString()} {candidate.votePercentage !== undefined && `(${candidate.votePercentage}%)`}</p>}
+                        {candidate.ballotNumber && <div className="flex items-center gap-1">Ballot No: <Badge variant="outline">{candidate.ballotNumber}</Badge></div>}
+                        <div className="flex items-center gap-1">Status: <Badge variant={candidate.status === "Elected" ? "default" : "secondary"} className={candidate.status === "Elected" ? "bg-green-600 text-white" : ""}>{candidate.status}</Badge></div>
+                        {candidate.votesReceived !== undefined && <div className="flex items-center gap-1">Votes: {candidate.votesReceived.toLocaleString()} {candidate.votePercentage !== undefined && `(${candidate.votePercentage}%)`}</div>}
 
                         <div className="flex flex-wrap gap-2 mt-2">
                             {candidate.manifestoUrl && <Button variant="link" size="sm" asChild className="p-0 h-auto text-xs"><a href={candidate.manifestoUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3 w-3 mr-1"/>Manifesto</a></Button>}
