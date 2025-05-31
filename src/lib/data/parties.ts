@@ -1,10 +1,10 @@
 
 
-import type { Party, LeadershipEvent, PartyAlliance, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection } from '@/types/gov';
+import type { Party, LeadershipEvent, PartyAlliance, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection, HistoricalManifesto } from '@/types/gov';
 
 const bupLeadershipHistory: LeadershipEvent[] = [
   { name: 'Arthur Founder', role: 'Founding Chair', startDate: '1990-07-04', endDate: '1998-06-30' },
-  { name: 'Eleanor Vanguard', role: 'Party Chair', startDate: '1998-07-01', politicianId: 'p3', endDate: 'Present' },
+  { name: 'Eleanor Vanguard', role: 'Party Chair', startDate: '1998-07-01', politicianId: 'p3', endDate: 'Present' }, // p3 doesn't exist, will not link currently. Placeholder.
   { name: 'Old Secretary', role: 'General Secretary', startDate: '1990-07-04', endDate: '2005-12-31'},
   { name: 'John Smith', role: 'General Secretary', startDate: '2006-01-01', endDate: 'Present' }
 ];
@@ -58,6 +58,10 @@ const bupIntraPartyElections: IntraPartyElection[] = [
     { date: '2023-03-01', electionTitle: 'Youth Wing Leadership Election', description: 'Election for the new President of the Blue Unity Youth Wing.', resultsSummary: 'Sarah Young elected President.'}
 ];
 
+const bupHistoricalManifestos: HistoricalManifesto[] = [
+  { year: '2019', url: 'https://blueunity.example.com/manifesto-2019.pdf', description: 'Manifesto for the 2019 General Elections.' },
+  { year: '2014', url: 'https://blueunity.example.com/manifesto-2014.pdf', description: 'Party platform for the 2014 National Assembly elections.' },
+];
 
 export const mockParties: Party[] = [
   {
@@ -67,7 +71,7 @@ export const mockParties: Party[] = [
     abbreviation: 'BUP',
     slug: 'blue-unity-party',
     leadership: [
-      { name: 'Eleanor Vanguard', role: 'Party Chair', politicianId: 'p3' },
+      { name: 'Eleanor Vanguard', role: 'Party Chair', politicianId: 'p3-nonexistent' }, // Example, p3 needs to exist in mockPoliticians to link
       { name: 'Alice Democratia', role: 'Policy Head', politicianId: 'p1' },
       { name: 'John Smith', role: 'General Secretary' }
     ],
@@ -90,9 +94,10 @@ export const mockParties: Party[] = [
     ideology: ['Progressivism', 'Environmentalism', 'Social Democracy'],
     detailedIdeologyDescription: 'BUP advocates for policies that support a strong social safety net, investment in renewable energy, universal healthcare, and equal opportunities for all citizens. We believe in a regulated market economy that serves the public good.',
     partyManifestoUrl: 'https://blueunity.example.com/manifesto-2024.pdf',
+    historicalManifestos: bupHistoricalManifestos,
     internationalAffiliations: ['Progressive Alliance International'],
     wings: [
-      { name: 'Youth Wing', keyLeaders: [{name: 'Sarah Young', politicianId: 'p1'}], description: 'Engaging young people in political discourse and action.' },
+      { name: 'Youth Wing', keyLeaders: [{name: 'Sarah Young', politicianId: 'p1'}], description: 'Engaging young people in political discourse and action.' }, // p1 is Alice, assuming Sarah Young is a new person or Alice holds this role.
       { name: 'Women\'s Wing', keyLeaders: [{name: 'Maria Garcia'}], description: 'Advocating for gender equality and women\'s empowerment.' },
       { name: 'Student Front', keyLeaders: [], description: 'Mobilizing students for progressive causes.'}
     ],
@@ -144,7 +149,6 @@ export const mockParties: Party[] = [
     ],
     splitMergerHistory: ragSplitMergerHistory,
     stancesOnIssues: ragStances,
-    // No fundingSources or intraPartyElections for RAG in this mock update for brevity
     isActive: false, 
     isNationalParty: false, 
     controversyIds: ['c2'], 

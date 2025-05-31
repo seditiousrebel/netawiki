@@ -9,11 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge }
 from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone, DollarSign, VoteIcon } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone, DollarSign, VoteIcon, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
-import type { PromiseItem, LeadershipEvent, Party, PartyAlliance, Controversy, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection } from '@/types/gov';
+import type { PromiseItem, LeadershipEvent, Party, PartyAlliance, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection, HistoricalManifesto } from '@/types/gov';
 import { TimelineDisplay } from '@/components/common/timeline-display';
 
 interface TimelineItem {
@@ -340,7 +340,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               </CardContent>
             </Card>
           )}
-           {(party.detailedIdeologyDescription || party.partyManifestoUrl) && (
+           {(party.detailedIdeologyDescription || party.partyManifestoUrl || (party.historicalManifestos && party.historicalManifestos.length > 0)) && (
             <Card>
               <CardHeader>
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><Milestone className="text-primary"/> Ideology &amp; Platform</CardTitle>
@@ -348,11 +348,27 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               <CardContent className="space-y-3">
                 {party.detailedIdeologyDescription && <p className="text-foreground/80 whitespace-pre-line">{party.detailedIdeologyDescription}</p>}
                 {party.partyManifestoUrl && (
-                  <a href={party.partyManifestoUrl} target="_blank" rel="noopener noreferrer">
-                    <Button variant="link" className="p-0 h-auto text-primary items-center">
-                      Read Full Manifesto <ExternalLink className="ml-1 h-3 w-3" />
+                  <div className='mb-2'>
+                    <Button variant="link" asChild className="p-0 h-auto text-primary items-center font-semibold">
+                      <a href={party.partyManifestoUrl} target="_blank" rel="noopener noreferrer">
+                        Read Current Manifesto <ExternalLink className="ml-1 h-3 w-3" />
+                      </a>
                     </Button>
-                  </a>
+                  </div>
+                )}
+                {party.historicalManifestos && party.historicalManifestos.length > 0 && (
+                  <div className="pt-3 border-t">
+                    <h4 className="font-semibold text-sm mb-2 flex items-center gap-1"><BookOpen className="h-4 w-4 text-muted-foreground"/> Historical Manifestos</h4>
+                    <ul className="space-y-1">
+                      {party.historicalManifestos.map((manifesto, idx) => (
+                        <li key={idx} className="text-sm">
+                           <a href={manifesto.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
+                            {manifesto.year} {manifesto.description ? `- ${manifesto.description}` : 'Manifesto'} <ExternalLink className="h-3 w-3"/>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </CardContent>
             </Card>

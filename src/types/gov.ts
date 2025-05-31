@@ -177,6 +177,11 @@ export type IntraPartyElection = {
   documentUrl?: string; // Link to official results or announcement
 };
 
+export type HistoricalManifesto = {
+  year: string;
+  url: string;
+  description?: string;
+};
 
 export interface Party {
   id: string;
@@ -200,6 +205,7 @@ export interface Party {
   ideology?: string[];
   detailedIdeologyDescription?: string;
   partyManifestoUrl?: string; 
+  historicalManifestos?: HistoricalManifesto[]; // New
   parentPartyId?: string; 
   parentPartyName?: string; 
   splinterPartyIds?: string[]; 
@@ -209,8 +215,8 @@ export interface Party {
   alliances?: PartyAlliance[]; 
   splitMergerHistory?: PartySplitMergerEvent[]; 
   stancesOnIssues?: PartyStance[]; 
-  fundingSources?: FundingSource[]; // New
-  intraPartyElections?: IntraPartyElection[]; // New
+  fundingSources?: FundingSource[]; 
+  intraPartyElections?: IntraPartyElection[]; 
   isActive?: boolean;
   isNationalParty?: boolean;
   dataAiHint?: string;
