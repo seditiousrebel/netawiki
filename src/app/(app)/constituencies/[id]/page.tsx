@@ -276,7 +276,10 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                 <CardContent className="space-y-3">
                     {constituency.developmentProjects.map((project: DevelopmentProject) => (
                         <div key={project.id} className="text-sm pb-2 border-b last:border-b-0">
-                            <p className="font-semibold">{project.name} <Badge variant={project.status === 'Completed' ? 'default' : project.status === 'Ongoing' ? 'secondary' : 'outline'} className={`text-xs ${project.status === 'Completed' ? 'bg-green-500 text-white' : ''}`}>{project.status}</Badge></p>
+                            <div className="font-semibold flex items-center gap-2">
+                              <span>{project.name}</span>
+                              <Badge variant={project.status === 'Completed' ? 'default' : project.status === 'Ongoing' ? 'secondary' : 'outline'} className={`text-xs ${project.status === 'Completed' ? 'bg-green-500 text-white' : ''}`}>{project.status}</Badge>
+                            </div>
                             {project.description && <p className="text-xs text-muted-foreground mt-0.5">{project.description}</p>}
                             {project.budget && <p className="text-xs">Budget: {project.budget}</p>}
                             {project.expectedCompletion && <p className="text-xs">Expected Completion: {project.expectedCompletion}</p>}
@@ -295,12 +298,13 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                 <CardContent className="space-y-3">
                     {constituency.localIssues.map((issue: LocalIssue) => (
                         <div key={issue.id} className="text-sm pb-2 border-b last:border-b-0">
-                           <p className="font-semibold">{issue.title} 
+                           <div className="font-semibold flex items-center gap-2">
+                            <span>{issue.title}</span>
                              <Badge variant={issue.status === 'Addressed' ? 'default' : issue.severity === 'High' ? 'destructive' : 'secondary'} 
-                                    className={`text-xs ml-1.5 ${issue.status === 'Addressed' ? 'bg-green-500 text-white' : ''}`}>
+                                    className={`text-xs ${issue.status === 'Addressed' ? 'bg-green-500 text-white' : ''}`}>
                                 {issue.status} {issue.severity && `(${issue.severity})`}
                              </Badge>
-                           </p>
+                           </div>
                            {issue.description && <p className="text-xs text-muted-foreground mt-0.5">{issue.description}</p>}
                            {issue.reportedBy && <p className="text-xs text-muted-foreground">Reported by: {issue.reportedBy} {issue.dateReported && `on ${format(new Date(issue.dateReported), 'MM/dd/yyyy')}`}</p>}
                            {issue.resolutionDetails && <p className="text-xs text-green-700 mt-0.5">Resolution: {issue.resolutionDetails}</p>}
