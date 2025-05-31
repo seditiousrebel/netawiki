@@ -12,7 +12,8 @@ import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Textarea } from '@/components/ui/textarea';
 
 interface PoliticianVote extends VoteRecord {
   billId: string;
@@ -26,6 +27,9 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
   const politician = getPoliticianById(params.id);
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
+  const [currentRating, setCurrentRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [commentText, setCommentText] = useState("");
   
   if (!politician) {
     return <p>Politician not found.</p>;
@@ -100,6 +104,27 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
       description: !isFollowing ? "You'll now receive updates in your feed." : "You will no longer receive updates.",
       duration: 3000,
     });
+  };
+
+  const handleRatingSubmit = () => {
+    if (currentRating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please select a star rating before submitting.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    console.log("Rating Submitted:", { rating: currentRating, comment: commentText });
+    toast({
+      title: "Review Submitted (Demo)",
+      description: `You rated ${politician.name} ${currentRating} star(s). Comment: ${commentText || 'No comment provided.'}`,
+      duration: 5000,
+    });
+    // Reset form (optional)
+    // setCurrentRating(0);
+    // setCommentText("");
   };
 
   return (
@@ -368,6 +393,48 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
               </CardContent>
             </Card>
           )}
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center gap-2">
+                <Star className="h-5 w-5 text-primary" /> Rate or Endorse {politician.name}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="mb-2 text-sm font-medium">Your Rating:</p>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`h-7 w-7 cursor-pointer transition-colors ${
+                        (hoverRating || currentRating) >= star
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : 'text-gray-300 hover:text-yellow-300'
+                      }`}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      onClick={() => setCurrentRating(star)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label htmlFor="comment" className="mb-2 text-sm font-medium block">Your Comment (Optional):</label>
+                <Textarea
+                  id="comment"
+                  placeholder={`Share your thoughts on ${politician.name}...`}
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  rows={4}
+                />
+              </div>
+              <Button onClick={handleRatingSubmit} className="w-full sm:w-auto" disabled={currentRating === 0}>
+                Submit Review
+              </Button>
+            </CardContent>
+          </Card>
+
 
           {politician.statementsAndQuotes && politician.statementsAndQuotes.length > 0 && (
             <Card>
