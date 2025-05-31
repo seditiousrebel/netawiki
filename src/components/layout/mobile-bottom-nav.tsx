@@ -59,13 +59,15 @@ export function MobileBottomNav() {
               key={item.label}
               href={item.href}
               className={cn(
-                'flex items-center justify-center gap-1 p-1 rounded-md transition-colors h-full text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
+                // Removed justify-center, icon and text will now align to the start of the flex container (Link)
+                // The grid parent's items-center will vertically center the Link block within its cell
+                'flex flex-row items-center gap-1 p-1 rounded-md transition-colors h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50', 
                 isActive ? 'text-primary font-semibold' : 'text-muted-foreground hover:text-primary'
               )}
               aria-current={isActive ? "page" : undefined}
             >
-              <item.icon className={cn("h-5 w-5", isActive ? "text-primary" : "")} />
-              <span className="text-xs font-medium leading-tight">{item.label}</span>
+              <item.icon className={cn("h-5 w-5 shrink-0", isActive ? "text-primary" : "")} />
+              <span className="text-xs font-medium leading-tight whitespace-nowrap">{item.label}</span>
             </Link>
           );
         })}
@@ -73,4 +75,3 @@ export function MobileBottomNav() {
     </nav>
   );
 }
-
