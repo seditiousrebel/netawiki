@@ -112,10 +112,6 @@ export default function PartiesPage() {
     setFilteredParties(updatedParties);
   }, [searchTerm, selectedIdeology, selectedNationalStatus, selectedActiveStatus, sortOption]);
 
-
-    setFilteredParties(updatedParties);
-  }, [searchTerm, selectedIdeology, selectedNationalStatus, selectedActiveStatus, sortOption]);
-
   const handleOpenSuggestNewPartyModal = () => {
     if (isUserLoggedIn()) {
       setIsSuggestNewPartyModalOpen(true);
