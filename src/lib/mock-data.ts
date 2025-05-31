@@ -18,6 +18,11 @@ export const mockPoliticians: Politician[] = [
     bio: 'Alice Democratia is a dedicated public servant with over a decade of experience in governance, championing transparency and citizen engagement.',
     district: 'Statewide',
     dateOfBirth: '1975-03-12',
+    gender: 'Female',
+    education: [
+      { institution: 'State University', degree: 'M.A.', field: 'Public Administration', graduationYear: '2005' },
+      { institution: 'City College', degree: 'B.A.', field: 'Political Science', graduationYear: '2002' },
+    ],
   },
   {
     id: 'p2',
@@ -35,6 +40,11 @@ export const mockPoliticians: Politician[] = [
     bio: 'Bob Republicanus brings a strong business background to his role, focusing on economic growth and fiscal responsibility.',
     district: '5th Congressional District',
     dateOfBirth: '1980-09-25',
+    gender: 'Male',
+    education: [
+      { institution: 'Commerce Institute', degree: 'MBA', field: 'Business Administration', graduationYear: '2008' },
+      { institution: 'Tech College', degree: 'B.S.', field: 'Economics', graduationYear: '2005' },
+    ],
   },
 ];
 
@@ -48,7 +58,6 @@ export const mockParties: Party[] = [
     dataAiHint: 'party logo',
     history: 'Founded in 1990 with a focus on social justice and environmental protection.',
     electionSymbolUrl: 'https://placehold.co/100x100.png',
-    dataAiHint: 'election symbol',
     ideology: ['Progressivism', 'Environmentalism'],
     foundedDate: '1990-07-04',
   },
@@ -61,7 +70,6 @@ export const mockParties: Party[] = [
     dataAiHint: 'party logo',
     history: 'Established in 1985, advocating for free markets and individual liberties.',
     electionSymbolUrl: 'https://placehold.co/100x100.png',
-    dataAiHint: 'election symbol',
     ideology: ['Conservatism', 'Libertarianism'],
     foundedDate: '1985-02-15',
   },

@@ -18,6 +18,13 @@ export type LeadershipMember = {
 
 export type PromiseStatus = 'Pending' | 'In Progress' | 'Fulfilled' | 'Broken';
 
+export type EducationEntry = {
+  institution: string;
+  degree: string;
+  field?: string;
+  graduationYear?: string;
+};
+
 export interface Politician {
   id: string;
   name: string;
@@ -30,6 +37,9 @@ export interface Politician {
   bio?: string;
   district?: string; // e.g., "California's 12th congressional district"
   dateOfBirth?: string;
+  gender?: string;
+  education?: EducationEntry[];
+  dataAiHint?: string;
 }
 
 export interface Party {
@@ -42,6 +52,7 @@ export interface Party {
   electionSymbolUrl: string; // URL to image
   ideology?: string[];
   foundedDate?: string;
+  dataAiHint?: string;
 }
 
 export interface PromiseItem {
@@ -72,7 +83,7 @@ export type Amendment = {
 };
 
 export interface Bill {
-  id: string;
+  id:string;
   title: string;
   billNumber: string; // e.g., "H.R. 1234"
   summary: string;

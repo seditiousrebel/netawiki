@@ -3,7 +3,7 @@ import { getPoliticianById, getPromisesByPolitician, mockParties } from '@/lib/m
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
 import type { PromiseItem } from '@/types/gov';
@@ -40,20 +40,42 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                 width={400}
                 height={400}
                 className="w-full h-auto object-cover rounded-t-lg"
-                data-ai-hint={politician.dataAiHint as string || "politician portrait"}
+                data-ai-hint={politician.dataAiHint || "politician portrait"}
               />
-              <div className="p-6">
+              <div className="p-6 space-y-1">
                 <h2 className="text-2xl font-headline font-semibold mb-1">{politician.name}</h2>
                 {party && (
-                  <Link href={`/parties/${party.id}`} className="text-primary hover:underline flex items-center gap-1 mb-2">
+                  <Link href={`/parties/${party.id}`} className="text-primary hover:underline flex items-center gap-1">
                     <Landmark className="h-4 w-4" /> {party.name}
                   </Link>
                 )}
-                 {politician.district && <p className="text-sm text-muted-foreground flex items-center gap-1 mb-1"><MapPin className="h-4 w-4" /> {politician.district}</p>}
+                 {politician.district && <p className="text-sm text-muted-foreground flex items-center gap-1"><MapPin className="h-4 w-4" /> {politician.district}</p>}
                 {politician.dateOfBirth && <p className="text-sm text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Born: {new Date(politician.dateOfBirth).toLocaleDateString()}</p>}
+                {politician.gender && <p className="text-sm text-muted-foreground">Gender: {politician.gender}</p>}
               </div>
             </CardContent>
           </Card>
+
+          {politician.education && politician.education.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5 text-primary"/> Education
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {politician.education.map((edu, idx) => (
+                    <li key={idx} className="text-sm">
+                      <p className="font-semibold">{edu.degree}{edu.field && ` in ${edu.field}`}</p>
+                      <p className="text-muted-foreground">{edu.institution}</p>
+                      {edu.graduationYear && <p className="text-xs text-muted-foreground">Graduated: {edu.graduationYear}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>
