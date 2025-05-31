@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -7,7 +8,7 @@ import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Landmark, Building, CalendarDays, FileText, ExternalLink, Mail, Phone, Globe, ListChecks, Newspaper, MessageSquare, Activity, Star, UserPlus, CheckCircle, History, Download, Trash2, Edit } from 'lucide-react';
+import { Users, Landmark, Building, CalendarDays, FileText, ExternalLink, Mail, Phone, Globe, ListChecks, Newspaper, MessageSquare, Activity, Star, UserPlus, CheckCircle, History, Download, Trash2, Edit, Tag } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Committee, CommitteeMemberLink, CommitteeMeeting, CommitteeReport, BillReferredToCommittee, NewsArticleLink, CommitteeActivityEvent } from '@/types/gov';
 import { TimelineDisplay, formatCommitteeActivityForTimeline } from '@/components/common/timeline-display';
