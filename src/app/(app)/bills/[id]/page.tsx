@@ -357,7 +357,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                       <div className="flex justify-between items-center mb-1">
                         <span className="font-semibold text-md">{event.event}</span>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(event.date).toLocaleDateString()} by {event.author}
+                          {format(new Date(event.date), 'MM/dd/yyyy')} by {event.author}
                         </span>
                       </div>
                       {event.details && <p className="text-sm text-foreground/80 mb-1">{event.details}</p>}
