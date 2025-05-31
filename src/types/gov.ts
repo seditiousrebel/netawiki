@@ -36,6 +36,16 @@ export type AssetDeclaration = {
   sourceUrl?: string;
 };
 
+export type CriminalRecord = {
+  date: string; // Date of record or offense
+  caseNumber?: string;
+  offense: string;
+  court?: string;
+  status: 'Alleged' | 'Under Investigation' | 'Charges Filed' | 'Convicted' | 'Acquitted' | 'Dismissed' | 'Appealed';
+  summary?: string;
+  sourceUrl?: string;
+};
+
 export interface Politician {
   id: string;
   name: string;
@@ -51,6 +61,7 @@ export interface Politician {
   gender?: string;
   education?: EducationEntry[];
   assetDeclarations?: AssetDeclaration[];
+  criminalRecords?: CriminalRecord[];
   dataAiHint?: string;
 }
 

@@ -1,10 +1,29 @@
 
-import type { Politician, AssetDeclaration } from '@/types/gov';
+import type { Politician, AssetDeclaration, CriminalRecord } from '@/types/gov';
 
 const aliceAssetDeclarations: AssetDeclaration[] = [
   { year: 2023, description: 'Primary Residence, Anytown', value: '$500,000 - $750,000', sourceUrl: 'https://example.com/alice-assets-2023.pdf' },
   { year: 2023, description: 'Investment Portfolio (Stocks & Bonds)', value: '$100,000 - $250,000' },
   { year: 2022, description: 'Primary Residence, Anytown', value: '$450,000 - $700,000', sourceUrl: 'https://example.com/alice-assets-2022.pdf' },
+];
+
+const bobCriminalRecords: CriminalRecord[] = [
+  {
+    date: '2019-05-15',
+    caseNumber: 'CR-2019-12345',
+    offense: 'Campaign Finance Violation (Alleged)',
+    court: 'Federal Election Commission',
+    status: 'Under Investigation',
+    summary: 'Allegations of improper use of campaign funds during the 2018 election cycle. Investigation ongoing.',
+    sourceUrl: 'https://example.com/fec-case-12345',
+  },
+  {
+    date: '2021-11-01',
+    offense: 'Defamation Lawsuit',
+    court: 'Anytown Civil Court',
+    status: 'Dismissed',
+    summary: 'A defamation lawsuit filed by a political opponent was dismissed by the court.',
+  }
 ];
 
 export const mockPoliticians: Politician[] = [
@@ -37,6 +56,7 @@ export const mockPoliticians: Politician[] = [
       { institution: 'City College', degree: 'B.A.', field: 'Political Science', graduationYear: '2002' },
     ],
     assetDeclarations: aliceAssetDeclarations,
+    criminalRecords: [], // Alice has a clean record for now
   },
   {
     id: 'p2',
@@ -64,7 +84,7 @@ export const mockPoliticians: Politician[] = [
       { institution: 'Commerce Institute', degree: 'MBA', field: 'Business Administration', graduationYear: '2008' },
       { institution: 'Tech College', degree: 'B.S.', field: 'Economics', graduationYear: '2005' },
     ],
-    // No asset declarations for Bob for now
+    criminalRecords: bobCriminalRecords,
   },
 ];
 

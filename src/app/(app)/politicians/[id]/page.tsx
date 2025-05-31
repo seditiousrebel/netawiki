@@ -3,10 +3,11 @@ import { getPoliticianById, getPromisesByPolitician, mockParties } from '@/lib/m
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
-import type { PromiseItem, AssetDeclaration } from '@/types/gov';
+import type { PromiseItem, AssetDeclaration, CriminalRecord } from '@/types/gov';
 
 export default function PoliticianProfilePage({ params }: { params: { id: string } }) {
   const politician = getPoliticianById(params.id);
@@ -17,6 +18,23 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
 
   const promises = getPromisesByPolitician(params.id);
   const party = politician.partyId ? mockParties.find(p => p.id === politician.partyId) : null;
+
+  const getStatusBadgeVariant = (status: CriminalRecord['status']) => {
+    switch (status) {
+      case 'Convicted':
+      case 'Charges Filed':
+        return 'destructive';
+      case 'Alleged':
+      case 'Under Investigation':
+        return 'secondary'; // or a yellow/orange if defined
+      case 'Acquitted':
+      case 'Dismissed':
+        return 'default'; // or a green if defined
+      default:
+        return 'outline';
+    }
+  };
+
 
   return (
     <div>
@@ -192,6 +210,37 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                       {asset.value && <p className="text-muted-foreground">Value: {asset.value}</p>}
                       {asset.sourceUrl && (
                         <a href={asset.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1">
+                          View Source <ExternalLink className="h-3 w-3"/>
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {politician.criminalRecords && politician.criminalRecords.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <Gavel className="h-5 w-5 text-primary"/> Criminal Records
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-4">
+                  {politician.criminalRecords.map((record: CriminalRecord, idx: number) => (
+                    <li key={idx} className="text-sm border-b pb-3 last:border-b-0 last:pb-0">
+                      <div className="flex justify-between items-start mb-1">
+                        <p className="font-semibold">{record.offense}</p>
+                        <Badge variant={getStatusBadgeVariant(record.status)}>{record.status}</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Date: {new Date(record.date).toLocaleDateString()}</p>
+                      {record.caseNumber && <p className="text-xs text-muted-foreground">Case: {record.caseNumber}</p>}
+                      {record.court && <p className="text-xs text-muted-foreground">Court: {record.court}</p>}
+                      {record.summary && <p className="mt-1 text-foreground/80">{record.summary}</p>}
+                      {record.sourceUrl && (
+                        <a href={record.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1 mt-1">
                           View Source <ExternalLink className="h-3 w-3"/>
                         </a>
                       )}
