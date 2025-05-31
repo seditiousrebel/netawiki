@@ -65,6 +65,27 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
             </Card>
           )}
 
+          {committee.members && committee.members.length > 0 && (
+            <Card>
+                <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><Users className="text-primary"/> Members</CardTitle>
+                {chairperson && <CardDescription>Chairperson: <Link href={`/politicians/${chairperson.politicianId}`} className="text-primary hover:underline">{chairperson.politicianName}</Link></CardDescription>}
+                </CardHeader>
+                <CardContent>
+                <ul className="space-y-2">
+                    {committee.members.map((member, idx) => (
+                    <li key={idx} className="text-sm">
+                        <Link href={`/politicians/${member.politicianId}`} className="text-primary hover:underline font-semibold">
+                        {member.politicianName}
+                        </Link>
+                        <span className="text-xs text-muted-foreground"> ({member.role})</span>
+                    </li>
+                    ))}
+                </ul>
+                </CardContent>
+            </Card>
+           )}
+
           {committee.billsReferred && committee.billsReferred.length > 0 && (
             <Card>
               <CardHeader>
@@ -141,27 +162,6 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-           {committee.members && committee.members.length > 0 && (
-            <Card>
-                <CardHeader>
-                <CardTitle className="font-headline text-xl flex items-center gap-2"><Users className="text-primary"/> Members</CardTitle>
-                {chairperson && <CardDescription>Chairperson: <Link href={`/politicians/${chairperson.politicianId}`} className="text-primary hover:underline">{chairperson.politicianName}</Link></CardDescription>}
-                </CardHeader>
-                <CardContent>
-                <ul className="space-y-2">
-                    {committee.members.map((member, idx) => (
-                    <li key={idx} className="text-sm">
-                        <Link href={`/politicians/${member.politicianId}`} className="text-primary hover:underline font-semibold">
-                        {member.politicianName}
-                        </Link>
-                        <span className="text-xs text-muted-foreground"> ({member.role})</span>
-                    </li>
-                    ))}
-                </ul>
-                </CardContent>
-            </Card>
-           )}
-
            {committee.contactInfo && (
             <Card>
                 <CardHeader>
@@ -180,7 +180,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
-                            <Users className="h-5 w-5 text-primary"/> Tags
+                            <Users className="h-5 w-5 text-primary"/> Tags 
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="flex flex-wrap gap-2">
