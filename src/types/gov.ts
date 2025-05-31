@@ -708,4 +708,11 @@ export interface Constituency {
   tags?: string[];
 }
 
-    
+export interface Notification {
+  id: string; // unique identifier
+  message: string; // notification content
+  type: 'info' | 'warning' | 'error' | 'success'; // notification type
+  read: boolean; // default false
+  createdAt: Date; // timestamp
+  link?: string; // optional link to navigate to
+}

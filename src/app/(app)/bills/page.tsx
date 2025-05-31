@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/common/page-header';
 import { mockBills } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import BillStatusChart from '@/components/charts/BillStatusChart'; // Import BillStatusChart
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -85,6 +86,15 @@ export default function BillsPage() {
         title="Bill Tracking"
         description="Follow legislative bills, their summaries, sponsorship, and status."
       />
+
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="font-headline text-xl">Bill Status Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BillStatusChart billData={mockBills} />
+        </CardContent>
+      </Card>
 
       <Card className="mb-8 p-6 shadow-md">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">

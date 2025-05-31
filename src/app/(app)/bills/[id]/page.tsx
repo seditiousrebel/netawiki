@@ -1,9 +1,10 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Added useRef
 import { getBillById, getNewsByBillId, getCommitteeByName } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
+import { useNotificationStore } from "@/lib/notifications"; // Added useNotificationStore
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +31,22 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
   const [isFollowingBill, setIsFollowingBill] = useState(false);
   const [currentBillRating, setCurrentBillRating] = useState(0);
   const [hoverBillRating, setHoverBillRating] = useState(0);
+  const { addNotification } = useNotificationStore(); // Get addNotification
+  const notificationTriggered = useRef(false); // Ref to track notification trigger
+
+  useEffect(() => {
+    if (bill && !notificationTriggered.current) {
+      const timeoutId = setTimeout(() => {
+        addNotification(
+          `The status of bill '${bill.title}' has been updated to 'In Committee'.`,
+          'info',
+          `/bills/${bill.id}`
+        );
+      }, 4000); // Slightly different delay
+      notificationTriggered.current = true;
+      return () => clearTimeout(timeoutId);
+    }
+  }, [bill, addNotification]);
 
   useEffect(() => {
     if (bill) {
