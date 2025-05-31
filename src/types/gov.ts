@@ -113,6 +113,17 @@ export interface Politician {
   popularityScore?: number; // New field for popularity
   dataAiHint?: string;
   controversyIds?: string[]; // New: Link to controversies
+  revisionHistory?: RevisionHistoryItem[]; // New: For tracking changes
+}
+
+// --- Revision History Item ---
+export interface RevisionHistoryItem {
+  id: string;
+  date: string; // ISO Date string
+  author: string; // e.g., "Admin", "User:JohnDoe", "System"
+  event: string; // e.g., "Bio updated", "Contact info changed", "New position added"
+  details?: string; // Optional: e.g., "Changed email from x to y"
+  suggestionId?: string; // Optional: link to the approved suggestion
 }
 
 export type PartyWing = {
@@ -344,6 +355,7 @@ export interface EditSuggestion {
   fieldName: string; // e.g., 'bio', 'promise.description'
   oldValue: any;
   suggestedValue: any;
+  evidenceUrl?: string;
   reason?: string;
   status: 'Pending' | 'Approved' | 'Rejected';
   submittedBy: string; // User ID
