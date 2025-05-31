@@ -59,12 +59,12 @@ export function MobileBottomNav() {
               key={item.label}
               href={item.href}
               className={cn(
-                'flex flex-col items-center justify-center p-1 rounded-md transition-colors h-full text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
+                'flex items-center justify-center gap-1 p-1 rounded-md transition-colors h-full text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
                 isActive ? 'text-primary font-semibold' : 'text-muted-foreground hover:text-primary'
               )}
               aria-current={isActive ? "page" : undefined}
             >
-              <item.icon className={cn("h-6 w-6 mb-0.5", isActive ? "text-primary" : "")} />
+              <item.icon className={cn("h-5 w-5", isActive ? "text-primary" : "")} />
               <span className="text-xs font-medium leading-tight">{item.label}</span>
             </Link>
           );
@@ -73,3 +73,4 @@ export function MobileBottomNav() {
     </nav>
   );
 }
+
