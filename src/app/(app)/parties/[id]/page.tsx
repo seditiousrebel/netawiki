@@ -109,7 +109,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   if (!party) {
     return <p>Party not found.</p>;
   }
-  
+
   const partyMembers = mockPoliticians.filter(p => p.partyId === party.id);
   const partyPromises = getPromisesByPartyId(party.id);
   const relatedControversies = getControversiesByPartyId(party.id);
@@ -206,7 +206,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               <div className="p-6 space-y-2">
                 <h2 className="text-2xl font-headline font-semibold mb-1">{party.name}</h2>
                 {party.nepaliName && <p className="text-lg text-muted-foreground -mt-1 mb-1">{party.nepaliName}</p>}
-                
+
                 <div className="flex flex-wrap gap-2 items-center">
                     {party.electionSymbolUrl && (
                         <div className="text-center">
@@ -227,7 +227,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                         <Image
                             src={party.flagUrl}
                             alt={`${party.name} Flag`}
-                            width={60} 
+                            width={60}
                             height={40}
                             className="object-cover border rounded-md"
                              data-ai-hint={party.dataAiHint || "party flag"}
@@ -282,7 +282,22 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               </ul>
             </CardContent>
           </Card>
-          
+
+          {party.tags && party.tags.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <Tag className="h-5 w-5 text-primary"/> Tags
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-2">
+                {party.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary">{tag}</Badge>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
           {party.ideology && party.ideology.length > 0 && (
             <Card>
                 <CardHeader>
@@ -396,7 +411,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                 </CardContent>
             </Card>
           )}
-          
+
           {party.leadershipHistory && party.leadershipHistory.length > 0 && (
              <Card>
                 <CardHeader>
@@ -428,7 +443,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                 <ul className="space-y-4">
                   {party.alliances.map((alliance, idx) => (
                     <li key={idx} className="text-sm border-b pb-3 last:border-b-0">
-                      <h4 className="font-semibold text-md">{alliance.name} 
+                      <h4 className="font-semibold text-md">{alliance.name}
                         {alliance.status && (
                           <Badge variant={alliance.status === 'Active' ? 'default' : 'secondary'} className={`ml-2 text-xs ${alliance.status === 'Active' ? 'bg-green-500 text-white' : ''}`}>
                             {alliance.status}
@@ -450,7 +465,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               </CardContent>
             </Card>
           )}
-          
+
           {party.stancesOnIssues && party.stancesOnIssues.length > 0 && (
             <Card>
               <CardHeader>
@@ -533,7 +548,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               </CardContent>
             </Card>
           )}
-          
+
           {party.electionHistory && party.electionHistory.length > 0 && (
             <Card>
               <CardHeader>
@@ -634,7 +649,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               </CardContent>
             </Card>
           )}
-          
+
           {partyMembers.length > 0 && (
             <Card>
               <CardHeader>
@@ -693,7 +708,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               </CardContent>
             </Card>
           )}
-          
+
           {relatedControversies.length > 0 && (
             <Card>
               <CardHeader>
@@ -730,8 +745,8 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
           )}
 
 
-          <Button 
-            onClick={handleFollowPartyToggle} 
+          <Button
+            onClick={handleFollowPartyToggle}
             className="w-full mt-4"
             variant={isFollowingParty ? "outline" : "default"}
           >
@@ -743,5 +758,3 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
     </div>
   );
 }
-
-    

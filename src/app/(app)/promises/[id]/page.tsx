@@ -8,13 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { TimelineDisplay, formatPromiseStatusUpdatesForTimeline } from '@/components/common/timeline-display';
-import { Edit, Users2, User, ClipboardList, AlertTriangle, Info, FileText, CalendarClock, CalendarCheck2, Percent, Landmark, Link2, ExternalLink, History, CheckCircle, RefreshCw, XCircle, Star, UserPlus, Newspaper } from 'lucide-react';
+import { Edit, Users2, User, ClipboardList, AlertTriangle, Info, FileText, CalendarClock, CalendarCheck2, Percent, Landmark, Link2, ExternalLink, History, CheckCircle, RefreshCw, XCircle, Star, UserPlus, Newspaper, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import type { PromiseItem, PromiseStatus, PromiseEvidenceLink, PromiseStatusUpdate, NewsArticleLink } from '@/types/gov';
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-// import { Textarea } from '@/components/ui/textarea'; // Removed Textarea
 
 const LOCAL_STORAGE_FOLLOWED_PROMISES_KEY = 'govtrackr_followed_promises';
 
@@ -49,7 +48,6 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
   const [isFollowingPromise, setIsFollowingPromise] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  // const [commentText, setCommentText] = useState(""); // Removed commentText state
   const [relatedNews, setRelatedNews] = useState<NewsArticleLink[]>([]);
 
   useEffect(() => {
@@ -87,7 +85,7 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
       duration: 6000,
     });
   };
-  
+
   const handleFollowPromiseToggle = () => {
     if (!promise) return;
     const newFollowingState = !isFollowingPromise;
@@ -135,16 +133,16 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
     console.log("Promise Rating Submitted:", { promiseId: promise.id, rating: currentRating });
     toast({
       title: "Review Submitted (Demo)",
-      description: `You rated this promise ${currentRating} star(s).`, // Updated toast message
+      description: `You rated this promise ${currentRating} star(s).`,
       duration: 5000,
     });
   };
 
 
-  const promiser = promise.politicianId 
-    ? getPoliticianById(promise.politicianId) 
-    : promise.partyId 
-    ? getPartyById(promise.partyId) 
+  const promiser = promise.politicianId
+    ? getPoliticianById(promise.politicianId)
+    : promise.partyId
+    ? getPartyById(promise.partyId)
     : null;
 
   const promiserLink = promiser ? (
@@ -183,7 +181,7 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-foreground/80 whitespace-pre-line">{promise.description}</p>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
                 {promise.category && (
                   <div><strong>Category:</strong> <Badge variant="secondary">{promise.category}{promise.subCategory && ` > ${promise.subCategory}`}</Badge></div>
@@ -248,7 +246,6 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
                   ))}
                 </div>
               </div>
-              {/* Removed Textarea for comments */}
               <Button onClick={handleRatingSubmit} className="w-full sm:w-auto" disabled={currentRating === 0}>
                 Submit Review
               </Button>
@@ -308,7 +305,22 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
               )}
             </CardContent>
           </Card>
-          
+
+          {promise.tags && promise.tags.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <Tag className="h-5 w-5 text-primary"/> Tags
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-2">
+                {promise.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary">{tag}</Badge>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
           {promise.evidenceLinks.length > 0 && (
             <Card>
               <CardHeader>
@@ -329,8 +341,8 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
               </CardContent>
             </Card>
           )}
-           <Button 
-            onClick={handleFollowPromiseToggle} 
+           <Button
+            onClick={handleFollowPromiseToggle}
             className="w-full"
             variant={isFollowingPromise ? "outline" : "default"}
           >

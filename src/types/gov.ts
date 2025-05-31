@@ -103,7 +103,8 @@ export interface Politician {
   criminalRecords?: CriminalRecord[];
   committeeMemberships?: CommitteeMembership[];
   statementsAndQuotes?: StatementQuote[];
-  
+  tags?: string[]; // New: General tags
+
   isActiveInPolitics?: boolean; // New
   lastActivityDate?: string; // New: ISO date string
 
@@ -112,7 +113,7 @@ export interface Politician {
   voteScore?: number; // e.g., 0-100% (hypothetical or derived)
   promiseFulfillmentRate?: number; // e.g., 0-100%
   popularityScore?: number; // New field for popularity
-  
+
   dataAiHint?: string;
   controversyIds?: string[]; // New: Link to controversies
 }
@@ -216,31 +217,32 @@ export interface Party {
   flagUrl?: string;
   electionSymbolUrl: string;
   partyColorHex?: string;
-  history: string; 
-  aboutParty?: string; 
+  history: string;
+  aboutParty?: string;
   foundedDate?: string;
   dissolvedDate?: string;
   registrationNumber?: string;
   ideology?: string[];
   detailedIdeologyDescription?: string;
-  partyManifestoUrl?: string; 
+  partyManifestoUrl?: string;
   historicalManifestos?: HistoricalManifesto[];
-  parentPartyId?: string; 
-  parentPartyName?: string; 
-  splinterPartyIds?: string[]; 
-  splinterPartyNames?: string[]; 
+  parentPartyId?: string;
+  parentPartyName?: string;
+  splinterPartyIds?: string[];
+  splinterPartyNames?: string[];
   internationalAffiliations?: string[];
   wings?: PartyWing[];
-  alliances?: PartyAlliance[]; 
-  splitMergerHistory?: PartySplitMergerEvent[]; 
-  stancesOnIssues?: PartyStance[]; 
-  fundingSources?: FundingSource[]; 
-  intraPartyElections?: IntraPartyElection[]; 
+  alliances?: PartyAlliance[];
+  splitMergerHistory?: PartySplitMergerEvent[];
+  stancesOnIssues?: PartyStance[];
+  fundingSources?: FundingSource[];
+  intraPartyElections?: IntraPartyElection[];
   electionHistory?: ElectionPerformanceRecord[];
   isActive?: boolean;
   isNationalParty?: boolean;
   dataAiHint?: string;
-  controversyIds?: string[]; 
+  controversyIds?: string[];
+  tags?: string[]; // New: General tags
 }
 
 export type VoteOption = 'Yea' | 'Nay' | 'Abstain' | 'Not Voting';
@@ -283,7 +285,7 @@ export interface UserProfile {
   followedPoliticians: string[]; // Politician IDs
   followedParties: string[]; // Party IDs
   newsFeedPreferences?: Record<string, any>; // Flexible preferences
-  verificationStatus?: 'Verified' | 'Unverified' | 'Pending'; 
+  verificationStatus?: 'Verified' | 'Unverified' | 'Pending';
 }
 
 export interface EditSuggestion {
@@ -423,12 +425,12 @@ export interface PromiseItem {
 
   evidenceLinks: PromiseEvidenceLink[];
   statusUpdateHistory?: PromiseStatusUpdate[]; // Timeline of status changes
+  tags?: string[]; // New: General tags
 
   // Future considerations (not implemented in this phase)
   // commentsCount?: number;
   // verificationRating?: number;
   // sdgTags?: string[]; // UN Sustainable Development Goals
-  // tags?: string[]; // General purpose tags
   // userFollowersCount?: number;
 }
 

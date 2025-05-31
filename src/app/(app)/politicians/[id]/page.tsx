@@ -106,7 +106,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
       }
     }
   }, [politician]);
-  
+
   if (!politician) {
     return <p>Politician not found.</p>;
   }
@@ -157,15 +157,15 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
         return 'destructive';
       case 'Alleged':
       case 'Under Investigation':
-        return 'secondary'; 
+        return 'secondary';
       case 'Acquitted':
       case 'Dismissed':
-        return 'default'; 
+        return 'default';
       default:
         return 'outline';
     }
   };
-  
+
 
   const handleSuggestEdit = () => {
     toast({
@@ -270,7 +270,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
                 <h2 className="text-2xl font-headline font-semibold mb-1">{politician.name}</h2>
                 {politician.nepaliName && <p className="text-lg text-muted-foreground -mt-1 mb-1">{politician.nepaliName}</p>}
                 {politician.aliases && politician.aliases.length > 0 && <p className="text-sm text-muted-foreground">Also known as: {politician.aliases.join(', ')}</p>}
-                
+
                 {party && (
                   <Link href={`/parties/${party.id}`} className="text-primary hover:underline flex items-center gap-1 text-sm">
                     <Landmark className="h-4 w-4" /> {party.name}
@@ -357,6 +357,21 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
               )}
             </CardContent>
           </Card>
+
+          {politician.tags && politician.tags.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <Tag className="h-5 w-5 text-primary"/> Tags
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-2">
+                {politician.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary">{tag}</Badge>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
           {politician.education && politician.education.length > 0 && (
             <Card>
@@ -473,7 +488,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
                 )}
                 {politician.voteScore !== undefined && (
                   <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-primary" /> 
+                    <Users className="h-5 w-5 text-primary" />
                     <span className="font-semibold text-lg">{politician.voteScore}%</span>
                     <span className="text-sm text-muted-foreground">Vote Score (Hypothetical)</span>
                   </div>
@@ -487,7 +502,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
                 )}
                 {politician.popularityScore !== undefined && (
                   <div className="flex items-center gap-2">
-                     <CircleHelp className="h-5 w-5 text-purple-500" /> 
+                     <CircleHelp className="h-5 w-5 text-purple-500" />
                     <span className="font-semibold text-lg">{politician.popularityScore}</span>
                     <span className="text-sm text-muted-foreground">Popularity Score</span>
                   </div>
@@ -498,7 +513,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
               </CardContent>
             </Card>
           )}
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="font-headline text-xl flex items-center gap-2">
@@ -646,7 +661,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
               </CardContent>
             </Card>
           )}
-          
+
           {politician.assetDeclarations && politician.assetDeclarations.length > 0 && (
             <Card>
               <CardHeader>
@@ -782,8 +797,8 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             </CardContent>
           </Card>
 
-          <Button 
-            onClick={handleFollowToggle} 
+          <Button
+            onClick={handleFollowToggle}
             className="w-full mt-4 bg-accent hover:bg-accent/90 text-accent-foreground"
             variant={isFollowing ? "outline" : "default"}
           >
@@ -795,4 +810,3 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     </div>
   );
 }
-    

@@ -1,10 +1,9 @@
 
-
 import type { Party, LeadershipEvent, PartyAlliance, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection, HistoricalManifesto, ElectionPerformanceRecord } from '@/types/gov';
 
 const bupLeadershipHistory: LeadershipEvent[] = [
   { name: 'Arthur Founder', role: 'Founding Chair', startDate: '1990-07-04', endDate: '1998-06-30' },
-  { name: 'Eleanor Vanguard', role: 'Party Chair', startDate: '1998-07-01', politicianId: 'p3-nonexistent', endDate: 'Present' }, 
+  { name: 'Eleanor Vanguard', role: 'Party Chair', startDate: '1998-07-01', politicianId: 'p3-nonexistent', endDate: 'Present' },
   { name: 'Old Secretary', role: 'General Secretary', startDate: '1990-07-04', endDate: '2005-12-31'},
   { name: 'John Smith', role: 'General Secretary', startDate: '2006-01-01', endDate: 'Present' }
 ];
@@ -83,12 +82,12 @@ export const mockParties: Party[] = [
     abbreviation: 'BUP',
     slug: 'blue-unity-party',
     leadership: [
-      { name: 'Eleanor Vanguard', role: 'Party Chair', politicianId: 'p3-nonexistent' }, 
+      { name: 'Eleanor Vanguard', role: 'Party Chair', politicianId: 'p3-nonexistent' },
       { name: 'Alice Democratia', role: 'Policy Head', politicianId: 'p1' },
       { name: 'John Smith', role: 'General Secretary' }
     ],
     leadershipHistory: bupLeadershipHistory,
-    contactInfo: { 
+    contactInfo: {
       website: 'https://blueunity.example.com',
       email: 'info@blueunity.example.com',
       phone: '555-0011'
@@ -109,7 +108,7 @@ export const mockParties: Party[] = [
     historicalManifestos: bupHistoricalManifestos,
     internationalAffiliations: ['Progressive Alliance International'],
     wings: [
-      { name: 'Youth Wing', keyLeaders: [{name: 'Sarah Young', politicianId: 'p1'}], description: 'Engaging young people in political discourse and action.' }, 
+      { name: 'Youth Wing', keyLeaders: [{name: 'Sarah Young', politicianId: 'p1'}], description: 'Engaging young people in political discourse and action.' },
       { name: 'Women\'s Wing', keyLeaders: [{name: 'Maria Garcia'}], description: 'Advocating for gender equality and women\'s empowerment.' },
       { name: 'Student Front', keyLeaders: [], description: 'Mobilizing students for progressive causes.'}
     ],
@@ -121,7 +120,8 @@ export const mockParties: Party[] = [
     electionHistory: bupElectionHistory,
     isActive: true,
     isNationalParty: true,
-    controversyIds: ['c1'], 
+    controversyIds: ['c1'],
+    tags: ['centrist', 'social-liberalism', 'green-policy'],
   },
   {
     id: 'party2',
@@ -134,7 +134,7 @@ export const mockParties: Party[] = [
       { name: 'Linda Fiscal', role: 'Chief Whip'}
     ],
     leadershipHistory: ragLeadershipHistory,
-    contactInfo: { 
+    contactInfo: {
       website: 'https://redalliance.example.com',
       email: 'contact@redalliance.example.com',
       phone: '555-0022'
@@ -152,20 +152,21 @@ export const mockParties: Party[] = [
     ideology: ['Conservatism', 'Libertarianism', 'Free Market Economy'],
     detailedIdeologyDescription: 'RAG supports policies that promote fiscal responsibility, lower taxation, deregulation, and a strong national defense. We believe in personal responsibility and the power of the individual.',
     partyManifestoUrl: 'https://redalliance.example.com/platform-2024.pdf',
-    parentPartyId: 'partyOldConservative', 
+    parentPartyId: 'partyOldConservative',
     parentPartyName: 'Old Conservative Union (Historical)',
-    splinterPartyIds: ['partyNeoLibertarian'], 
+    splinterPartyIds: ['partyNeoLibertarian'],
     splinterPartyNames: ['Neo-Libertarian Movement'],
     wings: [
       { name: 'Business Council', description: 'Connecting with and supporting the business community.' },
-      { name: 'Veterans Affairs Wing', keyLeaders: [{name: 'Colonel Strong (Bob R.)', politicianId: 'p2' }]} 
+      { name: 'Veterans Affairs Wing', keyLeaders: [{name: 'Colonel Strong (Bob R.)', politicianId: 'p2' }]}
     ],
     splitMergerHistory: ragSplitMergerHistory,
     stancesOnIssues: ragStances,
     electionHistory: ragElectionHistory,
-    isActive: false, 
-    isNationalParty: false, 
-    controversyIds: ['c2'], 
+    isActive: false,
+    isNationalParty: false,
+    controversyIds: ['c2'],
+    tags: ['right-wing', 'economic-conservatism', 'nationalism'],
   },
   {
     id: 'party3-fictional',
@@ -182,6 +183,7 @@ export const mockParties: Party[] = [
     isActive: true,
     isNationalParty: false,
     dataAiHint: 'party logo green',
+    tags: ['eco-socialism', 'sustainability', 'climate-action'],
   },
   {
     id: 'party4-fictional',
@@ -195,10 +197,11 @@ export const mockParties: Party[] = [
     history: 'Focuses on social equality and workers\' rights.',
     foundedDate: '2005-05-01',
     ideology: ['Socialism', 'Worker Rights'],
-    parentPartyName: 'Old Labour Front', 
+    parentPartyName: 'Old Labour Front',
     isActive: true,
     isNationalParty: true,
     dataAiHint: 'party logo purple',
+    tags: ['democratic-socialism', 'labor-rights', 'equality'],
   }
 ];
 
@@ -209,5 +212,3 @@ export function getPartyById(id: string): Party | undefined {
 export function getPartyNameById(id: string): string | undefined {
   return mockParties.find(p => p.id === id)?.name;
 }
-
-    

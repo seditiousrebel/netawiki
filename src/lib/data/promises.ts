@@ -28,6 +28,7 @@ export const mockPromises: PromiseItem[] = [
       { date: '2021-06-15', status: 'In Progress', description: 'Budget allocated and planning phase initiated.', fulfillmentPercentage: 10 },
       { date: '2023-03-01', status: 'In Progress', description: 'Construction started in 3 major parks.', fulfillmentPercentage: 40, updatedBy: 'System' }
     ],
+    tags: ['urban-renewal', 'public-spaces', 'environment', 'accessibility'],
   },
   {
     id: 'pr2',
@@ -56,6 +57,7 @@ export const mockPromises: PromiseItem[] = [
       { date: '2023-07-01', status: 'Partially Fulfilled', description: '5% increase implemented.', fulfillmentPercentage: 50 },
       { date: '2024-05-20', status: 'Fulfilled', description: 'Remaining 5% increase and associated benefits finalized.', fulfillmentPercentage: 100, updatedBy: 'System' }
     ],
+    tags: ['education-reform', 'teacher-pay', 'workforce-development'],
   },
   {
     id: 'pr3',
@@ -82,6 +84,7 @@ export const mockPromises: PromiseItem[] = [
        { date: '2022-10-01', status: 'Stalled', description: 'Policy review delayed due to unforeseen economic challenges.'},
        { date: '2023-09-05', status: 'Broken', description: 'Government announced that the tax cut will not be implemented in the current term.'}
     ],
+    tags: ['tax-cuts', 'business-stimulus', 'economic-policy'],
   },
   {
     id: 'pr4',
@@ -102,6 +105,7 @@ export const mockPromises: PromiseItem[] = [
     statusUpdateHistory: [
        { date: '2018-05-10', status: 'Pending', description: 'Promise announced during interview.'}
     ],
+    tags: ['small-business', 'startup-funding', 'innovation'],
   },
   {
     id: 'pr5',
@@ -125,6 +129,7 @@ export const mockPromises: PromiseItem[] = [
      statusUpdateHistory: [
        { date: '2024-01-10', status: 'Pending', description: 'Promise included in official party manifesto.'}
     ],
+    tags: ['digital-divide', 'tech-education', 'skills-development'],
   },
   {
     id: 'pr6',
@@ -151,6 +156,7 @@ export const mockPromises: PromiseItem[] = [
        { date: '2022-02-15', status: 'Pending', description: 'Pledged to work towards cancelling the project.'},
        { date: '2022-07-20', status: 'Fulfilled', description: 'Highway project officially cancelled by council vote.', fulfillmentPercentage: 100, updatedBy: 'CommunityActionGroup' }
     ],
+    tags: ['environmental-protection', 'community-rights', 'infrastructure-opposition'],
   }
 ];
 
