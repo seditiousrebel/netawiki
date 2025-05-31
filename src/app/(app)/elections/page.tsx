@@ -119,10 +119,6 @@ export default function ElectionsPage() {
     setFilteredElections(updatedElections);
   }, [searchTerm, selectedType, selectedStatus, sortOption]);
 
-
-    setFilteredElections(updatedElections);
-  }, [searchTerm, selectedType, selectedStatus, sortOption]);
-
   const handleOpenSuggestNewElectionModal = () => {
     if (isUserLoggedIn()) {
       setIsSuggestNewElectionModalOpen(true);
@@ -247,7 +243,7 @@ export default function ElectionsPage() {
                     {election.districts && election.districts.length > 0 && <span>District(s): {election.districts.join(', ')}</span>}
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="pt-0">
                 <Link href={`/elections/${election.slug || election.id}`} className="ml-auto">
                   <Button variant="outline" size="sm">
                     View Details <ArrowRight className="ml-2 h-4 w-4" />
