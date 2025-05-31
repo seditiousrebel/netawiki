@@ -47,6 +47,7 @@ export default function PromisesPage() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedPromiser, setSelectedPromiser] = useState('');
+  const [selectedDeadlineYear, setSelectedDeadlineYear] = useState('');
   const [sortOption, setSortOption] = useState('default');
   const [filteredPromises, setFilteredPromises] = useState<PromiseItem[]>(mockPromises);
 
@@ -89,6 +90,16 @@ export default function PromisesPage() {
     return Array.from(promisersMap.values()).sort((a,b) => a.label.localeCompare(b.label));
   }, []);
 
+  const allDeadlineYears = useMemo(() => {
+    const years = new Set<string>();
+    mockPromises.forEach(promise => {
+      if (promise.expectedFulfillmentDate) {
+        years.add(new Date(promise.expectedFulfillmentDate).getFullYear().toString());
+      }
+    });
+    return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a)); // Sort years descending
+  }, []);
+
   useEffect(() => {
     let updatedPromises = [...mockPromises];
 
@@ -106,6 +117,13 @@ export default function PromisesPage() {
     if (selectedCategory) {
       updatedPromises = updatedPromises.filter(promise => promise.category === selectedCategory);
     }
+    
+    if (selectedDeadlineYear) {
+      updatedPromises = updatedPromises.filter(promise => {
+        if (!promise.expectedFulfillmentDate) return false;
+        return new Date(promise.expectedFulfillmentDate).getFullYear().toString() === selectedDeadlineYear;
+      });
+    }
 
     if (selectedPromiser) {
       const [type, id] = selectedPromiser.split('-');
@@ -119,6 +137,13 @@ export default function PromisesPage() {
     const getDateVal = (dateStr: string | undefined, ascending: boolean = true) => {
         if (!dateStr) return ascending ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
         return new Date(dateStr).getTime();
+    };
+
+    const getSortableLatestUpdateDate = (promise: PromiseItem): number => {
+      if (!promise.statusUpdateHistory || promise.statusUpdateHistory.length === 0) {
+        return 0; 
+      }
+      return Math.max(...promise.statusUpdateHistory.map(update => new Date(update.date).getTime()));
     };
 
 
@@ -135,13 +160,26 @@ export default function PromisesPage() {
       case 'promised_oldest':
         updatedPromises.sort((a, b) => getDateVal(a.datePromised) - getDateVal(b.datePromised));
         break;
-      default: // 'default' or any other case
-        updatedPromises.sort((a,b) => a.id.localeCompare(b.id)); // Simple default sort by ID
+      case 'recently_updated_newest':
+        updatedPromises.sort((a, b) => getSortableLatestUpdateDate(b) - getSortableLatestUpdateDate(a));
+        break;
+      case 'recently_updated_oldest':
+        updatedPromises.sort((a, b) => {
+          const dateA = getSortableLatestUpdateDate(a);
+          const dateB = getSortableLatestUpdateDate(b);
+          if (dateA === 0 && dateB !== 0) return -1; 
+          if (dateB === 0 && dateA !== 0) return 1;
+          if (dateA === 0 && dateB === 0) return 0;
+          return dateA - dateB;
+        });
+        break;
+      default: 
+        updatedPromises.sort((a,b) => a.id.localeCompare(b.id)); 
         break;
     }
 
     setFilteredPromises(updatedPromises);
-  }, [searchTerm, selectedStatus, selectedCategory, selectedPromiser, sortOption]);
+  }, [searchTerm, selectedStatus, selectedCategory, selectedPromiser, selectedDeadlineYear, sortOption]);
 
 
   const handleSuggestEdit = (promiseId: string) => {
@@ -184,7 +222,7 @@ export default function PromisesPage() {
       />
 
       <Card className="mb-8 p-6 shadow-md">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
           <div className="col-span-full md:col-span-1">
             <Label htmlFor="search-promise">Search Promises</Label>
             <div className="relative">
@@ -199,7 +237,7 @@ export default function PromisesPage() {
             </div>
           </div>
           
-          <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+          <div className="col-span-full md:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
             <div>
               <Label htmlFor="filter-status">Status</Label>
               <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value === 'all' ? '' : value)}>
@@ -230,6 +268,16 @@ export default function PromisesPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label htmlFor="filter-deadline-year">Deadline Year</Label>
+              <Select value={selectedDeadlineYear} onValueChange={(value) => setSelectedDeadlineYear(value === 'all' ? '' : value)}>
+                <SelectTrigger id="filter-deadline-year"><SelectValue placeholder="All Years" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Years</SelectItem>
+                  {allDeadlineYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
              <div>
               <Label htmlFor="sort-promises">Sort By</Label>
               <Select value={sortOption} onValueChange={setSortOption}>
@@ -240,6 +288,8 @@ export default function PromisesPage() {
                   <SelectItem value="deadline_desc">Deadline (Latest First)</SelectItem>
                   <SelectItem value="promised_newest">Promised (Newest First)</SelectItem>
                   <SelectItem value="promised_oldest">Promised (Oldest First)</SelectItem>
+                  <SelectItem value="recently_updated_newest">Recently Updated (Newest)</SelectItem>
+                  <SelectItem value="recently_updated_oldest">Recently Updated (Oldest)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -267,12 +317,8 @@ export default function PromisesPage() {
                         <div className="flex items-center gap-1.5">
                            Promised by: {getPromiserLink(promise)}
                         </div>
-                        {promise.category && (
-                           <div className="flex items-center gap-1">Category: <Badge variant="secondary" className="text-xs">{promise.category}{promise.subCategory && ` > ${promise.subCategory}`}</Badge></div>
-                        )}
-                         {promise.geographicScope && (
-                           <div className="flex items-center gap-1">Scope: <Badge variant="outline" className="text-xs">{promise.geographicScope}</Badge></div>
-                        )}
+                         <div className="flex items-center gap-1">Category: <Badge variant="secondary" className="text-xs">{promise.category}{promise.subCategory && ` > ${promise.subCategory}`}</Badge></div>
+                         <div className="flex items-center gap-1">Scope: <Badge variant="outline" className="text-xs">{promise.geographicScope}</Badge></div>
                       </div>
                     </div>
                     <Badge variant="outline" className={`flex items-center gap-1.5 text-sm shrink-0 ${badgeClass}`}>
@@ -350,4 +396,3 @@ export default function PromisesPage() {
     </div>
   );
 }
-
