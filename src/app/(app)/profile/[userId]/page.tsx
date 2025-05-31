@@ -12,8 +12,8 @@ import {
   getPartyById,
   getPromiseById,
   getBillById,
-  getNewsArticleByIdOrSlug, // Assuming this getter exists from previous tasks
-  mockNews // Fallback
+  getNewsArticleByIdOrSlug,
+  mockNewsArticles // Fallback
 } from '@/lib/mock-data';
 import type { Politician, Party, PromiseItem, Bill, NewsArticleLink } from '@/types/gov';
 
@@ -49,7 +49,7 @@ export default function UserProfilePage({ params }: { params: { userId: string }
   // In a real app, params.userId would be used to fetch specific user data.
 
   const getNewsArticleFallback = (idOrSlug: string): NewsArticleLink | undefined => {
-    return mockNews.find(news => news.id === idOrSlug || news.slug === idOrSlug);
+    return mockNewsArticles.find(news => news.id === idOrSlug || news.slug === idOrSlug);
   };
   const actualGetNewsArticleByIdOrSlug = typeof getNewsArticleByIdOrSlug === 'function' ? getNewsArticleByIdOrSlug : getNewsArticleFallback;
 
