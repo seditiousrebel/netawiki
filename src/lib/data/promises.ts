@@ -1,67 +1,157 @@
 
-import type { PromiseItem, PromiseStatus } from '@/types/gov';
+import type { PromiseItem, PromiseStatus, PromiseEvidenceLink, PromiseStatusUpdate } from '@/types/gov';
 
 export const mockPromises: PromiseItem[] = [
   {
     id: 'pr1',
+    slug: 'improve-public-parks-state',
     politicianId: 'p1',
     partyId: 'party1', // Blue Unity Party
-    title: 'Improve Public Parks',
-    description: 'Invest $5 million in upgrading and maintaining public parks across the state.',
-    dueDate: '2025-12-31',
-    status: 'In Progress' as PromiseStatus,
-    evidenceLinks: [{ url: 'https://example.com/park-project-updates', description: 'Park Project Updates' }],
+    title: 'Improve Public Parks Statewide',
+    description: 'Invest $5 million in upgrading and maintaining public parks across the state, focusing on accessibility and green spaces.',
     category: 'Infrastructure',
+    subCategory: 'Urban Development',
     datePromised: '2020-02-01',
+    sourceType: 'Election Manifesto',
+    sourceDetails: 'Page 12, Section 3.1 of the 2020 BUP Manifesto',
+    geographicScope: 'Provincial', // Assuming p1 is a state/provincial level politician
+    expectedFulfillmentDate: '2025-12-31',
+    status: 'In Progress' as PromiseStatus,
+    fulfillmentPercentage: 40,
+    responsibleAgency: 'State Department of Parks and Recreation',
+    evidenceLinks: [
+      { url: 'https://example.com/park-project-updates', description: 'Official Park Project Updates Portal', type: 'official_report' },
+      { url: 'https://example.com/news/park-groundbreaking', description: 'News Article: Groundbreaking Ceremony for Central Park', type: 'article'}
+    ],
+    statusUpdateHistory: [
+      { date: '2020-02-01', status: 'Pending', description: 'Promise made during election campaign.' },
+      { date: '2021-06-15', status: 'In Progress', description: 'Budget allocated and planning phase initiated.', fulfillmentPercentage: 10 },
+      { date: '2023-03-01', status: 'In Progress', description: 'Construction started in 3 major parks.', fulfillmentPercentage: 40 }
+    ],
   },
   {
     id: 'pr2',
+    slug: 'increase-teacher-salaries-national',
     politicianId: 'p1',
-    // partyId: 'party1', // Can also be linked to party if it was a party promise
-    title: 'Increase Teacher Salaries',
-    description: 'Raise average teacher salaries by 10% within the first term.',
-    dueDate: '2024-06-30',
-    status: 'Fulfilled' as PromiseStatus,
-    evidenceLinks: [{ url: 'https://example.com/teacher-salary-report', description: 'Salary Report 2024' }],
+    title: 'Increase National Teacher Salaries by 10%',
+    description: 'Raise average teacher salaries across the nation by 10% within the first term to attract and retain talent.',
     category: 'Education',
+    subCategory: 'Teacher Welfare',
     datePromised: '2020-03-15',
-    dateCompleted: '2024-05-20',
+    sourceType: 'Public Speech',
+    sourceDetails: 'Campaign rally, Capital City, March 15, 2020',
+    geographicScope: 'National',
+    expectedFulfillmentDate: '2024-06-30',
+    actualFulfillmentDate: '2024-05-20',
+    status: 'Fulfilled' as PromiseStatus,
+    fulfillmentPercentage: 100,
+    responsibleAgency: 'Ministry of Education',
+    evidenceLinks: [
+      { url: 'https://example.com/teacher-salary-report-2024', description: 'Official Salary Report 2024', type: 'document' },
+      { url: 'https://example.com/gazette/teachers-pay-rise', description: 'Government Gazette Notification', type: 'document' }
+    ],
+    statusUpdateHistory: [
+      { date: '2020-03-15', status: 'Pending', description: 'Promise announced.'},
+      { date: '2022-01-10', status: 'In Progress', description: 'Negotiations with teacher unions started.', fulfillmentPercentage: 25 },
+      { date: '2023-07-01', status: 'Partially Fulfilled', description: '5% increase implemented.', fulfillmentPercentage: 50 },
+      { date: '2024-05-20', status: 'Fulfilled', description: 'Remaining 5% increase and associated benefits finalized.', fulfillmentPercentage: 100 }
+    ],
   },
   {
     id: 'pr3',
+    slug: 'reduce-business-taxes-rag',
     politicianId: 'p2',
     partyId: 'party2', // Red Alliance Group
-    title: 'Reduce Business Taxes',
-    description: 'Implement a 5% reduction in corporate taxes to stimulate economic growth.',
-    dueDate: '2023-09-01',
-    status: 'Broken' as PromiseStatus,
-    evidenceLinks: [],
+    title: 'Reduce Corporate Taxes by 5%',
+    description: 'Implement a 5% reduction in corporate taxes to stimulate economic growth and create jobs.',
     category: 'Economy',
+    subCategory: 'Taxation Policy',
     datePromised: '2018-03-01',
+    sourceType: 'Election Manifesto',
+    sourceDetails: '2018 RAG Manifesto, Economic Section, p.5',
+    geographicScope: 'National',
+    expectedFulfillmentDate: '2023-09-01',
+    status: 'Broken' as PromiseStatus,
+    fulfillmentPercentage: 0,
+    reasonForStatus: 'Economic downturn and subsequent budget reallocations prevented implementation.',
+    evidenceLinks: [
+      { url: 'https://example.com/finance-ministry-statement-2023', description: 'Finance Ministry Statement on Budget Priorities 2023', type: 'official_report'}
+    ],
+    statusUpdateHistory: [
+       { date: '2018-03-01', status: 'Pending', description: 'Promise made.'},
+       { date: '2022-10-01', status: 'Stalled', description: 'Policy review delayed due to unforeseen economic challenges.'},
+       { date: '2023-09-05', status: 'Broken', description: 'Government announced that the tax cut will not be implemented in the current term.'}
+    ],
   },
   {
     id: 'pr4',
+    slug: 'fund-small-business-startups-national',
     politicianId: 'p2',
-    // partyId: 'party2', // Can also be linked
-    title: 'Fund Small Business Startups',
-    description: 'Allocate $10 million in grants for small business startups.',
-    status: 'Pending' as PromiseStatus,
-    evidenceLinks: [],
+    title: 'Fund Small Business Startups Nationally',
+    description: 'Allocate $10 million in grants for small business startups to foster innovation and entrepreneurship.',
     category: 'Economy',
+    subCategory: 'Entrepreneurship',
     datePromised: '2018-05-10',
+    sourceType: 'Interview',
+    sourceDetails: 'Interview with Business Today Magazine, May 2018 Issue',
+    geographicScope: 'National',
+    status: 'Pending' as PromiseStatus,
+    fulfillmentPercentage: 0,
+    responsibleAgency: 'Ministry of Commerce and Industry',
+    evidenceLinks: [],
+    statusUpdateHistory: [
+       { date: '2018-05-10', status: 'Pending', description: 'Promise announced during interview.'}
+    ],
   },
   {
     id: 'pr5',
-    // politicianId: undefined, // Example of a purely party promise
+    slug: 'national-digital-literacy-program-bup',
     partyId: 'party1', // Blue Unity Party
     title: 'National Digital Literacy Program',
-    description: 'Launch a nationwide program to enhance digital literacy for all age groups.',
-    dueDate: '2026-12-31',
-    status: 'Pending' as PromiseStatus,
-    evidenceLinks: [{ url: 'https://blueunity.example.com/manifesto-2024.pdf#digital-literacy', description: 'Manifesto Commitment' }],
+    description: 'Launch a nationwide program to enhance digital literacy for all age groups, providing access to training and resources.',
     category: 'Education',
+    subCategory: 'Digital Skills',
     datePromised: '2024-01-10',
+    sourceType: 'Party Manifesto',
+    sourceDetails: 'BUP 2024 Manifesto, Chapter 4: "A Digital Future"',
+    geographicScope: 'National',
+    expectedFulfillmentDate: '2026-12-31',
+    status: 'Pending' as PromiseStatus,
+    fulfillmentPercentage: 0,
+    responsibleAgency: 'Ministry of Information and Technology',
+    evidenceLinks: [
+      { url: 'https://blueunity.example.com/manifesto-2024.pdf#digital-literacy', description: 'Manifesto Commitment (Section 4.2)', type: 'document' }
+    ],
+     statusUpdateHistory: [
+       { date: '2024-01-10', status: 'Pending', description: 'Promise included in official party manifesto.'}
+    ],
   },
+  {
+    id: 'pr6',
+    slug: 'cancel-highway-project-constituency-x',
+    politicianId: 'p3', // Carol Independenta (assuming p3 exists)
+    title: 'Cancel Controversial Highway Project in District X',
+    description: 'Halt the planned construction of the B47 highway extension due to environmental concerns and lack of community consultation.',
+    category: 'Governance',
+    subCategory: 'Public Consultation',
+    datePromised: '2022-02-15',
+    sourceType: 'Public Speech',
+    sourceDetails: 'Town Hall Meeting, District X, Feb 15, 2022',
+    geographicScope: 'Constituency', // Or District
+    expectedFulfillmentDate: '2022-08-01',
+    status: 'Cancelled' as PromiseStatus, // This 'Cancelled' means the promise itself (to cancel the project) might be considered 'Fulfilled' if the project was indeed cancelled. Or it could mean the *effort* to cancel was cancelled. Let's assume the project was indeed stopped.
+    actualFulfillmentDate: '2022-07-20', // Date project was officially cancelled
+    fulfillmentPercentage: 100,
+    reasonForStatus: 'Promise was to cancel the project, and the project was officially halted by the local council following advocacy.',
+    responsibleAgency: 'District X Local Council',
+    evidenceLinks: [
+      { url: 'https://example.com/district-x-council-meeting-minutes-july2022.pdf', description: 'Council Meeting Minutes - Highway Project Cancelled', type: 'document' }
+    ],
+    statusUpdateHistory: [
+       { date: '2022-02-15', status: 'Pending', description: 'Pledged to work towards cancelling the project.'},
+       { date: '2022-07-20', status: 'Fulfilled', description: 'Highway project officially cancelled by council vote.', fulfillmentPercentage: 100 }
+    ],
+  }
 ];
 
 export function getPromisesByPolitician(politicianId: string): PromiseItem[] {

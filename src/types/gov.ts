@@ -1,5 +1,4 @@
 
-
 export type ContactInfo = {
   email?: string;
   phone?: string; // Personal/General Phone
@@ -33,8 +32,6 @@ export type LeadershipMember = {
   role: string;
   politicianId?: string; // Optional link to Politician profile
 };
-
-export type PromiseStatus = 'Pending' | 'In Progress' | 'Fulfilled' | 'Partially Fulfilled' | 'Broken' | 'Stalled' | 'Modified' | 'Cancelled';
 
 export type EducationEntry = {
   institution: string;
@@ -199,8 +196,8 @@ export type NewsArticleLink = {
   sourceName: string;
   publicationDate: string; // ISO Date string
   summary?: string;
-  taggedPartyIds?: string[]; // New: IDs of parties mentioned/tagged
-  taggedPoliticianIds?: string[]; // New: IDs of politicians mentioned/tagged
+  taggedPartyIds?: string[];
+  taggedPoliticianIds?: string[];
 };
 
 export interface Party {
@@ -209,13 +206,13 @@ export interface Party {
   nepaliName?: string;
   abbreviation?: string;
   slug?: string;
-  leadership: LeadershipMember[]; // Current Leadership
-  leadershipHistory?: LeadershipEvent[]; // New: Historical Leadership
+  leadership: LeadershipMember[];
+  leadershipHistory?: LeadershipEvent[];
   contactInfo: ContactInfo;
   headquartersAddress?: string;
-  logoUrl: string; // URL to image
+  logoUrl: string;
   flagUrl?: string;
-  electionSymbolUrl: string; // URL to image
+  electionSymbolUrl: string;
   partyColorHex?: string;
   history: string; 
   aboutParty?: string; 
@@ -238,24 +235,11 @@ export interface Party {
   fundingSources?: FundingSource[]; 
   intraPartyElections?: IntraPartyElection[]; 
   electionHistory?: ElectionPerformanceRecord[];
+  // relatedNews?: NewsArticleLink[]; // Removed, will be fetched dynamically
   isActive?: boolean;
   isNationalParty?: boolean;
   dataAiHint?: string;
   controversyIds?: string[]; 
-}
-
-export interface PromiseItem {
-  id: string;
-  politicianId?: string; 
-  partyId?: string; 
-  title: string;
-  description: string;
-  dueDate?: string;
-  status: PromiseStatus;
-  evidenceLinks: Array<{ url: string; description?: string }>;
-  category?: string; 
-  datePromised?: string;
-  dateCompleted?: string;
 }
 
 export type VoteOption = 'Yea' | 'Nay' | 'Abstain' | 'Not Voting';
@@ -384,4 +368,65 @@ export interface Controversy {
   dataAiHint?: string; // For main image if any
 }
 
-    
+
+// --- Promise Related Types ---
+export type PromiseStatus =
+  | 'Pending'
+  | 'In Progress'
+  | 'Fulfilled'
+  | 'Partially Fulfilled'
+  | 'Broken'
+  | 'Stalled'
+  | 'Modified'
+  | 'Cancelled';
+
+export interface PromiseEvidenceLink {
+  url: string;
+  description?: string;
+  type?: 'document' | 'image' | 'video' | 'article' | 'official_report' | 'other';
+  submittedBy?: string; // User ID or name
+  submissionDate?: string; // ISO Date
+}
+
+export interface PromiseStatusUpdate {
+  date: string; // ISO Date
+  status: PromiseStatus;
+  description?: string; // Reason for change or update details
+  updatedBy?: string; // User ID or 'System' or Admin ID
+  fulfillmentPercentage?: number; // Optional: record percentage at this update point
+}
+
+export interface PromiseItem {
+  id: string;
+  slug?: string;
+  title: string;
+  description: string; // Full description
+  category?: string; // e.g., Infrastructure, Education
+  subCategory?: string; // e.g., Road Construction, Curriculum Development
+
+  politicianId?: string; // Link to Politician if specific to one
+  partyId?: string; // Link to Party if a party promise
+
+  datePromised?: string; // ISO Date
+  sourceType?: 'Election Manifesto' | 'Public Speech' | 'Interview' | 'Parliamentary Record' | 'Press Release' | 'Social Media' | 'Other';
+  sourceDetails?: string; // e.g., Manifesto Page No., Speech Date & Venue, URL & Timestamp
+  relatedElectionId?: string; // Link to an Election entity (future)
+  geographicScope?: 'National' | 'Provincial' | 'District' | 'Local Body' | 'Constituency' | string; // More granular
+
+  status: PromiseStatus;
+  expectedFulfillmentDate?: string; // ISO Date, was dueDate
+  actualFulfillmentDate?: string; // ISO Date, was dateCompleted
+  fulfillmentPercentage?: number; // 0-100, can be updated over time
+  reasonForStatus?: string; // Especially for Broken, Stalled, Modified, Cancelled
+  responsibleAgency?: string; // Government agency/ministry responsible
+
+  evidenceLinks: PromiseEvidenceLink[];
+  statusUpdateHistory?: PromiseStatusUpdate[]; // Timeline of status changes
+
+  // Future considerations (not implemented in this phase)
+  // commentsCount?: number;
+  // verificationRating?: number;
+  // sdgTags?: string[]; // UN Sustainable Development Goals
+  // tags?: string[]; // General purpose tags
+  // userFollowersCount?: number;
+}
