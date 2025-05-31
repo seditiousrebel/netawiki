@@ -1,8 +1,11 @@
 
 export type ContactInfo = {
   email?: string;
-  phone?: string;
-  address?: string;
+  phone?: string; // Personal/General Phone
+  officePhone?: string; // New
+  address?: string; // General/Office Address
+  permanentAddress?: string; // New
+  temporaryAddress?: string; // New
   website?: string;
   twitter?: string;
   facebook?: string;
@@ -21,7 +24,7 @@ export type LeadershipMember = {
   role: string;
 };
 
-export type PromiseStatus = 'Pending' | 'In Progress' | 'Fulfilled' | 'Broken';
+export type PromiseStatus = 'Pending' | 'In Progress' | 'Fulfilled' | 'Partially Fulfilled' | 'Broken' | 'Stalled' | 'Modified' | 'Cancelled';
 
 export type EducationEntry = {
   institution: string;
@@ -56,26 +59,44 @@ export type CommitteeMembership = {
 
 export interface Politician {
   id: string;
-  name: string;
+  name: string; // English Name
+  nepaliName?: string; // New
+  aliases?: string[]; // New - e.g., Nicknames
+  slug?: string; // New - for URL
+  gender?: string;
+  dateOfBirth?: string;
+  dateOfDeath?: string; // New
+  placeOfBirth?: { // New
+    district?: string;
+    address?: string;
+  };
   partyId?: string; // Link to Party
   partyName?: string; // Denormalized for quick display
   positions: Array<{ title: string; startDate: string; endDate?: string }>;
   contactInfo: ContactInfo;
   photoUrl: string; // URL to image
   politicalJourney: PoliticalJourneyEvent[];
-  bio?: string;
-  constituency?: string; // e.g., "California's 12th congressional district" - RENAMED from district
-  province?: string; // New field for province
-  dateOfBirth?: string;
-  gender?: string;
+  bio?: string; // Biography/About Me (rich text, suggestible)
+  politicalIdeology?: string[]; // New - tags/text
+  languagesSpoken?: string[]; // New
+  constituency?: string; // e.g., "California's 12th congressional district"
+  province?: string;
   education?: EducationEntry[];
   assetDeclarations?: AssetDeclaration[];
   criminalRecords?: CriminalRecord[];
   committeeMemberships?: CommitteeMembership[];
-  overallRating?: number; // e.g., 1-5 stars
-  voteScore?: number; // e.g., 0-100%
+  
+  // Status fields
+  isActiveInPolitics?: boolean; // New
+  verificationStatus?: 'Verified' | 'Unverified' | 'Pending'; // New
+
+  // System Data / Analytics
+  overallRating?: number; // e.g., 1-5 stars (User Rating Average)
+  userRatingCount?: number; // New
+  voteScore?: number; // e.g., 0-100% (hypothetical or derived)
   promiseFulfillmentRate?: number; // e.g., 0-100%
   popularityScore?: number; // New field for popularity
+  
   dataAiHint?: string;
 }
 

@@ -7,10 +7,10 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
-import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord } from '@/types/gov';
+import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { useState } from 'react';
 
@@ -66,7 +66,7 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
   });
 
 
-  const getStatusBadgeVariant = (status: CriminalRecord['status']) => {
+  const getCriminalStatusBadgeVariant = (status: CriminalRecord['status']) => {
     switch (status) {
       case 'Convicted':
       case 'Charges Filed':
@@ -81,6 +81,20 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
         return 'outline';
     }
   };
+  
+  const getVerificationStatusBadge = (status: Politician['verificationStatus']) => {
+    switch (status) {
+      case 'Verified':
+        return <Badge variant="default" className="bg-green-500 text-white"><CheckCircle className="mr-1 h-3 w-3" />Verified</Badge>;
+      case 'Pending':
+        return <Badge variant="secondary"><AlertCircle className="mr-1 h-3 w-3" />Pending Verification</Badge>;
+      case 'Unverified':
+        return <Badge variant="outline"><XCircle className="mr-1 h-3 w-3" />Unverified</Badge>;
+      default:
+        return null;
+    }
+  };
+
 
   const handleSuggestEdit = () => {
     toast({
@@ -112,7 +126,14 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
     <div>
       <PageHeader
         title={politician.name}
-        description={politician.positions[0]?.title || 'Public Figure'}
+        description={
+          <div className="space-y-1">
+            <p>{politician.positions[0]?.title || 'Public Figure'}</p>
+            {politician.verificationStatus && (
+                <div className="mt-1">{getVerificationStatusBadge(politician.verificationStatus)}</div>
+            )}
+          </div>
+        }
         actions={
           <Button variant="outline" onClick={handleSuggestEdit}>
             <Edit className="mr-2 h-4 w-4" /> Suggest Edit
@@ -132,17 +153,100 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                 className="w-full h-auto object-cover rounded-t-lg"
                 data-ai-hint={politician.dataAiHint || "politician portrait"}
               />
-              <div className="p-6 space-y-1">
+              <div className="p-6 space-y-1.5">
                 <h2 className="text-2xl font-headline font-semibold mb-1">{politician.name}</h2>
+                {politician.nepaliName && <p className="text-lg text-muted-foreground -mt-1 mb-1">{politician.nepaliName}</p>}
+                {politician.aliases && politician.aliases.length > 0 && <p className="text-sm text-muted-foreground">Also known as: {politician.aliases.join(', ')}</p>}
+                
                 {party && (
-                  <Link href={`/parties/${party.id}`} className="text-primary hover:underline flex items-center gap-1">
+                  <Link href={`/parties/${party.id}`} className="text-primary hover:underline flex items-center gap-1 text-sm">
                     <Landmark className="h-4 w-4" /> {party.name}
                   </Link>
                 )}
                  {politician.constituency && <p className="text-sm text-muted-foreground flex items-center gap-1"><MapPin className="h-4 w-4" /> {politician.constituency}</p>}
-                {politician.dateOfBirth && <p className="text-sm text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Born: {new Date(politician.dateOfBirth).toLocaleDateString()}</p>}
+                {politician.dateOfBirth && <p className="text-sm text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Born: {new Date(politician.dateOfBirth).toLocaleDateString()}{politician.placeOfBirth?.district && `, ${politician.placeOfBirth.district}`}{politician.placeOfBirth?.address && `, ${politician.placeOfBirth.address}`}</p>}
+                {politician.dateOfDeath && <p className="text-sm text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Deceased: {new Date(politician.dateOfDeath).toLocaleDateString()}</p>}
                 {politician.gender && <p className="text-sm text-muted-foreground">Gender: {politician.gender}</p>}
+                {politician.isActiveInPolitics !== undefined && (
+                  <p className={`text-sm font-medium ${politician.isActiveInPolitics ? 'text-green-600' : 'text-red-600'}`}>
+                    Status: {politician.isActiveInPolitics ? 'Active in Politics' : 'Inactive in Politics'}
+                  </p>
+                )}
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-xl">Contact Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {politician.contactInfo.email && (
+                <p className="flex items-center gap-2 text-sm">
+                  <Mail className="h-4 w-4 text-primary" />
+                  <a href={`mailto:${politician.contactInfo.email}`} className="hover:underline truncate">{politician.contactInfo.email}</a>
+                </p>
+              )}
+              {politician.contactInfo.phone && (
+                <p className="flex items-center gap-2 text-sm">
+                  <Phone className="h-4 w-4 text-primary" /> {politician.contactInfo.phone} (Personal)
+                </p>
+              )}
+              {politician.contactInfo.officePhone && (
+                <p className="flex items-center gap-2 text-sm">
+                  <Building className="h-4 w-4 text-primary" /> {politician.contactInfo.officePhone} (Office)
+                </p>
+              )}
+              {politician.contactInfo.permanentAddress && (
+                <p className="flex items-start gap-2 text-sm">
+                  <Map className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Permanent Address: {politician.contactInfo.permanentAddress}
+                </p>
+              )}
+              {politician.contactInfo.temporaryAddress && (
+                <p className="flex items-start gap-2 text-sm">
+                  <Map className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Temporary Address: {politician.contactInfo.temporaryAddress}
+                </p>
+              )}
+              {politician.contactInfo.website && (
+                <p className="flex items-center gap-2 text-sm">
+                  <Globe className="h-4 w-4 text-primary" />
+                  <a href={politician.contactInfo.website} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
+                    Official Website
+                  </a>
+                </p>
+              )}
+              {politician.contactInfo.twitter && (
+                <p className="flex items-center gap-2 text-sm">
+                  <Twitter className="h-4 w-4 text-primary" />
+                  <a href={politician.contactInfo.twitter} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
+                    @{politician.contactInfo.twitter.split('/').pop()}
+                  </a>
+                </p>
+              )}
+              {politician.contactInfo.facebook && (
+                <p className="flex items-center gap-2 text-sm">
+                  <Facebook className="h-4 w-4 text-primary" />
+                  <a href={politician.contactInfo.facebook} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
+                    Facebook Profile
+                  </a>
+                </p>
+              )}
+              {politician.contactInfo.linkedin && (
+                <p className="flex items-center gap-2 text-sm">
+                  <Linkedin className="h-4 w-4 text-primary" />
+                  <a href={politician.contactInfo.linkedin} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
+                    LinkedIn Profile
+                  </a>
+                </p>
+              )}
+              {politician.contactInfo.instagram && (
+                <p className="flex items-center gap-2 text-sm">
+                  <Instagram className="h-4 w-4 text-primary" />
+                  <a href={politician.contactInfo.instagram} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
+                    @{politician.contactInfo.instagram.split('/').pop()?.replace(/[/]/g,'')}
+                  </a>
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -210,68 +314,38 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
               </CardContent>
             </Card>
           )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-headline text-xl">Contact Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {politician.contactInfo.email && (
-                <p className="flex items-center gap-2 text-sm">
-                  <Mail className="h-4 w-4 text-primary" />
-                  <a href={`mailto:${politician.contactInfo.email}`} className="hover:underline truncate">{politician.contactInfo.email}</a>
-                </p>
-              )}
-              {politician.contactInfo.phone && (
-                <p className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4 text-primary" /> {politician.contactInfo.phone}
-                </p>
-              )}
-              {politician.contactInfo.website && (
-                <p className="flex items-center gap-2 text-sm">
-                  <Globe className="h-4 w-4 text-primary" />
-                  <a href={politician.contactInfo.website} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
-                    Official Website
-                  </a>
-                </p>
-              )}
-              {politician.contactInfo.twitter && (
-                <p className="flex items-center gap-2 text-sm">
-                  <Twitter className="h-4 w-4 text-primary" />
-                  <a href={politician.contactInfo.twitter} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
-                    @{politician.contactInfo.twitter.split('/').pop()}
-                  </a>
-                </p>
-              )}
-              {politician.contactInfo.facebook && (
-                <p className="flex items-center gap-2 text-sm">
-                  <Facebook className="h-4 w-4 text-primary" />
-                  <a href={politician.contactInfo.facebook} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
-                    Facebook Profile
-                  </a>
-                </p>
-              )}
-              {politician.contactInfo.linkedin && (
-                <p className="flex items-center gap-2 text-sm">
-                  <Linkedin className="h-4 w-4 text-primary" />
-                  <a href={politician.contactInfo.linkedin} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
-                    LinkedIn Profile
-                  </a>
-                </p>
-              )}
-              {politician.contactInfo.instagram && (
-                <p className="flex items-center gap-2 text-sm">
-                  <Instagram className="h-4 w-4 text-primary" />
-                  <a href={politician.contactInfo.instagram} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
-                    @{politician.contactInfo.instagram.split('/').pop()?.replace(/[/]/g,'')}
-                  </a>
-                </p>
-              )}
-            </CardContent>
-          </Card>
         </div>
 
         <div className="lg:col-span-2 space-y-8">
+         {(politician.politicalIdeology && politician.politicalIdeology.length > 0) || (politician.languagesSpoken && politician.languagesSpoken.length > 0) ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-primary"/> Profile Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {politician.politicalIdeology && politician.politicalIdeology.length > 0 && (
+                  <div>
+                    <h3 className="text-md font-semibold mb-1 flex items-center gap-1"><Tag className="h-4 w-4 text-muted-foreground"/> Political Ideology</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {politician.politicalIdeology.map(ideo => (
+                        <Badge key={ideo} variant="secondary">{ideo}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {politician.languagesSpoken && politician.languagesSpoken.length > 0 && (
+                   <div>
+                    <h3 className="text-md font-semibold mb-1 flex items-center gap-1"><Languages className="h-4 w-4 text-muted-foreground"/> Languages Spoken</h3>
+                    <p className="text-sm text-foreground/80">{politician.languagesSpoken.join(', ')}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : null}
+
+
           {(politician.overallRating !== undefined || politician.voteScore !== undefined || politician.promiseFulfillmentRate !== undefined || politician.popularityScore !== undefined) && (
             <Card>
               <CardHeader>
@@ -284,7 +358,9 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                   <div className="flex items-center gap-2">
                     <Star className="h-5 w-5 text-yellow-400" />
                     <span className="font-semibold text-lg">{politician.overallRating.toFixed(1)} / 5.0</span>
-                    <span className="text-sm text-muted-foreground">Overall Rating</span>
+                    {politician.userRatingCount !== undefined && (
+                      <span className="text-sm text-muted-foreground">(from {politician.userRatingCount} ratings)</span>
+                    )}
                   </div>
                 )}
                 {politician.voteScore !== undefined && (
@@ -299,6 +375,13 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                     <ListChecks className="h-5 w-5 text-green-500" />
                     <span className="font-semibold text-lg">{politician.promiseFulfillmentRate}%</span>
                     <span className="text-sm text-muted-foreground">Promise Fulfillment</span>
+                  </div>
+                )}
+                {politician.popularityScore !== undefined && (
+                  <div className="flex items-center gap-2">
+                     <CircleHelp className="h-5 w-5 text-purple-500" /> {/* Placeholder for popularity icon */}
+                    <span className="font-semibold text-lg">{politician.popularityScore}</span>
+                    <span className="text-sm text-muted-foreground">Popularity Score</span>
                   </div>
                 )}
                  <div className="mt-3 pt-3 border-t">
@@ -430,7 +513,7 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                     <li key={idx} className="text-sm border-b pb-3 last:border-b-0 last:pb-0">
                       <div className="flex justify-between items-start mb-1">
                         <p className="font-semibold">{record.offense}</p>
-                        <Badge variant={getStatusBadgeVariant(record.status)}>{record.status}</Badge>
+                        <Badge variant={getCriminalStatusBadgeVariant(record.status)}>{record.status}</Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">Date: {new Date(record.date).toLocaleDateString()}</p>
                       {record.caseNumber && <p className="text-xs text-muted-foreground">Case: {record.caseNumber}</p>}
@@ -484,6 +567,3 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
     </div>
   );
 }
-
-
-    
