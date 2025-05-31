@@ -193,11 +193,14 @@ export type ElectionPerformanceRecord = {
 };
 
 export type NewsArticleLink = {
+  id: string;
   title: string;
   url: string;
   sourceName: string;
   publicationDate: string; // ISO Date string
   summary?: string;
+  taggedPartyIds?: string[]; // New: IDs of parties mentioned/tagged
+  taggedPoliticianIds?: string[]; // New: IDs of politicians mentioned/tagged
 };
 
 export interface Party {
@@ -234,8 +237,7 @@ export interface Party {
   stancesOnIssues?: PartyStance[]; 
   fundingSources?: FundingSource[]; 
   intraPartyElections?: IntraPartyElection[]; 
-  electionHistory?: ElectionPerformanceRecord[]; // New
-  relatedNews?: NewsArticleLink[]; // New
+  electionHistory?: ElectionPerformanceRecord[];
   isActive?: boolean;
   isNationalParty?: boolean;
   dataAiHint?: string;

@@ -3,7 +3,7 @@
 "use client";
 
 import Image from 'next/image';
-import { getPartyById, mockPoliticians, getPartyNameById, getPromisesByPartyId, getControversiesByPartyId } from '@/lib/mock-data';
+import { getPartyById, mockPoliticians, getPartyNameById, getPromisesByPartyId, getControversiesByPartyId, getNewsByPartyId } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -114,6 +114,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   const partyMembers = mockPoliticians.filter(p => p.partyId === party.id);
   const partyPromises = getPromisesByPartyId(party.id);
   const relatedControversies = getControversiesByPartyId(party.id);
+  const relatedNews = getNewsByPartyId(party.id);
 
 
   const handleSuggestEdit = () => {
@@ -565,14 +566,14 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             </Card>
           )}
 
-          {party.relatedNews && party.relatedNews.length > 0 && (
+          {relatedNews && relatedNews.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><Newspaper className="text-primary"/> Related News</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
-                  {party.relatedNews.map((news: NewsArticleLink, idx: number) => (
+                  {relatedNews.map((news: NewsArticleLink, idx: number) => (
                     <li key={idx} className="text-sm border-b pb-2 last:border-b-0">
                       <a href={news.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
                         {news.title}

@@ -1,10 +1,10 @@
 
 
-import type { Party, LeadershipEvent, PartyAlliance, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection, HistoricalManifesto, ElectionPerformanceRecord, NewsArticleLink } from '@/types/gov';
+import type { Party, LeadershipEvent, PartyAlliance, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection, HistoricalManifesto, ElectionPerformanceRecord } from '@/types/gov';
 
 const bupLeadershipHistory: LeadershipEvent[] = [
   { name: 'Arthur Founder', role: 'Founding Chair', startDate: '1990-07-04', endDate: '1998-06-30' },
-  { name: 'Eleanor Vanguard', role: 'Party Chair', startDate: '1998-07-01', politicianId: 'p3', endDate: 'Present' }, // p3 doesn't exist, will not link currently. Placeholder.
+  { name: 'Eleanor Vanguard', role: 'Party Chair', startDate: '1998-07-01', politicianId: 'p3-nonexistent', endDate: 'Present' }, 
   { name: 'Old Secretary', role: 'General Secretary', startDate: '1990-07-04', endDate: '2005-12-31'},
   { name: 'John Smith', role: 'General Secretary', startDate: '2006-01-01', endDate: 'Present' }
 ];
@@ -74,15 +74,6 @@ const ragElectionHistory: ElectionPerformanceRecord[] = [
   { electionYear: '2024', electionType: 'General', seatsContested: 155, seatsWon: 60, votePercentage: 32.5, notes: 'Main opposition party.' },
 ];
 
-const bupRelatedNews: NewsArticleLink[] = [
-  { title: "BUP Unveils New Climate Policy", url: "https://example.com/news/bup-climate", sourceName: "National Times", publicationDate: "2024-05-10", summary: "The Blue Unity Party today announced a comprehensive new policy aimed at accelerating the transition to renewable energy sources." },
-  { title: "Party Chair Vanguard Addresses Annual Conference", url: "https://example.com/news/vanguard-conference", sourceName: "Capital City Gazette", publicationDate: "2024-04-20", summary: "Eleanor Vanguard outlined the party's vision for the upcoming year, focusing on economic equity and social programs." }
-];
-
-const ragRelatedNews: NewsArticleLink[] = [
-  { title: "RAG Proposes Tax Reform Package", url: "https://example.com/news/rag-tax-reform", sourceName: "Economic Daily", publicationDate: "2024-06-01", summary: "The Red Alliance Group introduced a new tax reform package aimed at stimulating business investment." },
-];
-
 
 export const mockParties: Party[] = [
   {
@@ -92,7 +83,7 @@ export const mockParties: Party[] = [
     abbreviation: 'BUP',
     slug: 'blue-unity-party',
     leadership: [
-      { name: 'Eleanor Vanguard', role: 'Party Chair', politicianId: 'p3-nonexistent' }, // Example, p3 needs to exist in mockPoliticians to link
+      { name: 'Eleanor Vanguard', role: 'Party Chair', politicianId: 'p3-nonexistent' }, 
       { name: 'Alice Democratia', role: 'Policy Head', politicianId: 'p1' },
       { name: 'John Smith', role: 'General Secretary' }
     ],
@@ -118,7 +109,7 @@ export const mockParties: Party[] = [
     historicalManifestos: bupHistoricalManifestos,
     internationalAffiliations: ['Progressive Alliance International'],
     wings: [
-      { name: 'Youth Wing', keyLeaders: [{name: 'Sarah Young', politicianId: 'p1'}], description: 'Engaging young people in political discourse and action.' }, // p1 is Alice, assuming Sarah Young is a new person or Alice holds this role.
+      { name: 'Youth Wing', keyLeaders: [{name: 'Sarah Young', politicianId: 'p1'}], description: 'Engaging young people in political discourse and action.' }, 
       { name: 'Women\'s Wing', keyLeaders: [{name: 'Maria Garcia'}], description: 'Advocating for gender equality and women\'s empowerment.' },
       { name: 'Student Front', keyLeaders: [], description: 'Mobilizing students for progressive causes.'}
     ],
@@ -128,7 +119,6 @@ export const mockParties: Party[] = [
     fundingSources: bupFundingSources,
     intraPartyElections: bupIntraPartyElections,
     electionHistory: bupElectionHistory,
-    relatedNews: bupRelatedNews,
     isActive: true,
     isNationalParty: true,
     controversyIds: ['c1'], 
@@ -173,7 +163,6 @@ export const mockParties: Party[] = [
     splitMergerHistory: ragSplitMergerHistory,
     stancesOnIssues: ragStances,
     electionHistory: ragElectionHistory,
-    relatedNews: ragRelatedNews,
     isActive: false, 
     isNationalParty: false, 
     controversyIds: ['c2'], 
