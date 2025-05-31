@@ -116,7 +116,12 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
         description={
           <div className="space-y-1">
             <p>{politician.positions[0]?.title || 'Public Figure'}</p>
-            {/* Verification status removed from here */}
+            {politician.isActiveInPolitics !== undefined && (
+                <Badge variant={politician.isActiveInPolitics ? 'default' : 'secondary'} className={politician.isActiveInPolitics ? 'bg-green-500 text-white' : ''}>
+                {politician.isActiveInPolitics ? <CheckCircle className="mr-1 h-3 w-3"/> : <XCircle className="mr-1 h-3 w-3"/>}
+                {politician.isActiveInPolitics ? 'Active' : 'Inactive'}
+                </Badge>
+            )}
           </div>
         }
         actions={
@@ -152,11 +157,6 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                 {politician.dateOfBirth && <p className="text-sm text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Born: {new Date(politician.dateOfBirth).toLocaleDateString()}{politician.placeOfBirth?.district && `, ${politician.placeOfBirth.district}`}{politician.placeOfBirth?.address && `, ${politician.placeOfBirth.address}`}</p>}
                 {politician.dateOfDeath && <p className="text-sm text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Deceased: {new Date(politician.dateOfDeath).toLocaleDateString()}</p>}
                 {politician.gender && <p className="text-sm text-muted-foreground">Gender: {politician.gender}</p>}
-                {politician.isActiveInPolitics !== undefined && (
-                  <p className={`text-sm font-medium ${politician.isActiveInPolitics ? 'text-green-600' : 'text-red-600'}`}>
-                    Status: {politician.isActiveInPolitics ? 'Active in Politics' : 'Inactive in Politics'}
-                  </p>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -579,3 +579,6 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
     </div>
   );
 }
+
+
+    
