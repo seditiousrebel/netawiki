@@ -29,6 +29,13 @@ export type EducationEntry = {
   graduationYear?: string;
 };
 
+export type AssetDeclaration = {
+  year: number;
+  description: string;
+  value?: string; // Changed from number to string to allow for ranges or "Undisclosed"
+  sourceUrl?: string;
+};
+
 export interface Politician {
   id: string;
   name: string;
@@ -43,6 +50,7 @@ export interface Politician {
   dateOfBirth?: string;
   gender?: string;
   education?: EducationEntry[];
+  assetDeclarations?: AssetDeclaration[];
   dataAiHint?: string;
 }
 

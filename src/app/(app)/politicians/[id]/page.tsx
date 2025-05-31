@@ -3,10 +3,10 @@ import { getPoliticianById, getPromisesByPolitician, mockParties } from '@/lib/m
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
-import type { PromiseItem } from '@/types/gov';
+import type { PromiseItem, AssetDeclaration } from '@/types/gov';
 
 export default function PoliticianProfilePage({ params }: { params: { id: string } }) {
   const politician = getPoliticianById(params.id);
@@ -176,6 +176,31 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
               <TimelineDisplay items={formatPoliticalJourneyForTimeline(politician.politicalJourney)} />
             </CardContent>
           </Card>
+          
+          {politician.assetDeclarations && politician.assetDeclarations.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <ScrollText className="h-5 w-5 text-primary"/> Asset Declarations
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-4">
+                  {politician.assetDeclarations.map((asset: AssetDeclaration, idx: number) => (
+                    <li key={idx} className="text-sm border-b pb-3 last:border-b-0 last:pb-0">
+                      <p className="font-semibold">{asset.description} ({asset.year})</p>
+                      {asset.value && <p className="text-muted-foreground">Value: {asset.value}</p>}
+                      {asset.sourceUrl && (
+                        <a href={asset.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1">
+                          View Source <ExternalLink className="h-3 w-3"/>
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>

@@ -1,5 +1,11 @@
 
-import type { Politician } from '@/types/gov';
+import type { Politician, AssetDeclaration } from '@/types/gov';
+
+const aliceAssetDeclarations: AssetDeclaration[] = [
+  { year: 2023, description: 'Primary Residence, Anytown', value: '$500,000 - $750,000', sourceUrl: 'https://example.com/alice-assets-2023.pdf' },
+  { year: 2023, description: 'Investment Portfolio (Stocks & Bonds)', value: '$100,000 - $250,000' },
+  { year: 2022, description: 'Primary Residence, Anytown', value: '$450,000 - $700,000', sourceUrl: 'https://example.com/alice-assets-2022.pdf' },
+];
 
 export const mockPoliticians: Politician[] = [
   {
@@ -30,6 +36,7 @@ export const mockPoliticians: Politician[] = [
       { institution: 'State University', degree: 'M.A.', field: 'Public Administration', graduationYear: '2005' },
       { institution: 'City College', degree: 'B.A.', field: 'Political Science', graduationYear: '2002' },
     ],
+    assetDeclarations: aliceAssetDeclarations,
   },
   {
     id: 'p2',
@@ -57,6 +64,7 @@ export const mockPoliticians: Politician[] = [
       { institution: 'Commerce Institute', degree: 'MBA', field: 'Business Administration', graduationYear: '2008' },
       { institution: 'Tech College', degree: 'B.S.', field: 'Economics', graduationYear: '2005' },
     ],
+    // No asset declarations for Bob for now
   },
 ];
 
