@@ -1,16 +1,20 @@
 
 "use client";
 
+import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/common/page-header';
 import { mockPromises, mockPoliticians, mockParties } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Edit, User, CalendarClock, CheckCircle, XCircle, RefreshCw, AlertTriangle, Building, Users2, Percent, Landmark, CalendarCheck2, Info, Link2, FileText, ArrowRight, History, ClipboardList } from 'lucide-react';
+import { ExternalLink, Edit, User, CalendarClock, CheckCircle, XCircle, RefreshCw, AlertTriangle, Building, Users2, Percent, Landmark, CalendarCheck2, Info, Link2, FileText, ArrowRight, History, ClipboardList, SearchIcon } from 'lucide-react';
 import Link from 'next/link';
 import type { PromiseStatus, PromiseItem, PromiseEvidenceLink } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 
 function getStatusVisuals(status: PromiseStatus): { icon: React.ReactNode; badgeClass: string; } {
@@ -38,8 +42,107 @@ function getStatusVisuals(status: PromiseStatus): { icon: React.ReactNode; badge
 
 
 export default function PromisesPage() {
-  const promises = mockPromises;
   const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedPromiser, setSelectedPromiser] = useState('');
+  const [sortOption, setSortOption] = useState('default');
+  const [filteredPromises, setFilteredPromises] = useState<PromiseItem[]>(mockPromises);
+
+  const allStatuses = useMemo(() => {
+    const statuses = new Set<PromiseStatus>();
+    mockPromises.forEach(promise => statuses.add(promise.status));
+    return Array.from(statuses).sort();
+  }, []);
+
+  const allCategories = useMemo(() => {
+    const categories = new Set<string>();
+    mockPromises.forEach(promise => {
+      if (promise.category) categories.add(promise.category);
+    });
+    return Array.from(categories).sort();
+  }, []);
+
+  const allPromisers = useMemo(() => {
+    const promisersMap = new Map<string, { value: string; label: string }>();
+    mockPromises.forEach(promise => {
+      if (promise.politicianId) {
+        const politician = mockPoliticians.find(p => p.id === promise.politicianId);
+        if (politician && !promisersMap.has(`politician-${politician.id}`)) {
+          promisersMap.set(`politician-${politician.id}`, {
+            value: `politician-${politician.id}`,
+            label: `${politician.name} (Politician)`,
+          });
+        }
+      }
+      if (promise.partyId) {
+        const party = mockParties.find(p => p.id === promise.partyId);
+        if (party && !promisersMap.has(`party-${party.id}`)) {
+          promisersMap.set(`party-${party.id}`, {
+            value: `party-${party.id}`,
+            label: `${party.name} (Party)`,
+          });
+        }
+      }
+    });
+    return Array.from(promisersMap.values()).sort((a,b) => a.label.localeCompare(b.label));
+  }, []);
+
+  useEffect(() => {
+    let updatedPromises = [...mockPromises];
+
+    if (searchTerm) {
+      updatedPromises = updatedPromises.filter(promise =>
+        promise.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        promise.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (selectedStatus) {
+      updatedPromises = updatedPromises.filter(promise => promise.status === selectedStatus);
+    }
+
+    if (selectedCategory) {
+      updatedPromises = updatedPromises.filter(promise => promise.category === selectedCategory);
+    }
+
+    if (selectedPromiser) {
+      const [type, id] = selectedPromiser.split('-');
+      if (type === 'politician') {
+        updatedPromises = updatedPromises.filter(p => p.politicianId === id);
+      } else if (type === 'party') {
+        updatedPromises = updatedPromises.filter(p => p.partyId === id);
+      }
+    }
+    
+    const getDateVal = (dateStr: string | undefined, ascending: boolean = true) => {
+        if (!dateStr) return ascending ? Number.MAX_SAFE_INTEGER : Number.MIN_SAFE_INTEGER;
+        return new Date(dateStr).getTime();
+    };
+
+
+    switch (sortOption) {
+      case 'deadline_asc':
+        updatedPromises.sort((a, b) => getDateVal(a.expectedFulfillmentDate) - getDateVal(b.expectedFulfillmentDate));
+        break;
+      case 'deadline_desc':
+        updatedPromises.sort((a, b) => getDateVal(b.expectedFulfillmentDate, false) - getDateVal(a.expectedFulfillmentDate, false));
+        break;
+      case 'promised_newest':
+        updatedPromises.sort((a, b) => getDateVal(b.datePromised, false) - getDateVal(a.datePromised, false));
+        break;
+      case 'promised_oldest':
+        updatedPromises.sort((a, b) => getDateVal(a.datePromised) - getDateVal(b.datePromised));
+        break;
+      default: // 'default' or any other case
+        updatedPromises.sort((a,b) => a.id.localeCompare(b.id)); // Simple default sort by ID
+        break;
+    }
+
+    setFilteredPromises(updatedPromises);
+  }, [searchTerm, selectedStatus, selectedCategory, selectedPromiser, sortOption]);
+
 
   const handleSuggestEdit = (promiseId: string) => {
     toast({
@@ -79,9 +182,75 @@ export default function PromisesPage() {
         title="Promise Tracker"
         description="Monitor promises made by politicians and parties, and their current status."
       />
-      {promises.length > 0 ? (
+
+      <Card className="mb-8 p-6 shadow-md">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 items-end">
+          <div className="col-span-full md:col-span-1">
+            <Label htmlFor="search-promise">Search Promises</Label>
+            <div className="relative">
+              <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="search-promise"
+                placeholder="Title or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
+          
+          <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <div>
+              <Label htmlFor="filter-status">Status</Label>
+              <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value === 'all' ? '' : value)}>
+                <SelectTrigger id="filter-status"><SelectValue placeholder="All Statuses" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {allStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="filter-category">Category</Label>
+              <Select value={selectedCategory} onValueChange={(value) => setSelectedCategory(value === 'all' ? '' : value)}>
+                <SelectTrigger id="filter-category"><SelectValue placeholder="All Categories" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {allCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="filter-promiser">Promiser</Label>
+              <Select value={selectedPromiser} onValueChange={(value) => setSelectedPromiser(value === 'all' ? '' : value)}>
+                <SelectTrigger id="filter-promiser"><SelectValue placeholder="All Promisers" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Promisers</SelectItem>
+                  {allPromisers.map(prom => <SelectItem key={prom.value} value={prom.value}>{prom.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+             <div>
+              <Label htmlFor="sort-promises">Sort By</Label>
+              <Select value={sortOption} onValueChange={setSortOption}>
+                <SelectTrigger id="sort-promises"><SelectValue placeholder="Default" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Default</SelectItem>
+                  <SelectItem value="deadline_asc">Deadline (Soonest First)</SelectItem>
+                  <SelectItem value="deadline_desc">Deadline (Latest First)</SelectItem>
+                  <SelectItem value="promised_newest">Promised (Newest First)</SelectItem>
+                  <SelectItem value="promised_oldest">Promised (Oldest First)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+
+      {filteredPromises.length > 0 ? (
         <div className="space-y-6">
-          {promises.map((promise: PromiseItem) => {
+          {filteredPromises.map((promise: PromiseItem) => {
             const { icon: statusIcon, badgeClass } = getStatusVisuals(promise.status);
             const detailPageUrl = `/promises/${promise.slug || promise.id}`;
             return (
@@ -95,9 +264,9 @@ export default function PromisesPage() {
                         </Link>
                       </CardTitle>
                       <div className="text-sm text-muted-foreground space-y-0.5">
-                        <p className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5">
                            Promised by: {getPromiserLink(promise)}
-                        </p>
+                        </div>
                         {promise.category && (
                            <div className="flex items-center gap-1">Category: <Badge variant="secondary" className="text-xs">{promise.category}{promise.subCategory && ` > ${promise.subCategory}`}</Badge></div>
                         )}
@@ -123,7 +292,7 @@ export default function PromisesPage() {
                     {promise.responsibleAgency && <p className="flex items-center gap-1.5"><Landmark className="h-3.5 w-3.5 text-primary/70"/>Responsible: {promise.responsibleAgency}</p>}
                   </div>
 
-                  {promise.fulfillmentPercentage !== undefined && ['In Progress', 'Partially Fulfilled'].includes(promise.status) && (
+                  {promise.fulfillmentPercentage !== undefined && (promise.status === 'In Progress' || promise.status === 'Partially Fulfilled' || promise.status === 'Fulfilled') && (
                     <div className="mb-3">
                       <div className="flex justify-between items-center mb-1">
                          <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
@@ -135,7 +304,7 @@ export default function PromisesPage() {
                     </div>
                   )}
 
-                  {promise.reasonForStatus && ['Broken', 'Stalled', 'Modified', 'Cancelled'].includes(promise.status) && (
+                  {promise.reasonForStatus && (promise.status === 'Broken' || promise.status === 'Stalled' || promise.status === 'Modified' || promise.status === 'Cancelled') && (
                     <div className="mb-3 p-2 bg-muted/50 rounded-md">
                       <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5"><Info className="h-3.5 w-3.5 text-primary/70"/>Reason for Status:</p>
                       <p className="text-xs text-foreground/70 mt-0.5">{promise.reasonForStatus}</p>
@@ -172,8 +341,13 @@ export default function PromisesPage() {
           })}
         </div>
       ) : (
-        <p>No promises found.</p>
+         <div className="text-center py-10">
+          <ClipboardList className="mx-auto h-12 w-12 text-muted-foreground" />
+          <p className="mt-4 text-lg font-medium">No promises found.</p>
+          <p className="text-sm text-muted-foreground">Try adjusting your search or filter criteria.</p>
+        </div>
       )}
     </div>
   );
 }
+
