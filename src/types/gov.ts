@@ -350,6 +350,20 @@ export interface EditSuggestion {
   submittedAt: string; // ISO Date string
   reviewedBy?: string; // Admin User ID
   reviewedAt?: string; // ISO Date string
+  evidence?: string; // Optional: URL or text reference for evidence
+}
+
+export interface NewEntrySuggestion {
+  id: string;
+  contentType: 'politician' | 'party' | 'promise' | 'bill' | 'controversy' | 'constituency' | 'committee';
+  suggestedData: any; // Holds the fields for the new entity
+  reason?: string;
+  evidence?: string; // Optional: URL or text reference for evidence
+  status: 'Pending' | 'Approved' | 'Rejected';
+  submittedBy: string; // User ID
+  submittedAt: string; // ISO Date string
+  reviewedBy?: string; // Admin User ID
+  reviewedAt?: string; // ISO Date string
 }
 
 // --- Controversy Related Types ---
