@@ -7,18 +7,18 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon, Newspaper, History, Download, Trash2 } from 'lucide-react'; // Added Download and Trash2 icons
-import { TimelineDisplay, formatCombinedCareerTimeline } from '@/components/common/timeline-display';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon, Newspaper, History, Download, Trash2 } from 'lucide-react';
+import { TimelineDisplay } from '@/components/common/timeline-display'; // Removed formatCombinedCareerTimeline from here
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent, NewsArticleLink } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useEffect, useRef } from 'react'; // Added useRef
+import React, { useState, useEffect, useRef } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { SuggestEditForm } from '@/components/common/suggest-edit-form';
-import { useNotificationStore } from "@/lib/notifications"; // Added useNotificationStore
-import ScoreBarChart from '@/components/charts/ScoreBarChart'; // Import ScoreBarChart
-import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth'; // ADMIN_ROLES kept for now, but not for these sections
-import { exportElementAsPDF } from '@/lib/utils'; // Import the new utility
+import { useNotificationStore } from "@/lib/notifications";
+import ScoreBarChart from '@/components/charts/ScoreBarChart';
+import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
+import { exportElementAsPDF } from '@/lib/utils';
 
 interface PoliticianVote extends VoteRecord {
   billId: string;
@@ -36,7 +36,7 @@ interface TimelineItem {
 
 const LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY = 'govtrackr_followed_politicians';
 
-// Helper function to combine and sort career events
+// Helper function to combine and sort career events - This local definition is correct
 function formatCombinedCareerTimeline(
   journeyEvents: PoliticalJourneyEvent[] = [],
   partyAffiliations: PartyAffiliation[] = []
@@ -72,7 +72,7 @@ function formatCombinedCareerTimeline(
 
 export default function PoliticianProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
-  const currentUser = getCurrentUser(); // Kept for ADMIN_ROLES checks elsewhere
+  const currentUser = getCurrentUser();
   const politician = getPoliticianById(params.id);
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
@@ -87,8 +87,8 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
 
   const [formattedDateOfBirth, setFormattedDateOfBirth] = useState<string | null>(null);
   const [formattedDateOfDeath, setFormattedDateOfDeath] = useState<string | null>(null);
-  const { addNotification } = useNotificationStore(); // Get addNotification
-  const notificationTriggered = useRef(false); // Ref to track notification trigger
+  const { addNotification } = useNotificationStore();
+  const notificationTriggered = useRef(false);
 
   useEffect(() => {
     if (politician && !notificationTriggered.current) {
@@ -129,10 +129,97 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
         }
       } catch (error) {
         console.error("Error reading followed politicians from localStorage:", error);
-        // Gracefully handle cases where localStorage might be unavailable or data is corrupted
       }
     }
   }, [politician]);
+
+  const handleSuggestBioEdit = () => {
+    if (!politician) return;
+    setSuggestionFieldName("Biography");
+    setSuggestionOldValue(politician.bio || '');
+    setIsSuggestEditModalOpen(true);
+  };
+
+  const handleSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+    console.log("Suggestion submitted:", {
+      entityType: "Politician",
+      entityName: politician?.name,
+      fieldName: suggestionFieldName,
+      oldValue: suggestionOldValue,
+      ...suggestion,
+    });
+    toast({
+      title: "Suggestion Submitted",
+      description: `Suggestion for ${suggestionFieldName} on ${politician?.name} has been submitted. Thank you!`,
+      duration: 5000,
+    });
+    setIsSuggestEditModalOpen(false);
+  };
+
+  const handleFollowToggle = () => {
+    if (!politician) return;
+    const newFollowingState = !isFollowing;
+    setIsFollowing(newFollowingState);
+
+    try {
+      const followedPoliticiansStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY);
+      let followedIds: string[] = followedPoliticiansStr ? JSON.parse(followedPoliticiansStr) : [];
+
+      if (newFollowingState) {
+        if (!followedIds.includes(politician.id)) {
+          followedIds.push(politician.id);
+        }
+      } else {
+        followedIds = followedIds.filter(id => id !== politician.id);
+      }
+      localStorage.setItem(LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY, JSON.stringify(followedIds));
+    } catch (error) {
+      console.error("Error updating followed politicians in localStorage:", error);
+       toast({
+        title: "Could not update follow status",
+        description: "There was an issue saving your follow preference. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      setIsFollowing(!newFollowingState);
+      return;
+    }
+
+    toast({
+      title: newFollowingState ? `Following ${politician.name}` : `Unfollowed ${politician.name}`,
+      description: newFollowingState ? "You'll now receive updates in your feed (demo)." : "You will no longer receive updates (demo).",
+      duration: 3000,
+    });
+  };
+
+  const handleRatingSubmit = () => {
+    if (currentRating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please select a star rating before submitting.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    console.log("Rating Submitted:", { rating: currentRating, comment: commentText });
+    toast({
+      title: "Review Submitted (Demo)",
+      description: `You rated ${politician.name} ${currentRating} star(s). Comment: ${commentText || 'No comment provided.'}`,
+      duration: 5000,
+    });
+  };
+
+  async function handleExportPdfWrapper() {
+    if (!politician) return;
+    const fileName = `politician-${politician.name.toLowerCase().replace(/\s+/g, '-')}-profile.pdf`;
+    await exportElementAsPDF('politician-profile-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  const handleDelete = () => {
+    if (!politician) return;
+    alert(`Mock delete action for politician: ${politician.name}`);
+  };
 
   if (!politician) {
     return <p>Politician not found.</p>;
@@ -191,99 +278,6 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
       default:
         return 'outline';
     }
-  };
-
-  const handleSuggestBioEdit = () => {
-    if (!politician) return;
-    setSuggestionFieldName("Biography");
-    setSuggestionOldValue(politician.bio || '');
-    setIsSuggestEditModalOpen(true);
-  };
-
-  const handleSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
-    console.log("Suggestion submitted:", {
-      entityType: "Politician",
-      entityName: politician?.name,
-      fieldName: suggestionFieldName,
-      oldValue: suggestionOldValue,
-      ...suggestion,
-    });
-    toast({
-      title: "Suggestion Submitted",
-      description: `Suggestion for ${suggestionFieldName} on ${politician?.name} has been submitted. Thank you!`,
-      duration: 5000,
-    });
-    setIsSuggestEditModalOpen(false);
-  };
-
-  const handleFollowToggle = () => {
-    const newFollowingState = !isFollowing;
-    setIsFollowing(newFollowingState);
-
-    try {
-      const followedPoliticiansStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY);
-      let followedIds: string[] = followedPoliticiansStr ? JSON.parse(followedPoliticiansStr) : [];
-
-      if (newFollowingState) { // If user is now following
-        if (!followedIds.includes(politician.id)) {
-          followedIds.push(politician.id);
-        }
-      } else { // If user is now unfollowing
-        followedIds = followedIds.filter(id => id !== politician.id);
-      }
-      localStorage.setItem(LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY, JSON.stringify(followedIds));
-    } catch (error) {
-      console.error("Error updating followed politicians in localStorage:", error);
-       toast({
-        title: "Could not update follow status",
-        description: "There was an issue saving your follow preference. Please try again.",
-        variant: "destructive",
-        duration: 3000,
-      });
-      // Revert state if localStorage fails
-      setIsFollowing(!newFollowingState);
-      return;
-    }
-
-    toast({
-      title: newFollowingState ? `Following ${politician.name}` : `Unfollowed ${politician.name}`,
-      description: newFollowingState ? "You'll now receive updates in your feed (demo)." : "You will no longer receive updates (demo).",
-      duration: 3000,
-    });
-  };
-
-  const handleRatingSubmit = () => {
-    if (currentRating === 0) {
-      toast({
-        title: "Rating Required",
-        description: "Please select a star rating before submitting.",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
-    console.log("Rating Submitted:", { rating: currentRating, comment: commentText });
-    toast({
-      title: "Review Submitted (Demo)",
-      description: `You rated ${politician.name} ${currentRating} star(s). Comment: ${commentText || 'No comment provided.'}`,
-      duration: 5000,
-    });
-    // Reset form (optional)
-    // setCurrentRating(0);
-    // setCommentText("");
-  };
-
-  async function handleExportPdfWrapper() {
-    if (!politician) return;
-    const fileName = `politician-${politician.name.toLowerCase().replace(/\s+/g, '-')}-profile.pdf`;
-    // Call the utility function
-    await exportElementAsPDF('politician-profile-export-area', fileName, setIsGeneratingPdf);
-  }
-
-  const handleDelete = () => {
-    if (!politician) return;
-    alert(`Mock delete action for politician: ${politician.name}`);
-    // console.log(`Attempting to delete politician: ${politician.id} - ${politician.name}`);
   };
 
   return (
