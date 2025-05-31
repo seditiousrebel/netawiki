@@ -16,6 +16,7 @@ import NotificationBell from './NotificationBell'; // Added NotificationBell imp
 
 const navLinks = [
   { href: '/', label: 'Home' },
+  { href: '/explore', label: 'Explore' },
   { href: '/politicians', label: 'Politicians' },
   { href: '/parties', label: 'Parties' },
   { href: '/bills', label: 'Bills' },
@@ -26,6 +27,8 @@ const navLinks = [
   { href: '/constituencies', label: 'Constituencies' }, // New Constituency link
   { href: '/news', label: 'News' },
   { href: '/feed', label: 'My Feed' },
+  // Note: The /explore path should ideally be /app/explore, but navLink paths seem to be root-relative.
+  // If issues arise, this might need adjustment based on router configuration.
 ];
 
 // Mock Notification Data

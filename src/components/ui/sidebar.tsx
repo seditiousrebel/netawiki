@@ -760,4 +760,100 @@ export {
   SidebarSeparator,
   SidebarTrigger,
   useSidebar,
+  // New AppEntitySidebar component
+  AppEntitySidebar,
 }
+
+// --- Application-specific Sidebar Component ---
+
+import Link from "next/link"
+import {
+  Users,
+  FileText,
+  Landmark, // For Committees
+  MapPin, // For Constituencies
+  ShieldAlert, // For Controversies
+  Vote, // For Elections
+  Newspaper, // For News (alternative: FileText)
+  Shield, // For Parties (alternative: Users)
+  ClipboardList, // For Promises
+  HomeIcon, // For Home
+  SettingsIcon, // For Settings
+  LayoutGrid // For Explore (as an example, if it were here)
+} from "lucide-react"
+import { usePathname } from "next/navigation"
+
+const entityNavItems = [
+  { href: "/politicians", label: "Politicians", icon: Users },
+  { href: "/bills", label: "Bills", icon: FileText },
+  { href: "/committees", label: "Committees", icon: Landmark },
+  { href: "/constituencies", label: "Constituencies", icon: MapPin },
+  { href: "/controversies", label: "Controversies", icon: ShieldAlert },
+  { href: "/elections", label: "Elections", icon: Vote },
+  { href: "/news", label: "News", icon: Newspaper },
+  { href: "/parties", label: "Parties", icon: Shield },
+  { href: "/promises", label: "Promises", icon: ClipboardList },
+];
+
+export function AppEntitySidebar() {
+  const pathname = usePathname();
+  const { state, isMobile } = useSidebar(); // Use context to check if collapsed
+
+  // This sidebar is meant for desktop only, as per requirements.
+  // The base Sidebar component already handles visibility (Sheet for mobile, div for desktop).
+  // We further ensure it's not rendered if 'isMobile' is true, though CSS handles display.
+  if (isMobile) {
+    return null;
+  }
+
+  return (
+    <Sidebar
+      variant="sidebar" // Standard sidebar style
+      collapsible="icon" // Allows collapsing to icons
+      className="hidden md:flex flex-col" // Ensure it's part of flex layout and hidden on mobile
+    >
+      <SidebarHeader>
+        {/* Optional: Add a logo or header content here if needed */}
+        {/* <h2 className={cn("font-semibold text-lg", state === "collapsed" && "hidden")}>Entities</h2> */}
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          {entityNavItems.map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith(item.href)}
+                tooltip={{ children: item.label, side: "right", align: "center" }}
+              >
+                <Link href={item.href}>
+                  <item.icon />
+                  <span>{item.label}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter>
+        {/* Optional: Footer content like settings or user profile link */}
+        {/* <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname.startsWith("/settings")}
+              tooltip={{ children: "Settings", side: "right", align: "center" }}
+            >
+              <Link href="/settings">
+                <SettingsIcon />
+                <span>Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu> */}
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
+// Note: For this AppEntitySidebar to be used, it must be wrapped in SidebarProvider
+// and integrated into the main application layout (e.g., AppLayout.tsx).
+// The current task is only to modify this file.

@@ -2,19 +2,14 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, Users, FileText, VoteIcon, Landmark as CommitteeIcon, MapPin } from 'lucide-react'; // Added MapPin for Constituencies
+import { Home, Search, UserCircle } from 'lucide-react'; // Keep Home, Search, add UserCircle for Profile
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
-// Adjusted to 6 items, which is pushing the limits for a mobile bottom nav.
-// Consider a "More" tab if more top-level sections are added.
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/politicians', label: 'People', icon: Users },
-  { href: '/bills', label: 'Bills', icon: FileText },
-  { href: '/elections', label: 'Votes', icon: VoteIcon },
-  { href: '/committees', label: 'Cmtes', icon: CommitteeIcon },
-  { href: '/constituencies', label: 'Const.', icon: MapPin }, // New "Constituencies" link
+  { href: '/explore', label: 'Explore', icon: Search },
+  { href: '/settings', label: 'Profile', icon: UserCircle }, // Assuming /settings is the profile/settings page
 ];
 
 export function MobileBottomNav() {
@@ -37,7 +32,8 @@ export function MobileBottomNav() {
               )}
             >
               <item.icon className={cn("h-5 w-5 mb-0.5", isActive ? "text-primary" : "")} />
-              <span className="text-[0.65rem] font-medium leading-tight">{item.label}</span>
+              {/* Increased font size from 0.65rem to text-xs (0.75rem) for better readability */}
+              <span className="text-xs font-medium leading-tight">{item.label}</span>
             </Link>
           );
         })}

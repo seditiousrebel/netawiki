@@ -98,10 +98,14 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+  /*
+    The global border rule (*) has been removed.
+    Borders should be applied specifically where needed using Tailwind utility classes
+    (e.g., .border, .border-t, .border-b) for better control and to avoid unintended styling.
+  */
   body {
     @apply bg-background text-foreground;
+    /* Consider adding font-antialiased for smoother text rendering */
+    /* @apply font-antialiased; */
   }
 }
