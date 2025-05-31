@@ -120,7 +120,7 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                     <Landmark className="h-4 w-4" /> {party.name}
                   </Link>
                 )}
-                 {politician.district && <p className="text-sm text-muted-foreground flex items-center gap-1"><MapPin className="h-4 w-4" /> {politician.district}</p>}
+                 {politician.constituency && <p className="text-sm text-muted-foreground flex items-center gap-1"><MapPin className="h-4 w-4" /> {politician.constituency}</p>}
                 {politician.dateOfBirth && <p className="text-sm text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Born: {new Date(politician.dateOfBirth).toLocaleDateString()}</p>}
                 {politician.gender && <p className="text-sm text-muted-foreground">Gender: {politician.gender}</p>}
               </div>
@@ -253,7 +253,7 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
         </div>
 
         <div className="lg:col-span-2 space-y-8">
-          {(politician.overallRating !== undefined || politician.voteScore !== undefined || politician.promiseFulfillmentRate !== undefined) && (
+          {(politician.overallRating !== undefined || politician.voteScore !== undefined || politician.promiseFulfillmentRate !== undefined || politician.popularityScore !== undefined) && (
             <Card>
               <CardHeader>
                 <CardTitle className="font-headline text-xl flex items-center gap-2">
@@ -454,4 +454,3 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
     </div>
   );
 }
-

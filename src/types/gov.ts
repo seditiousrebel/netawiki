@@ -1,3 +1,4 @@
+
 export type ContactInfo = {
   email?: string;
   phone?: string;
@@ -63,7 +64,7 @@ export interface Politician {
   photoUrl: string; // URL to image
   politicalJourney: PoliticalJourneyEvent[];
   bio?: string;
-  district?: string; // e.g., "California's 12th congressional district"
+  constituency?: string; // e.g., "California's 12th congressional district" - RENAMED from district
   province?: string; // New field for province
   dateOfBirth?: string;
   gender?: string;
@@ -74,6 +75,7 @@ export interface Politician {
   overallRating?: number; // e.g., 1-5 stars
   voteScore?: number; // e.g., 0-100%
   promiseFulfillmentRate?: number; // e.g., 0-100%
+  popularityScore?: number; // New field for popularity
   dataAiHint?: string;
 }
 
