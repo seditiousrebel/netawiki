@@ -17,7 +17,7 @@ import {
   mockParties,
   mockPromises,
   mockBills,
-  mockNews
+  mockNewsArticles
 } from '@/lib/mock-data';
 import type { Politician, Party, PromiseItem, Bill, NewsArticleLink, StatementQuote, PartyStance, ElectionPerformanceRecord, PromiseStatusUpdate, BillTimelineEvent } from '@/types/gov';
 
@@ -45,7 +45,7 @@ export default function FeedPage() {
 
   // Placeholder for getNewsArticleByIdOrSlug if not in mock-data
   const getNewsArticleFallback = (idOrSlug: string): NewsArticleLink | undefined => {
-    return mockNews.find(news => news.id === idOrSlug || news.slug === idOrSlug);
+    return mockNewsArticles.find(news => news.id === idOrSlug || news.slug === idOrSlug);
   };
 
   const actualGetNewsArticleByIdOrSlug = typeof getNewsArticleByIdOrSlug === 'function' ? getNewsArticleByIdOrSlug : getNewsArticleFallback;
