@@ -12,7 +12,7 @@ import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useEffect } from 'react'; // Import React
+import React, { useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 
 interface PoliticianVote extends VoteRecord {
@@ -24,13 +24,29 @@ interface PoliticianVote extends VoteRecord {
 }
 
 export default function PoliticianProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
-  const params = React.use(paramsPromise); // Unwrap the params promise
+  const params = React.use(paramsPromise);
   const politician = getPoliticianById(params.id);
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [commentText, setCommentText] = useState("");
+
+  const [formattedDateOfBirth, setFormattedDateOfBirth] = useState<string | null>(null);
+  const [formattedDateOfDeath, setFormattedDateOfDeath] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (politician?.dateOfBirth) {
+      setFormattedDateOfBirth(new Date(politician.dateOfBirth).toLocaleDateString());
+    } else {
+      setFormattedDateOfBirth(null);
+    }
+    if (politician?.dateOfDeath) {
+      setFormattedDateOfDeath(new Date(politician.dateOfDeath).toLocaleDateString());
+    } else {
+      setFormattedDateOfDeath(null);
+    }
+  }, [politician?.dateOfBirth, politician?.dateOfDeath]);
   
   if (!politician) {
     return <p>Politician not found.</p>;
@@ -173,8 +189,8 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
                   </Link>
                 )}
                  {politician.constituency && <p className="text-sm text-muted-foreground flex items-center gap-1"><MapPin className="h-4 w-4" /> {politician.constituency}</p>}
-                {politician.dateOfBirth && <p className="text-sm text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Born: {new Date(politician.dateOfBirth).toLocaleDateString()}{politician.placeOfBirth?.district && `, ${politician.placeOfBirth.district}`}{politician.placeOfBirth?.address && `, ${politician.placeOfBirth.address}`}</p>}
-                {politician.dateOfDeath && <p className="text-sm text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Deceased: {new Date(politician.dateOfDeath).toLocaleDateString()}</p>}
+                {politician.dateOfBirth && <p className="text-sm text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Born: {formattedDateOfBirth || '...'}{politician.placeOfBirth?.district && `, ${politician.placeOfBirth.district}`}{politician.placeOfBirth?.address && `, ${politician.placeOfBirth.address}`}</p>}
+                {politician.dateOfDeath && <p className="text-sm text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Deceased: {formattedDateOfDeath || '...'}</p>}
                 {politician.gender && <p className="text-sm text-muted-foreground">Gender: {politician.gender}</p>}
               </div>
             </CardContent>
@@ -670,5 +686,5 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     </div>
   );
 }
-
     
+
