@@ -1,9 +1,9 @@
 
-import type { Party, LeadershipEvent } from '@/types/gov';
+import type { Party, LeadershipEvent, PartyAlliance } from '@/types/gov';
 
 const bupLeadershipHistory: LeadershipEvent[] = [
   { name: 'Arthur Founder', role: 'Founding Chair', startDate: '1990-07-04', endDate: '1998-06-30' },
-  { name: 'Eleanor Vanguard', role: 'Party Chair', startDate: '1998-07-01', endDate: 'Present' },
+  { name: 'Eleanor Vanguard', role: 'Party Chair', startDate: '1998-07-01', politicianId: 'p3', endDate: 'Present' },
   { name: 'Old Secretary', role: 'General Secretary', startDate: '1990-07-04', endDate: '2005-12-31'},
   { name: 'John Smith', role: 'General Secretary', startDate: '2006-01-01', endDate: 'Present' }
 ];
@@ -13,6 +13,17 @@ const ragLeadershipHistory: LeadershipEvent[] = [
   { name: 'Marcus Standard', role: 'Party Leader', startDate: '1995-01-02', politicianId: 'p2', endDate: 'Present' },
 ];
 
+const bupAlliances: PartyAlliance[] = [
+  {
+    name: 'Progressive Coalition',
+    partnerPartyIds: ['party3-fictional', 'party4-fictional'],
+    partnerPartyNames: ['Green Future Party', 'Social Justice Union'],
+    startDate: '2022-01-10',
+    endDate: 'Ongoing',
+    purpose: 'To collaborate on progressive legislation and election strategies.',
+    status: 'Active',
+  }
+];
 
 export const mockParties: Party[] = [
   {
@@ -51,6 +62,7 @@ export const mockParties: Party[] = [
       { name: 'Women\'s Wing', keyLeaders: [{name: 'Maria Garcia'}], description: 'Advocating for gender equality and women\'s empowerment.' },
       { name: 'Student Front', keyLeaders: [], description: 'Mobilizing students for progressive causes.'}
     ],
+    alliances: bupAlliances,
     isActive: true,
     isNationalParty: true,
     controversyIds: ['c1'],
@@ -84,18 +96,51 @@ export const mockParties: Party[] = [
     ideology: ['Conservatism', 'Libertarianism', 'Free Market Economy'],
     detailedIdeologyDescription: 'RAG supports policies that promote fiscal responsibility, lower taxation, deregulation, and a strong national defense. We believe in personal responsibility and the power of the individual.',
     partyManifestoUrl: 'https://redalliance.example.com/platform-2024.pdf',
-    parentPartyId: 'partyOldConservative', // Fictional
+    parentPartyId: 'partyOldConservative', 
     parentPartyName: 'Old Conservative Union (Historical)',
-    splinterPartyIds: ['partyNeoLibertarian'], // Fictional
+    splinterPartyIds: ['partyNeoLibertarian'], 
     splinterPartyNames: ['Neo-Libertarian Movement'],
     wings: [
       { name: 'Business Council', description: 'Connecting with and supporting the business community.' },
       { name: 'Veterans Affairs Wing', keyLeaders: [{name: 'Colonel Strong', politicianId: 'p2' }]} // Assuming Col Strong is Bob R. for demo
     ],
-    isActive: false, // For filter testing
-    isNationalParty: false, // For filter testing
+    isActive: false, 
+    isNationalParty: false, 
     controversyIds: ['c2'],
   },
+  {
+    id: 'party3-fictional',
+    name: 'Green Future Party',
+    abbreviation: 'GFP',
+    slug: 'green-future-party',
+    leadership: [{ name: 'Terra Evergreen', role: 'Party Leader'}],
+    contactInfo: { email: 'info@greenfuture.example'},
+    logoUrl: 'https://placehold.co/200x200.png',
+    electionSymbolUrl: 'https://placehold.co/100x100.png?text=Symbol3',
+    history: 'Advocates for environmental protection and sustainability.',
+    foundedDate: '2010-01-01',
+    ideology: ['Environmentalism', 'Green Politics'],
+    isActive: true,
+    isNationalParty: false,
+    dataAiHint: 'party logo green',
+  },
+  {
+    id: 'party4-fictional',
+    name: 'Social Justice Union',
+    abbreviation: 'SJU',
+    slug: 'social-justice-union',
+    leadership: [{ name: 'Justus Equality', role: 'Party Leader'}],
+    contactInfo: { email: 'info@sju.example'},
+    logoUrl: 'https://placehold.co/200x200.png',
+    electionSymbolUrl: 'https://placehold.co/100x100.png?text=Symbol4',
+    history: 'Focuses on social equality and workers\' rights.',
+    foundedDate: '2005-05-01',
+    ideology: ['Socialism', 'Worker Rights'],
+    parentPartyName: 'Old Labour Front', // Example for affiliations card
+    isActive: true,
+    isNationalParty: true,
+    dataAiHint: 'party logo purple',
+  }
 ];
 
 export function getPartyById(id: string): Party | undefined {

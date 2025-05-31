@@ -132,6 +132,16 @@ export type LeadershipEvent = {
   endDate?: string; // ISO Date or 'Present'
 };
 
+export interface PartyAlliance {
+  name: string; // e.g., "Progressive Front", "United Democratic Alliance"
+  partnerPartyIds: string[]; // IDs of other parties in the alliance
+  partnerPartyNames?: string[]; // Denormalized for display convenience
+  startDate: string; // ISO Date
+  endDate?: string; // ISO Date or 'Ongoing'
+  purpose?: string;
+  status?: 'Active' | 'Dissolved' | 'Inactive';
+}
+
 export interface Party {
   id: string;
   name: string;
@@ -160,6 +170,7 @@ export interface Party {
   splinterPartyNames?: string[]; 
   internationalAffiliations?: string[];
   wings?: PartyWing[];
+  alliances?: PartyAlliance[]; // New
   isActive?: boolean;
   isNationalParty?: boolean;
   dataAiHint?: string;

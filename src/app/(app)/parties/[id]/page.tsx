@@ -6,12 +6,13 @@ import { getPartyById, mockPoliticians, getPartyNameById, getPromisesByPartyId }
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus } from 'lucide-react';
+import { Badge }
+from '@/components/ui/badge';
+import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
-import type { PromiseItem, LeadershipEvent, Party } from '@/types/gov';
+import type { PromiseItem, LeadershipEvent, Party, PartyAlliance } from '@/types/gov';
 import { TimelineDisplay } from '@/components/common/timeline-display';
 
 interface TimelineItem {
@@ -58,9 +59,13 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   useEffect(() => {
     if (party?.foundedDate) {
       setFormattedFoundedDate(new Date(party.foundedDate).toLocaleDateString());
+    } else {
+      setFormattedFoundedDate(null);
     }
     if (party?.dissolvedDate) {
       setFormattedDissolvedDate(new Date(party.dissolvedDate).toLocaleDateString());
+    } else {
+      setFormattedDissolvedDate(null);
     }
     if (party?.leadershipHistory) {
       setLeadershipTimelineItems(formatLeadershipHistoryForTimeline(party.leadershipHistory));
@@ -338,15 +343,15 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
                     {party.parentPartyName && (
-                        <p><span className="font-semibold">Parent Party:</span> {party.parentPartyName}
+                        <p className="flex items-center gap-1"><GitMerge className="h-4 w-4 text-muted-foreground" /> <span className="font-semibold">Parent Party:</span> {party.parentPartyName}
                         </p>
                     )}
                     {party.splinterPartyNames && party.splinterPartyNames.length > 0 && (
-                         <p><span className="font-semibold">Splinter Parties:</span> {party.splinterPartyNames.join(', ')}
+                         <p className="flex items-center gap-1"><GitPullRequest className="h-4 w-4 text-muted-foreground" /> <span className="font-semibold">Splinter Parties:</span> {party.splinterPartyNames.join(', ')}
                          </p>
                     )}
                     {party.internationalAffiliations && party.internationalAffiliations.length > 0 && (
-                        <p><span className="font-semibold">International Affiliations:</span> {party.internationalAffiliations.join(', ')}</p>
+                        <p className="flex items-center gap-1"><Globe className="h-4 w-4 text-muted-foreground" /> <span className="font-semibold">International Affiliations:</span> {party.internationalAffiliations.join(', ')}</p>
                     )}
                 </CardContent>
             </Card>
@@ -360,6 +365,39 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                 <CardContent>
                     <TimelineDisplay items={leadershipTimelineItems} />
                 </CardContent>
+            </Card>
+          )}
+
+          {party.alliances && party.alliances.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><Handshake className="text-primary"/> Political Alliances</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-4">
+                  {party.alliances.map((alliance, idx) => (
+                    <li key={idx} className="text-sm border-b pb-3 last:border-b-0">
+                      <h4 className="font-semibold text-md">{alliance.name} 
+                        {alliance.status && (
+                          <Badge variant={alliance.status === 'Active' ? 'default' : 'secondary'} className={`ml-2 text-xs ${alliance.status === 'Active' ? 'bg-green-500 text-white' : ''}`}>
+                            {alliance.status}
+                          </Badge>
+                        )}
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(alliance.startDate).toLocaleDateString()} - {alliance.endDate && alliance.endDate !== 'Ongoing' ? new Date(alliance.endDate).toLocaleDateString() : 'Ongoing'}
+                      </p>
+                      {alliance.purpose && <p className="text-foreground/80 mt-1">{alliance.purpose}</p>}
+                      {alliance.partnerPartyNames && alliance.partnerPartyNames.length > 0 && (
+                        <p className="text-xs mt-1">
+                          <span className="font-medium">Partners:</span> {alliance.partnerPartyNames.join(', ')}
+                           {/* In a real app, you might try to link these names if IDs are available */}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
             </Card>
           )}
 
