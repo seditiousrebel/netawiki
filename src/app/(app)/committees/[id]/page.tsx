@@ -1,23 +1,45 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getCommitteeById, getPoliticianById, getBillById, getNewsByCommitteeId } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Landmark, Building, CalendarDays, FileText, ExternalLink, Mail, Phone, Globe, ListChecks, Newspaper, MessageSquare, Activity } from 'lucide-react';
+import { Users, Landmark, Building, CalendarDays, FileText, ExternalLink, Mail, Phone, Globe, ListChecks, Newspaper, MessageSquare, Activity, Star, UserPlus, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Committee, CommitteeMemberLink, CommitteeMeeting, CommitteeReport, BillReferredToCommittee, NewsArticleLink, CommitteeActivityEvent } from '@/types/gov';
 import { TimelineDisplay, formatCommitteeActivityForTimeline } from '@/components/common/timeline-display';
+import { useToast } from "@/hooks/use-toast";
+
+const LOCAL_STORAGE_FOLLOWED_COMMITTEES_KEY = 'govtrackr_followed_committees';
 
 function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
   const committee = getCommitteeById(params.id);
   const relatedNews = committee ? getNewsByCommitteeId(committee.id) : [];
   const activityTimelineItems = committee?.activityTimeline ? formatCommitteeActivityForTimeline(committee.activityTimeline) : [];
+  const { toast } = useToast();
+
+  const [isFollowingCommittee, setIsFollowingCommittee] = useState(false);
+  const [currentRating, setCurrentRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+
+  useEffect(() => {
+    if (committee) {
+      try {
+        const followedItemsStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_COMMITTEES_KEY);
+        if (followedItemsStr) {
+          const followedIds: string[] = JSON.parse(followedItemsStr);
+          setIsFollowingCommittee(followedIds.includes(committee.id));
+        }
+      } catch (error) {
+        console.error("Error reading followed committees from localStorage:", error);
+      }
+    }
+  }, [committee]);
 
 
   if (!committee) {
@@ -32,6 +54,58 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
       </div>
     );
   }
+
+  const handleFollowToggle = () => {
+    if (!committee) return;
+    const newFollowingState = !isFollowingCommittee;
+    setIsFollowingCommittee(newFollowingState);
+
+    try {
+      const followedItemsStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_COMMITTEES_KEY);
+      let followedIds: string[] = followedItemsStr ? JSON.parse(followedItemsStr) : [];
+
+      if (newFollowingState) {
+        if (!followedIds.includes(committee.id)) {
+          followedIds.push(committee.id);
+        }
+      } else {
+        followedIds = followedIds.filter(id => id !== committee.id);
+      }
+      localStorage.setItem(LOCAL_STORAGE_FOLLOWED_COMMITTEES_KEY, JSON.stringify(followedIds));
+       toast({
+        title: newFollowingState ? `Following "${committee.name.substring(0,30)}..."` : `Unfollowed "${committee.name.substring(0,30)}..."`,
+        description: newFollowingState ? "You'll receive updates for this committee (demo)." : "You will no longer receive updates (demo).",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error updating followed committees in localStorage:", error);
+      toast({
+        title: "Could not update follow status",
+        description: "There was an issue saving your follow preference. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      setIsFollowingCommittee(!newFollowingState); // Revert state
+    }
+  };
+
+  const handleRatingSubmit = () => {
+    if (currentRating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please select a star rating before submitting.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    console.log("Committee Rating Submitted:", { committeeId: committee.id, rating: currentRating });
+    toast({
+      title: "Review Submitted (Demo)",
+      description: `You rated this committee ${currentRating} star(s).`,
+      duration: 5000,
+    });
+  };
 
   const chairperson = committee.members?.find(m => m.role === 'Chairperson');
 
@@ -159,6 +233,37 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                 </CardContent>
             </Card>
            )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center gap-2">
+                <Star className="h-5 w-5 text-primary" /> Rate this Committee
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="mb-2 text-sm font-medium">Your Rating:</p>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`h-7 w-7 cursor-pointer transition-colors ${
+                        (hoverRating || currentRating) >= star
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : 'text-gray-300 hover:text-yellow-300'
+                      }`}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      onClick={() => setCurrentRating(star)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <Button onClick={handleRatingSubmit} className="w-full sm:w-auto" disabled={currentRating === 0}>
+                Submit Review
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="lg:col-span-1 space-y-6">
@@ -213,7 +318,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                 </Card>
             )}
             
-           {!activityTimelineItems.length && ( // Only show placeholder if no timeline data
+           {!activityTimelineItems.length && !committee.activityTimeline && ( // Only show placeholder if no timeline data
              <Card>
                 <CardHeader>
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-primary"/>Activity Timeline</CardTitle>
@@ -223,6 +328,15 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                 </CardContent>
             </Card>
            )}
+
+          <Button
+            onClick={handleFollowToggle}
+            className="w-full"
+            variant={isFollowingCommittee ? "outline" : "default"}
+          >
+            {isFollowingCommittee ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+            {isFollowingCommittee ? `Following Committee` : `Follow Committee`}
+          </Button>
 
         </div>
       </div>
