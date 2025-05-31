@@ -95,7 +95,8 @@ export interface Politician {
   bio?: string; // Biography/About Me (rich text, suggestible)
   politicalIdeology?: string[]; // New - tags/text
   languagesSpoken?: string[]; // New
-  constituency?: string;
+  constituency?: string; // Primary constituency display name (for list views, can be deprecated if constituencyId is used)
+  constituencyId?: string; // New: Link to Constituency entity
   province?: string;
   education?: EducationEntry[];
   assetDeclarations?: AssetDeclaration[];
@@ -212,6 +213,7 @@ export type NewsArticleLink = {
   taggedControversyIds?: string[];
   taggedElectionIds?: string[];
   taggedCommitteeIds?: string[];
+  taggedConstituencyIds?: string[]; // New
 };
 
 export interface Party {
@@ -337,7 +339,7 @@ export interface UserProfile {
 
 export interface EditSuggestion {
   id: string;
-  contentType: 'politician' | 'party' | 'promise' | 'bill' | 'controversy';
+  contentType: 'politician' | 'party' | 'promise' | 'bill' | 'controversy' | 'constituency'; // Added constituency
   contentId: string; // ID of the item being edited
   fieldName: string; // e.g., 'bio', 'promise.description'
   oldValue: any;
@@ -623,3 +625,55 @@ export interface Committee {
   activityTimeline?: CommitteeActivityEvent[]; // New
   dataAiHint?: string; // For a generic image placeholder
 }
+
+// --- Constituency Types ---
+export type ConstituencyType = 'Federal' | 'Provincial' | 'Local'; // Add more as needed
+
+export interface Constituency {
+  id: string;
+  slug?: string;
+  name: string; // e.g., "Kathmandu Constituency 1", "Bagmati Province Assembly Area 3 (A)"
+  code?: string; // Official constituency code, e.g., "KTM-1", "BAG-PA-3A"
+  type: ConstituencyType;
+  district: string;
+  province: string;
+  currentRepresentativeIds?: string[]; // Link to Politician(s)
+  currentRepresentativeNames?: string[]; // Denormalized for quick display
+  population?: number;
+  registeredVoters?: number;
+  areaSqKm?: number;
+  keyDemographics?: {
+    literacyRate?: number;
+    ethnicGroups?: Array<{ name: string; percentage: number }>; // Example
+    // Add other relevant demographic data points
+  };
+  historicalElectionResults?: Array<{ // Simplified for now, can be expanded
+    electionId: string; // Link to Election
+    electionName: string; // Denormalized
+    winnerPoliticianId?: string;
+    winnerPoliticianName?: string;
+    winningPartyId?: string;
+    winningPartyName?: string;
+    detailsUrl?: string; // Link to detailed results for this constituency in that election
+  }>;
+  developmentProjects?: Array<{
+    id: string;
+    name: string;
+    status: 'Planned' | 'Ongoing' | 'Completed' | 'Stalled';
+    description?: string;
+    budget?: string;
+    expectedCompletion?: string;
+  }>;
+  localIssues?: Array<{
+    id: string;
+    title: string;
+    description?: string;
+    reportedBy?: string; // User or source
+    dateReported?: string;
+    status?: 'Open' | 'Addressed' | 'Monitoring';
+  }>;
+  dataAiHint?: string; // For image placeholder on list views
+  tags?: string[]; // e.g., "urban", "rural", "mountainous", "industrial"
+}
+
+    

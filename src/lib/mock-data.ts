@@ -1,6 +1,5 @@
 
-
-import type { Politician, Party, PromiseItem, Bill, Controversy, InvolvedEntity, ControversyUpdate, ControversyEvidenceLink, ControversyOfficialResponse, ControversyMediaCoverage, ControversyLegalProceeding, NewsArticleLink, Election, ElectionCandidate, Committee } from '@/types/gov';
+import type { Politician, Party, PromiseItem, Bill, Controversy, InvolvedEntity, ControversyUpdate, ControversyEvidenceLink, ControversyOfficialResponse, ControversyMediaCoverage, ControversyLegalProceeding, NewsArticleLink, Election, ElectionCandidate, Committee, Constituency } from '@/types/gov';
 
 // Import data arrays from the new modular files
 import { mockPoliticians as _mockPoliticians } from './data/politicians';
@@ -19,9 +18,11 @@ import {
     getAllNewsArticles as _getAllNewsArticles,
     getNewsArticleByIdOrSlug as _getNewsArticleByIdOrSlug,
     getNewsByCommitteeId as _getNewsByCommitteeId,
+    getNewsByConstituencyId as _getNewsByConstituencyId,
 } from './data/news';
 import { mockElections as _mockElections, mockElectionCandidates as _mockElectionCandidates, getElectionById as _getElectionById, getCandidatesByElectionId as _getCandidatesByElectionId } from './data/elections';
 import { mockCommittees as _mockCommittees, getAllCommittees as _getAllCommittees, getCommitteeById as _getCommitteeById, getCommitteeByName as _getCommitteeByName } from './data/committees';
+import { mockConstituencies as _mockConstituencies, getAllConstituencies as _getAllConstituencies, getConstituencyById as _getConstituencyById } from './data/constituencies';
 
 
 // Re-export all the arrays to maintain the existing API
@@ -34,6 +35,7 @@ export const mockNewsArticles: NewsArticleLink[] = _mockNewsArticles;
 export const mockElections: Election[] = _mockElections;
 export const mockElectionCandidates: ElectionCandidate[] = _mockElectionCandidates;
 export const mockCommittees: Committee[] = _mockCommittees;
+export const mockConstituencies: Constituency[] = _mockConstituencies;
 
 
 // Re-export all the getter functions directly from their source files
@@ -51,10 +53,13 @@ export {
     getNewsByElectionId,
     getAllNewsArticles,
     getNewsArticleByIdOrSlug,
-    getNewsByCommitteeId
+    getNewsByCommitteeId,
+    getNewsByConstituencyId
 } from './data/news';
 export { getElectionById, getCandidatesByElectionId } from './data/elections';
 export { getAllCommittees, getCommitteeById, getCommitteeByName } from './data/committees';
+export { getAllConstituencies, getConstituencyById } from './data/constituencies';
+
 
 // Re-export types that might be used by pages directly (though ideally pages import from @/types/gov)
 export type {
@@ -69,5 +74,8 @@ export type {
     NewsArticleLink,
     Election,
     ElectionCandidate,
-    Committee
+    Committee,
+    Constituency
 };
+
+    

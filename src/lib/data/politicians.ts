@@ -108,7 +108,8 @@ export const mockPoliticians: Politician[] = [
     bio: 'Alice Democratia is a dedicated public servant with over a decade of experience in governance, championing transparency and citizen engagement.',
     politicalIdeology: ['Progressivism', 'Social Justice', 'Environmentalism'],
     languagesSpoken: ['English', 'Spanish'],
-    constituency: 'Statewide',
+    constituency: 'Statewide Senator', // General description
+    constituencyId: 'const-state-senate-capital', // Link to a conceptual 'statewide' constituency
     province: 'Capital Province',
     dateOfBirth: '1975-03-12',
     placeOfBirth: { district: 'Central District', address: 'Hopeville' },
@@ -160,7 +161,8 @@ export const mockPoliticians: Politician[] = [
     bio: 'Bob Republicanus brings a strong business background to his role, focusing on economic growth and fiscal responsibility.',
     politicalIdeology: ['Conservatism', 'Fiscal Responsibility', 'Free Markets'],
     languagesSpoken: ['English'],
-    constituency: '5th Congressional District',
+    constituency: '5th Congressional District', // Display name
+    constituencyId: 'const-fed-np-5', // Example Federal Constituency ID
     province: 'Northern Province',
     dateOfBirth: '1980-09-25',
     placeOfBirth: { district: 'Northland County' },
@@ -196,7 +198,8 @@ export const mockPoliticians: Politician[] = [
     bio: 'Carol Independenta is a fresh voice in local politics, advocating for community initiatives.',
     politicalIdeology: ['Independent', 'Community Focus'],
     languagesSpoken: ['English', 'French'],
-    constituency: 'Downtown District',
+    constituency: 'Downtown District', // Display name
+    constituencyId: 'const-local-cc-downtown', // Example Local Constituency ID
     province: 'Capital Province',
     dateOfBirth: '1990-06-15',
     placeOfBirth: { district: 'Urban Center', address: 'Main Street' },
@@ -215,3 +218,5 @@ export const mockPoliticians: Politician[] = [
 export function getPoliticianById(id: string): Politician | undefined {
   return mockPoliticians.find(p => p.id === id);
 }
+
+    

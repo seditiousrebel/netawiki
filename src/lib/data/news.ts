@@ -215,6 +215,21 @@ Senator X's claim that infrastructure spending increased by 50% in the last fisc
     dataAiHint: "report document government",
     taggedCommitteeIds: ['com1'],
     taggedPoliticianIds: ['p1']
+  },
+  {
+    id: 'news10',
+    slug: 'ktm-1-election-preview',
+    title: "Election Preview: Kathmandu Constituency 1 Heats Up",
+    sourceName: "Local News Network",
+    publicationDate: "2024-10-20",
+    summary: "A closer look at the candidates and key issues in the upcoming federal election for Kathmandu Constituency 1.",
+    category: "Elections" as NewsArticleCategory,
+    topics: ["federal election", "kathmandu", "candidate profiles"],
+    isAggregated: true,
+    url: "https://example.com/ktm1-election-preview",
+    dataAiHint: "election campaign posters",
+    taggedConstituencyIds: ['const-fed-ktm-1'],
+    taggedElectionIds: ['gen2024']
   }
 ];
 
@@ -267,3 +282,11 @@ export function getNewsByCommitteeId(committeeId: string): NewsArticleLink[] {
         article.taggedCommitteeIds?.includes(committeeId)
     ).sort((a, b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
 }
+
+export function getNewsByConstituencyId(constituencyId: string): NewsArticleLink[] {
+    return mockNewsArticles.filter(article => 
+        article.taggedConstituencyIds?.includes(constituencyId)
+    ).sort((a, b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
+}
+
+    

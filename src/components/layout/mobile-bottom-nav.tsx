@@ -2,19 +2,19 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, Users, Flag, FileText, ShieldAlert, VoteIcon, NewspaperIcon, Landmark as CommitteeIcon } from 'lucide-react';
+import { Home, Users, FileText, VoteIcon, Landmark as CommitteeIcon, MapPin } from 'lucide-react'; // Added MapPin for Constituencies
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
-// Max 5-6 items for mobile bottom nav. "Committees" is added.
-// If more are needed, a "More" tab strategy would be best.
+// Adjusted to 6 items, which is pushing the limits for a mobile bottom nav.
+// Consider a "More" tab if more top-level sections are added.
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/politicians', label: 'People', icon: Users },
   { href: '/bills', label: 'Bills', icon: FileText },
   { href: '/elections', label: 'Votes', icon: VoteIcon },
-  { href: '/committees', label: 'Cmtes', icon: CommitteeIcon }, // Shortened label
-  // { href: '/news', label: 'News', icon: NewspaperIcon }, // Example: Could be in "More" or accessed from Home
+  { href: '/committees', label: 'Cmtes', icon: CommitteeIcon },
+  { href: '/constituencies', label: 'Const.', icon: MapPin }, // New "Constituencies" link
 ];
 
 export function MobileBottomNav() {
@@ -37,7 +37,7 @@ export function MobileBottomNav() {
               )}
             >
               <item.icon className={cn("h-5 w-5 mb-0.5", isActive ? "text-primary" : "")} />
-              <span className="text-[0.65rem] font-medium leading-tight">{item.label}</span> {/* Smaller text */}
+              <span className="text-[0.65rem] font-medium leading-tight">{item.label}</span>
             </Link>
           );
         })}
@@ -45,3 +45,5 @@ export function MobileBottomNav() {
     </nav>
   );
 }
+
+    
