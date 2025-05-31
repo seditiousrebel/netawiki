@@ -142,6 +142,24 @@ export interface PartyAlliance {
   status?: 'Active' | 'Dissolved' | 'Inactive';
 }
 
+export type PartySplitMergerEvent = {
+  date: string; // ISO Date
+  type: 'Split' | 'Merger' | 'Formation' | 'Dissolution' | 'Reformation';
+  description: string; // e.g., "Merged with XYZ Party to form ABC United" or "Split from QRS Party"
+  involvedParties?: Array<{ id?: string; name: string; role: 'MergedInto' | 'SplitFrom' | 'EmergedAs' | 'PartnerInMerger' | 'DissolvedInto' | 'ReformedFrom' }>;
+};
+
+export type PartyStance = {
+  issueId: string; // Could be a bill ID, or a general issue ID/slug
+  issueTitle: string; // e.g., "Clean Energy Act 2024" or "Healthcare Reform Policy"
+  stance: 'Supports' | 'Opposes' | 'Neutral' | 'Under Review' | string; // Allow custom string for nuance
+  statement?: string; // Brief official statement or reasoning
+  statementUrl?: string; // Link to official statement
+  dateOfStance?: string; // ISO Date
+  isBill?: boolean; // Helper to know if issueId refers to a Bill
+};
+
+
 export interface Party {
   id: string;
   name: string;
@@ -170,7 +188,9 @@ export interface Party {
   splinterPartyNames?: string[]; 
   internationalAffiliations?: string[];
   wings?: PartyWing[];
-  alliances?: PartyAlliance[]; // New
+  alliances?: PartyAlliance[]; 
+  splitMergerHistory?: PartySplitMergerEvent[]; // New
+  stancesOnIssues?: PartyStance[]; // New
   isActive?: boolean;
   isNationalParty?: boolean;
   dataAiHint?: string;

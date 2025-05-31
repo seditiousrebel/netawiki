@@ -8,11 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge }
 from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
-import type { PromiseItem, LeadershipEvent, Party, PartyAlliance, Controversy } from '@/types/gov';
+import type { PromiseItem, LeadershipEvent, Party, PartyAlliance, Controversy, PartySplitMergerEvent, PartyStance } from '@/types/gov';
 import { TimelineDisplay } from '@/components/common/timeline-display';
 
 interface TimelineItem {
@@ -44,6 +44,21 @@ function formatLeadershipHistoryForTimeline(events: LeadershipEvent[] = []): Tim
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
+function formatSplitMergerHistoryForTimeline(events: PartySplitMergerEvent[] = []): TimelineItem[] {
+  return events.map(event => {
+    let title = `${event.type}: ${event.description.substring(0, 50)}${event.description.length > 50 ? '...' : ''}`;
+    let description = event.description;
+    if (event.involvedParties && event.involvedParties.length > 0) {
+      description += ` (Involved: ${event.involvedParties.map(p => p.name).join(', ')})`;
+    }
+    return {
+      date: event.date,
+      title: title,
+      description: description,
+    };
+  }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
 
 export default function PartyProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
@@ -53,6 +68,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   const [formattedFoundedDate, setFormattedFoundedDate] = useState<string | null>(null);
   const [formattedDissolvedDate, setFormattedDissolvedDate] = useState<string | null>(null);
   const [leadershipTimelineItems, setLeadershipTimelineItems] = useState<TimelineItem[]>([]);
+  const [splitMergerTimelineItems, setSplitMergerTimelineItems] = useState<TimelineItem[]>([]);
   const [isFollowingParty, setIsFollowingParty] = useState(false);
 
 
@@ -69,6 +85,9 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
     }
     if (party?.leadershipHistory) {
       setLeadershipTimelineItems(formatLeadershipHistoryForTimeline(party.leadershipHistory));
+    }
+     if (party?.splitMergerHistory) {
+      setSplitMergerTimelineItems(formatSplitMergerHistoryForTimeline(party.splitMergerHistory));
     }
     if (party) {
       try {
@@ -370,6 +389,17 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             </Card>
           )}
 
+          {party.splitMergerHistory && party.splitMergerHistory.length > 0 && (
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-xl flex items-center gap-2"><GitMerge className="text-primary"/> Party Evolution</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <TimelineDisplay items={splitMergerTimelineItems} />
+                </CardContent>
+            </Card>
+          )}
+
           {party.alliances && party.alliances.length > 0 && (
             <Card>
               <CardHeader>
@@ -402,6 +432,43 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               </CardContent>
             </Card>
           )}
+          
+          {party.stancesOnIssues && party.stancesOnIssues.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><Megaphone className="text-primary"/> Stances on Key Issues</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {party.stancesOnIssues.map((stance, idx) => (
+                  <div key={idx} className="text-sm border-b pb-3 last:border-b-0">
+                    <h4 className="font-semibold">
+                      {stance.isBill ? (
+                        <Link href={`/bills/${stance.issueId}`} className="text-primary hover:underline">
+                          {stance.issueTitle}
+                        </Link>
+                      ) : (
+                        stance.issueTitle
+                      )}
+                    </h4>
+                    <p>
+                      Stance: <Badge variant={stance.stance === 'Supports' ? 'default' : stance.stance === 'Opposes' ? 'destructive' : 'secondary'}
+                                   className={stance.stance === 'Supports' ? 'bg-green-500 text-white' : stance.stance === 'Opposes' ? 'bg-red-500 text-white' : ''}>
+                                   {stance.stance}
+                               </Badge>
+                      {stance.dateOfStance && <span className="text-xs text-muted-foreground ml-2">({new Date(stance.dateOfStance).toLocaleDateString()})</span>}
+                    </p>
+                    {stance.statement && <p className="text-foreground/80 mt-1 italic">"{stance.statement}"</p>}
+                    {stance.statementUrl && (
+                      <a href={stance.statementUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1 mt-1">
+                        View Official Statement <ExternalLink className="h-3 w-3"/>
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
 
           {party.wings && party.wings.length > 0 && (
             <Card>

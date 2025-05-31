@@ -1,5 +1,5 @@
 
-import type { Party, LeadershipEvent, PartyAlliance } from '@/types/gov';
+import type { Party, LeadershipEvent, PartyAlliance, PartySplitMergerEvent, PartyStance } from '@/types/gov';
 
 const bupLeadershipHistory: LeadershipEvent[] = [
   { name: 'Arthur Founder', role: 'Founding Chair', startDate: '1990-07-04', endDate: '1998-06-30' },
@@ -24,6 +24,28 @@ const bupAlliances: PartyAlliance[] = [
     status: 'Active',
   }
 ];
+
+const bupSplitMergerHistory: PartySplitMergerEvent[] = [
+  { date: '1990-07-04', type: 'Formation', description: 'Formed from a coalition of progressive groups.'},
+  { date: '2005-11-20', type: 'Merger', description: 'Merged with the Environmental Action League.', involvedParties: [{name: 'Environmental Action League', role: 'PartnerInMerger'}]}
+];
+
+const ragSplitMergerHistory: PartySplitMergerEvent[] = [
+   { date: '1985-02-15', type: 'Formation', description: 'Established as a new conservative entity.'},
+   { date: '1992-03-10', type: 'Split', description: 'A faction split to form the "Traditional Values Party".', involvedParties: [{name: 'Traditional Values Party', role: 'EmergedAs'}]},
+];
+
+
+const bupStances: PartyStance[] = [
+  { issueId: 'b1', issueTitle: 'Clean Energy Act 2024', stance: 'Supports', statement: 'BUP strongly supports the Clean Energy Act as it aligns with our core environmental principles.', statementUrl: 'https://blueunity.example.com/stances/clean-energy-act', dateOfStance: '2024-03-20', isBill: true },
+  { issueId: 'national-healthcare-reform', issueTitle: 'National Healthcare Reform', stance: 'Supports', statement: 'We advocate for comprehensive healthcare reform to ensure universal access.', dateOfStance: '2023-11-01', isBill: false },
+];
+
+const ragStances: PartyStance[] = [
+  { issueId: 'b2', issueTitle: 'Digital Literacy For All Act', stance: 'Supports', statement: 'RAG believes digital literacy is crucial for economic competitiveness.', dateOfStance: '2023-10-05', isBill: true },
+  { issueId: 'tax-cut-proposal-2025', issueTitle: 'Proposed Tax Cuts 2025', stance: 'Supports', statement: 'Lowering taxes will stimulate investment and job creation.', statementUrl: 'https://redalliance.example.com/stances/tax-cuts-2025', dateOfStance: '2024-05-15', isBill: false },
+];
+
 
 export const mockParties: Party[] = [
   {
@@ -63,6 +85,8 @@ export const mockParties: Party[] = [
       { name: 'Student Front', keyLeaders: [], description: 'Mobilizing students for progressive causes.'}
     ],
     alliances: bupAlliances,
+    splitMergerHistory: bupSplitMergerHistory,
+    stancesOnIssues: bupStances,
     isActive: true,
     isNationalParty: true,
     controversyIds: ['c1'], // Linked to Project Nova Funding Scandal
@@ -104,6 +128,8 @@ export const mockParties: Party[] = [
       { name: 'Business Council', description: 'Connecting with and supporting the business community.' },
       { name: 'Veterans Affairs Wing', keyLeaders: [{name: 'Colonel Strong', politicianId: 'p2' }]} // Assuming Col Strong is Bob R. for demo
     ],
+    splitMergerHistory: ragSplitMergerHistory,
+    stancesOnIssues: ragStances,
     isActive: false, 
     isNationalParty: false, 
     controversyIds: ['c2'], // Linked to Election Campaign Speech Incident
