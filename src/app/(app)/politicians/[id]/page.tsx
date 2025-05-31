@@ -7,11 +7,12 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
+import { useState } from 'react';
 
 interface PoliticianVote extends VoteRecord {
   billId: string;
@@ -24,6 +25,7 @@ interface PoliticianVote extends VoteRecord {
 export default function PoliticianProfilePage({ params }: { params: { id: string } }) {
   const politician = getPoliticianById(params.id);
   const { toast } = useToast();
+  const [isFollowing, setIsFollowing] = useState(false);
   
   if (!politician) {
     return <p>Politician not found.</p>;
@@ -85,6 +87,23 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
       title: "Suggest Edit Feature",
       description: "This functionality is under development. Approved suggestions will update the content. You can see mock suggestions being managed on the /admin/suggestions page.",
       duration: 6000,
+    });
+  };
+
+  const handleFollowToggle = () => {
+    setIsFollowing(!isFollowing);
+    toast({
+      title: !isFollowing ? `Following ${politician.name}` : `Unfollowed ${politician.name}`,
+      description: !isFollowing ? "You'll now receive updates in your feed." : "You will no longer receive updates.",
+      duration: 3000,
+    });
+  };
+
+  const handleViewControversies = () => {
+    toast({
+      title: "Controversy Tracking",
+      description: "This feature is under development. It will show controversies associated with this politician.",
+      duration: 5000,
     });
   };
 
@@ -282,6 +301,11 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                     <span className="text-sm text-muted-foreground">Promise Fulfillment</span>
                   </div>
                 )}
+                 <div className="mt-3 pt-3 border-t">
+                    <Button variant="link" onClick={handleViewControversies} className="p-0 h-auto text-sm text-muted-foreground hover:text-primary flex items-center gap-1">
+                        <ShieldAlert className="h-4 w-4"/> View Associated Controversies
+                    </Button>
+                 </div>
                  <p className="text-xs text-muted-foreground pt-2 border-t mt-2">
                     Note: Analytics data is for demonstration purposes.
                 </p>
@@ -446,11 +470,20 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                </Link>
             </CardContent>
           </Card>
-           <Button className="w-full mt-4 bg-accent hover:bg-accent/90 text-accent-foreground">
-            <Users className="mr-2 h-4 w-4" /> Follow {politician.name}
+
+          <Button 
+            onClick={handleFollowToggle} 
+            className="w-full mt-4 bg-accent hover:bg-accent/90 text-accent-foreground"
+            variant={isFollowing ? "outline" : "default"}
+          >
+            {isFollowing ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+            {isFollowing ? `Following ${politician.name}` : `Follow ${politician.name}`}
           </Button>
         </div>
       </div>
     </div>
   );
 }
+
+
+    
