@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -140,15 +141,15 @@ export const SuggestNewEntryForm: React.FC<SuggestNewEntryFormProps> = ({
       case 'date':
       case 'number':
         return (
-          <div key={fieldId} className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor={fieldId} className="text-right">
+          <div key={fullPath} className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor={fullPath} className="text-right">
               {label}{required && '*'}
             </Label>
             <Input
-              id={fieldId}
+              id={fullPath}
               type={type === 'number' ? 'number' : (type === 'date' ? 'date' : 'text')}
               value={currentValue || ''}
-              onChange={(e) => handleInputChange(fieldId, e.target.value)}
+              onChange={(e) => handleInputChange(fullPath, e.target.value)}
               className="col-span-3"
               placeholder={placeholder || `Enter ${label.toLowerCase()}`}
               required={required}
@@ -157,14 +158,14 @@ export const SuggestNewEntryForm: React.FC<SuggestNewEntryFormProps> = ({
         );
       case 'textarea':
         return (
-          <div key={fieldId} className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor={fieldId} className="text-right pt-2">
+          <div key={fullPath} className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor={fullPath} className="text-right pt-2">
               {label}{required && '*'}
             </Label>
             <Textarea
-              id={fieldId}
+              id={fullPath}
               value={currentValue || ''}
-              onChange={(e) => handleInputChange(fieldId, e.target.value)}
+              onChange={(e) => handleInputChange(fullPath, e.target.value)}
               className="col-span-3 min-h-[100px]"
               placeholder={placeholder || `Enter ${label.toLowerCase()}`}
               required={required}
@@ -173,14 +174,14 @@ export const SuggestNewEntryForm: React.FC<SuggestNewEntryFormProps> = ({
         );
       case 'boolean':
         return (
-          <div key={fieldId} className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor={fieldId} className="text-right col-span-3">
+          <div key={fullPath} className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor={fullPath} className="text-right col-span-3">
               {label}{required && '*'}
             </Label>
             <Checkbox
-              id={fieldId}
+              id={fullPath}
               checked={!!currentValue}
-              onCheckedChange={(checked) => handleInputChange(fieldId, checked)}
+              onCheckedChange={(checked) => handleInputChange(fullPath, checked)}
               className="col-span-1 justify-self-start"
             />
           </div>
