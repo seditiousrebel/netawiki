@@ -14,8 +14,6 @@ import { Label } from '@/components/ui/label';
 export default function PartiesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIdeology, setSelectedIdeology] = useState('');
-  const [foundedYearStart, setFoundedYearStart] = useState('');
-  const [foundedYearEnd, setFoundedYearEnd] = useState('');
   const [selectedNationalStatus, setSelectedNationalStatus] = useState('all');
   const [selectedActiveStatus, setSelectedActiveStatus] = useState('all');
   const [sortOption, setSortOption] = useState('default');
@@ -44,25 +42,6 @@ export default function PartiesPage() {
     // Ideology filter
     if (selectedIdeology) {
       updatedParties = updatedParties.filter(party => party.ideology?.includes(selectedIdeology));
-    }
-
-    // Founded year range filter
-    const startYear = parseInt(foundedYearStart, 10);
-    const endYear = parseInt(foundedYearEnd, 10);
-
-    if (!isNaN(startYear)) {
-      updatedParties = updatedParties.filter(party => {
-        if (!party.foundedDate) return false;
-        const founded = new Date(party.foundedDate).getFullYear();
-        return founded >= startYear;
-      });
-    }
-    if (!isNaN(endYear)) {
-      updatedParties = updatedParties.filter(party => {
-        if (!party.foundedDate) return false;
-        const founded = new Date(party.foundedDate).getFullYear();
-        return founded <= endYear;
-      });
     }
     
     // National status filter
@@ -105,7 +84,7 @@ export default function PartiesPage() {
     }
 
     setFilteredParties(updatedParties);
-  }, [searchTerm, selectedIdeology, foundedYearStart, foundedYearEnd, selectedNationalStatus, selectedActiveStatus, sortOption]);
+  }, [searchTerm, selectedIdeology, selectedNationalStatus, selectedActiveStatus, sortOption]);
 
 
   return (
@@ -126,7 +105,7 @@ export default function PartiesPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="xl:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 items-end">
+          <div className="xl:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
             <div>
                 <Label htmlFor="filter-ideology">Ideology</Label>
                 <Select value={selectedIdeology} onValueChange={(value) => setSelectedIdeology(value === 'all' ? '' : value)}>
@@ -140,28 +119,6 @@ export default function PartiesPage() {
                     ))}
                 </SelectContent>
                 </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-                <div>
-                <Label htmlFor="filter-year-start">Founded From</Label>
-                <Input
-                    id="filter-year-start"
-                    type="number"
-                    placeholder="Year"
-                    value={foundedYearStart}
-                    onChange={(e) => setFoundedYearStart(e.target.value)}
-                />
-                </div>
-                <div>
-                <Label htmlFor="filter-year-end">Founded Until</Label>
-                <Input
-                    id="filter-year-end"
-                    type="number"
-                    placeholder="Year"
-                    value={foundedYearEnd}
-                    onChange={(e) => setFoundedYearEnd(e.target.value)}
-                />
-                </div>
             </div>
             <div>
                 <Label htmlFor="filter-national-status">Party Status</Label>
