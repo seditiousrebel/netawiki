@@ -7,13 +7,14 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon, Newspaper } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon, Newspaper, History } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent, NewsArticleLink } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
+import { SuggestEditForm } from '@/components/common/suggest-edit-form';
 
 interface PoliticianVote extends VoteRecord {
   billId: string;
@@ -73,6 +74,10 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [commentText, setCommentText] = useState("");
+
+  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
+  const [suggestionFieldName, setSuggestionFieldName] = useState('');
+  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
 
   const [formattedDateOfBirth, setFormattedDateOfBirth] = useState<string | null>(null);
   const [formattedDateOfDeath, setFormattedDateOfDeath] = useState<string | null>(null);
@@ -166,13 +171,27 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     }
   };
 
+  const handleSuggestBioEdit = () => {
+    if (!politician) return;
+    setSuggestionFieldName("Biography");
+    setSuggestionOldValue(politician.bio || '');
+    setIsSuggestEditModalOpen(true);
+  };
 
-  const handleSuggestEdit = () => {
-    toast({
-      title: "Suggest Edit Feature",
-      description: "This functionality is under development. Approved suggestions will update the content. You can see mock suggestions being managed on the /admin/suggestions page.",
-      duration: 6000,
+  const handleSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+    console.log("Suggestion submitted:", {
+      entityType: "Politician",
+      entityName: politician?.name,
+      fieldName: suggestionFieldName,
+      oldValue: suggestionOldValue,
+      ...suggestion,
     });
+    toast({
+      title: "Suggestion Submitted",
+      description: `Suggestion for ${suggestionFieldName} on ${politician?.name} has been submitted. Thank you!`,
+      duration: 5000,
+    });
+    setIsSuggestEditModalOpen(false);
   };
 
   const handleFollowToggle = () => {
@@ -248,11 +267,23 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
           </div>
         }
         actions={
-          <Button variant="outline" onClick={handleSuggestEdit}>
-            <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+          <Button variant="outline" onClick={handleSuggestBioEdit}>
+            <Edit className="mr-2 h-4 w-4" /> Suggest Edit for Bio
           </Button>
         }
       />
+
+      {politician && (
+        <SuggestEditForm
+          isOpen={isSuggestEditModalOpen}
+          onOpenChange={setIsSuggestEditModalOpen}
+          entityType="Politician"
+          entityName={politician.name}
+          fieldName={suggestionFieldName}
+          oldValue={suggestionOldValue}
+          onSubmit={handleSuggestionSubmit}
+        />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-6">
@@ -367,7 +398,9 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2">
                 {politician.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary">{tag}</Badge>
+                  <Link key={tag} href={`/search?tag=${encodeURIComponent(tag)}`} passHref>
+                    <Badge variant="secondary" className="hover:bg-primary/20 transition-colors cursor-pointer">{tag}</Badge>
+                  </Link>
                 ))}
               </CardContent>
             </Card>
@@ -602,6 +635,33 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
               <TimelineDisplay items={careerTimelineItems} />
             </CardContent>
           </Card>
+
+          {politician.revisionHistory && politician.revisionHistory.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <History className="h-5 w-5 text-primary"/> Revision History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-4">
+                  {politician.revisionHistory.map((item) => (
+                    <li key={item.id} className="text-sm border-b border-border/50 pb-3 last:border-b-0 last:pb-0">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-semibold text-foreground/90">{item.event}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Author: {item.author}</p>
+                      {item.details && <p className="mt-1 text-xs text-foreground/70 bg-muted/30 p-1.5 rounded-sm">{item.details}</p>}
+                      {item.suggestionId && <p className="text-xs text-muted-foreground mt-1">Suggestion ID: {item.suggestionId}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
 
           {sponsoredBills.length > 0 && (
             <Card>

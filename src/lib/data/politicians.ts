@@ -131,6 +131,11 @@ export const mockPoliticians: Politician[] = [
     promiseFulfillmentRate: 50,
     popularityScore: 85,
     controversyIds: ['c1', 'c3'],
+    revisionHistory: [
+      { id: 'rh1_p1', date: '2024-03-15T10:00:00Z', author: 'Admin', event: 'Bio updated from suggestion', details: 'Expanded on experience in governance.', suggestionId: 'sugg_bio_p1_abc' },
+      { id: 'rh2_p1', date: '2024-02-01T14:30:00Z', author: 'User:AliceD_Staff', event: 'Contact email updated', details: 'Email changed to alice.democratia.official@example.com' },
+      { id: 'rh3_p1', date: '2020-01-10T09:00:00Z', author: 'System', event: 'Politician profile created' }
+    ]
   },
   {
     id: 'p2',
@@ -184,6 +189,10 @@ export const mockPoliticians: Politician[] = [
     promiseFulfillmentRate: 0,
     popularityScore: 72,
     controversyIds: ['c2'],
+    revisionHistory: [
+      { id: 'rh1_p2', date: '2024-01-20T11:00:00Z', author: 'User:CampaignTeamBob', event: 'Photo URL updated', details: 'New official portrait added.' },
+      { id: 'rh2_p2', date: '2018-01-15T09:00:00Z', author: 'System', event: 'Politician profile created' }
+    ]
   },
   {
     id: 'p3',

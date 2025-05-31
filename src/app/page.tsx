@@ -2,8 +2,15 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShieldCheck, Users, Flag, FileText, ListChecks } from 'lucide-react';
+import { ShieldCheck, Users, Flag, FileText, ListChecks, Star } from 'lucide-react'; // Added Star for Featured section
 import Image from 'next/image';
+import { EntityCard } from '@/components/common/entity-card'; // Added EntityCard
+import {
+  getPoliticianById,
+  getBillById,
+  getPartyById,
+  getElectionById
+} from '@/lib/mock-data'; // Added getter functions
 
 export default function HomePage() {
   return (
@@ -74,6 +81,85 @@ export default function HomePage() {
                 description="Track promises made by politicians and their current status."
                 href="/promises"
               />
+            </div>
+          </div>
+        </section>
+
+        <section className="py-12 md:py-20">
+          <div className="container">
+            <h2 className="font-headline text-3xl md:text-4xl font-bold text-center mb-12 flex items-center justify-center gap-3">
+              <Star className="h-10 w-10 text-primary" /> Featured Content
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {(() => {
+                const politician = getPoliticianById('p1'); // Alice Democratia
+                const bill = getBillById('b1'); // Clean Energy Act 2024
+                const party = getPartyById('party1'); // Blue Unity Party
+                const election = getElectionById('e1'); // General Election 2024
+
+                const featuredItems = [];
+
+                if (politician) {
+                  featuredItems.push(
+                    <EntityCard
+                      key={politician.id}
+                      id={politician.id}
+                      name={politician.name}
+                      imageUrl={politician.photoUrl}
+                      imageAiHint={politician.dataAiHint || "politician portrait"}
+                      description={politician.positions[0]?.title || 'Public Figure'}
+                      viewLink={`/politicians/${politician.id}`}
+                      category="Politician"
+                    />
+                  );
+                }
+
+                if (bill) {
+                  featuredItems.push(
+                    <EntityCard
+                      key={bill.id}
+                      id={bill.id}
+                      name={bill.title}
+                      // imageUrl="https://placehold.co/600x400/0284c7/white?text=Bill" // Generic placeholder
+                      imageAiHint="legislative document icon"
+                      description={bill.summary.substring(0, 70) + '...'}
+                      viewLink={`/bills/${bill.id}`}
+                      category="Bill"
+                    />
+                  );
+                }
+
+                if (party) {
+                  featuredItems.push(
+                    <EntityCard
+                      key={party.id}
+                      id={party.id}
+                      name={party.name}
+                      imageUrl={party.logoUrl}
+                      imageAiHint={party.dataAiHint || "party logo"}
+                      description={party.ideology?.join(', ') || 'Political Party'}
+                      viewLink={`/parties/${party.id}`}
+                      category="Party"
+                    />
+                  );
+                }
+
+                if (election) {
+                  featuredItems.push(
+                    <EntityCard
+                      key={election.id}
+                      id={election.id}
+                      name={election.name}
+                      // imageUrl="https://placehold.co/600x400/16a34a/white?text=Election" // Generic placeholder
+                      imageAiHint="election ballot box icon"
+                      description={`${election.electionType} - ${new Date(election.date).toLocaleDateString()}`}
+                      viewLink={`/elections/${election.id}`}
+                      category="Election"
+                    />
+                  );
+                }
+                return featuredItems;
+              })()}
             </div>
           </div>
         </section>

@@ -365,7 +365,9 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-2">
                     {bill.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary">{tag}</Badge>
+                      <Link key={tag} href={`/search?tag=${encodeURIComponent(tag)}`} passHref>
+                        <Badge variant="secondary" className="hover:bg-primary/20 transition-colors cursor-pointer">{tag}</Badge>
+                      </Link>
                     ))}
                 </CardContent>
             </Card>

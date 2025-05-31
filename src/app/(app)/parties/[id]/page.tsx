@@ -312,7 +312,9 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2">
                 {party.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary">{tag}</Badge>
+                  <Link key={tag} href={`/search?tag=${encodeURIComponent(tag)}`} passHref>
+                    <Badge variant="secondary" className="hover:bg-primary/20 transition-colors cursor-pointer">{tag}</Badge>
+                  </Link>
                 ))}
               </CardContent>
             </Card>

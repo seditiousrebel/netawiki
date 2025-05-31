@@ -8,10 +8,14 @@ import { mockPoliticians, mockParties } from '@/lib/mock-data';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Politician, Party } from '@/types/gov';
-// import { Button } from '@/components/ui/button';
-// import { PlusCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
+import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { useToast } from "@/hooks/use-toast";
 
 export default function PoliticiansPage() {
+  const { toast } = useToast();
+  const [isSuggestNewPoliticianModalOpen, setIsSuggestNewPoliticianModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedParty, setSelectedParty] = useState('');
   const [selectedProvince, setSelectedProvince] = useState('');
@@ -23,6 +27,16 @@ export default function PoliticiansPage() {
   const [filteredPoliticians, setFilteredPoliticians] = useState<Politician[]>(mockPoliticians);
 
   const parties: Party[] = mockParties;
+
+  const handleSuggestNewPoliticianSubmit = (newEntryData: any) => {
+    console.log("New Politician Suggestion:", newEntryData);
+    toast({
+      title: "Suggestion Submitted",
+      description: `Suggestion for new politician '${newEntryData.name}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestNewPoliticianModalOpen(false);
+  };
   
   const provinces = useMemo(() => 
     Array.from(new Set(mockPoliticians.map(p => p.province).filter(Boolean))) as string[]
@@ -120,7 +134,18 @@ export default function PoliticiansPage() {
       <PageHeader
         title="Politicians"
         description="Explore profiles of political figures."
-        // actions={<Button variant="default"><PlusCircle className="mr-2 h-4 w-4" />Add Politician</Button>}
+        actions={
+          <Button variant="default" onClick={() => setIsSuggestNewPoliticianModalOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Politician
+          </Button>
+        }
+      />
+
+      <SuggestNewEntryForm
+        isOpen={isSuggestNewPoliticianModalOpen}
+        onOpenChange={setIsSuggestNewPoliticianModalOpen}
+        entityType="Politician"
+        onSubmit={handleSuggestNewPoliticianSubmit}
       />
 
       <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
