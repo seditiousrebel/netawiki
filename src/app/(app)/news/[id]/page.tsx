@@ -13,7 +13,9 @@ import { ExternalLink, CalendarDays, UserCircle, Tag, Link as LinkIcon, CheckSqu
 import { format } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
 import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
-import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
+import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { SuggestEditForm } from '@/components/common/suggest-edit-form';
 
 const LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY = 'govtrackr_bookmarked_articles';
 
@@ -22,11 +24,16 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
   const article = getNewsArticleByIdOrSlug(params.id); // Corrected function name
   const { toast } = useToast();
   const currentUser = getCurrentUser();
+  const router = useRouter();
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
 
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+
+  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
+  const [suggestionFieldName, setSuggestionFieldName] = useState('');
+  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
 
   useEffect(() => {
     if (article) {
@@ -214,6 +221,16 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
         }
       />
 
+      <SuggestEditForm
+        isOpen={isSuggestEditModalOpen}
+        onOpenChange={setIsSuggestEditModalOpen}
+        entityType="NewsArticle"
+        entityName={article?.title || ''}
+        fieldName={suggestionFieldName}
+        oldValue={suggestionOldValue}
+        onSubmit={handleNewsArticleSuggestionSubmit}
+      />
+
       <div id="news-article-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           {article.dataAiHint && (
@@ -394,12 +411,30 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
     </div>
   );
 
-  // Placeholder for SuggestEditForm integration
   const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
-    // setSuggestionFieldName(fieldName); // Example state update
-    // setSuggestionOldValue(oldValue); // Example state update
-    // setIsSuggestEditModalOpen(true); // Example state update
-    toast({ title: "Suggest Edit Clicked (Placeholder)", description: `Field: ${fieldName}` });
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
+    setSuggestionFieldName(fieldName);
+    setSuggestionOldValue(oldValue);
+    setIsSuggestEditModalOpen(true);
+  };
+
+  const handleNewsArticleSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+    console.log("News Article Edit Suggestion:", {
+      entityType: "NewsArticle",
+      entityName: article?.title,
+      fieldName: suggestionFieldName,
+      oldValue: suggestionOldValue,
+      ...suggestion,
+    });
+    toast({
+      title: "Suggestion Submitted",
+      description: `Edit suggestion for ${suggestionFieldName} on article '${article?.title}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestEditModalOpen(false);
   };
 
   async function handleExportPdf() {

@@ -17,7 +17,9 @@ import type { PromiseItem, LeadershipEvent, Party, PartyAlliance, PartySplitMerg
 import { TimelineDisplay } from '@/components/common/timeline-display';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { exportElementAsPDF } from '@/lib/utils'; // Import PDF utility
-import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
+import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { SuggestEditForm } from '@/components/common/suggest-edit-form';
 
 
 interface TimelineItem {
@@ -70,8 +72,12 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   const party = getPartyById(params.id);
   const { toast } = useToast();
   const currentUser = getCurrentUser(); // Add current user
+  const router = useRouter();
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
+  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
+  const [suggestionFieldName, setSuggestionFieldName] = useState('');
+  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
   const [formattedFoundedDate, setFormattedFoundedDate] = useState<string | null>(null);
   const [formattedDissolvedDate, setFormattedDissolvedDate] = useState<string | null>(null);
   const [leadershipTimelineItems, setLeadershipTimelineItems] = useState<TimelineItem[]>([]);
@@ -122,13 +128,30 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   const relatedControversies = getControversiesByPartyId(party.id);
   const relatedNews = getNewsByPartyId(party.id);
 
+  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
+    setSuggestionFieldName(fieldName);
+    setSuggestionOldValue(oldValue);
+    setIsSuggestEditModalOpen(true);
+  };
 
-  const handleSuggestEdit = () => {
-    toast({
-      title: "Suggest Edit Feature",
-      description: "This functionality is under development. Approved suggestions will update the content. You can see mock suggestions being managed on the /admin/suggestions page.",
-      duration: 6000,
+  const handlePartySuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+    console.log("Party Edit Suggestion:", {
+      entityType: "Party",
+      entityName: party?.name,
+      fieldName: suggestionFieldName,
+      oldValue: suggestionOldValue,
+      ...suggestion,
     });
+    toast({
+      title: "Suggestion Submitted",
+      description: `Edit suggestion for ${suggestionFieldName} on party '${party?.name}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestEditModalOpen(false);
   };
 
   const handleFollowPartyToggle = () => {
@@ -207,7 +230,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
         }
         actions={(
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleSuggestEdit}>
+            <Button variant="outline" onClick={() => handleSuggestEditClick('About the Party', party.aboutParty || '')}>
               <Edit className="mr-2 h-4 w-4" /> Suggest Edit
             </Button>
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
@@ -220,6 +243,16 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             )}
           </div>
         )}
+      />
+
+      <SuggestEditForm
+        isOpen={isSuggestEditModalOpen}
+        onOpenChange={setIsSuggestEditModalOpen}
+        entityType="Party"
+        entityName={party?.name || ''}
+        fieldName={suggestionFieldName}
+        oldValue={suggestionOldValue}
+        onSubmit={handlePartySuggestionSubmit}
       />
 
       <div id="party-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">

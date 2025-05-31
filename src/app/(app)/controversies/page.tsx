@@ -8,10 +8,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowRight, ShieldAlert, Edit, SearchIcon } from 'lucide-react';
+import { ArrowRight, ShieldAlert, Edit, SearchIcon, PlusCircle } from 'lucide-react';
 import type { Controversy, InvolvedEntity } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { Input } from '@/components/ui/input';
+import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
@@ -35,6 +38,9 @@ function getSeverityBadgeVariant(severity: SeverityIndicator) {
 
 export default function ControversiesPage() {
   const { toast } = useToast();
+  const currentUser = getCurrentUser();
+  const router = useRouter();
+  const [isSuggestNewControversyModalOpen, setIsSuggestNewControversyModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSeverity, setSelectedSeverity] = useState<SeverityIndicator | ''>('');
   const [selectedStatus, setSelectedStatus] = useState<ControversyStatus | ''>('');
@@ -102,7 +108,29 @@ export default function ControversiesPage() {
     setFilteredControversies(updatedControversies);
   }, [searchTerm, selectedSeverity, selectedStatus, sortOption]);
 
+  const handleOpenSuggestNewControversyModal = () => {
+    if (isUserLoggedIn()) {
+      setIsSuggestNewControversyModalOpen(true);
+    } else {
+      router.push('/auth/login');
+    }
+  };
+
+  const handleSuggestNewControversySubmit = (newEntryData: any) => {
+    console.log("New Controversy Suggestion:", newEntryData);
+    toast({
+      title: "Suggestion Submitted",
+      description: `Suggestion for new controversy '${newEntryData.title || 'N/A'}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestNewControversyModalOpen(false);
+  };
+
   const handleSuggestEdit = () => {
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
     toast({
       title: "Suggest Edit Feature",
       description: "This functionality is under development. Approved suggestions will update the content. You can see mock suggestions being managed on the /admin/suggestions page.",
@@ -115,6 +143,18 @@ export default function ControversiesPage() {
       <PageHeader
         title="Controversies Tracker"
         description="Follow major political controversies, their status, and involved entities."
+        actions={
+          <Button variant="default" onClick={handleOpenSuggestNewControversyModal}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Controversy
+          </Button>
+        }
+      />
+
+      <SuggestNewEntryForm
+        isOpen={isSuggestNewControversyModalOpen}
+        onOpenChange={setIsSuggestNewControversyModalOpen}
+        entityType="Controversy"
+        onSubmit={handleSuggestNewControversySubmit}
       />
 
       <Card className="mb-8 p-6 shadow-md">

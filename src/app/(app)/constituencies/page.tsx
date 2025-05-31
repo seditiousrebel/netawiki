@@ -12,10 +12,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { MapPin, Users, Search, ArrowRight, Building, Globe } from 'lucide-react';
+import { MapPin, Users, Search, ArrowRight, Building, Globe, PlusCircle } from 'lucide-react';
 import Image from 'next/image';
+import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { useToast } from "@/hooks/use-toast";
 
 export default function ConstituenciesPage() {
+  const currentUser = getCurrentUser();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isSuggestNewConstituencyModalOpen, setIsSuggestNewConstituencyModalOpen] = useState(false);
   const [constituencies, setConstituencies] = useState<Constituency[]>([]);
   const [filteredConstituencies, setFilteredConstituencies] = useState<Constituency[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -97,11 +105,66 @@ export default function ConstituenciesPage() {
   };
 
 
+    setFilteredConstituencies(tempConstituencies);
+  }, [constituencies, searchTerm, selectedType, selectedProvince, sortOption]);
+
+  const getRepresentativeDisplay = (ids?: string[], names?: string[]): React.ReactNode => {
+    if (!ids || ids.length === 0) return 'N/A';
+    return (names || ids).slice(0, 2).map((nameOrId, index) => {
+      const id = ids[index];
+      const name = names?.[index] || nameOrId;
+      const politician = getPoliticianById(id);
+      return (
+        <React.Fragment key={id}>
+          {politician ? (
+            <Link href={`/politicians/${politician.id}`} className="text-primary hover:underline">
+              {name}
+            </Link>
+          ) : (
+            <span>{name}</span>
+          )}
+          {index < (names || ids).slice(0, 2).length - 1 && ', '}
+        </React.Fragment>
+      );
+    });
+  };
+
+  const handleOpenSuggestNewConstituencyModal = () => {
+    if (isUserLoggedIn()) {
+      setIsSuggestNewConstituencyModalOpen(true);
+    } else {
+      router.push('/auth/login');
+    }
+  };
+
+  const handleSuggestNewConstituencySubmit = (newEntryData: any) => {
+    console.log("New Constituency Suggestion:", newEntryData);
+    toast({
+      title: "Suggestion Submitted",
+      description: `Suggestion for new constituency '${newEntryData.name || 'N/A'}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestNewConstituencyModalOpen(false);
+  };
+
+
   return (
     <div>
       <PageHeader
         title="Constituencies Explorer"
         description="Discover federal, provincial, and local constituencies across the nation."
+        actions={
+          <Button variant="default" onClick={handleOpenSuggestNewConstituencyModal}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Constituency
+          </Button>
+        }
+      />
+
+      <SuggestNewEntryForm
+        isOpen={isSuggestNewConstituencyModalOpen}
+        onOpenChange={setIsSuggestNewConstituencyModalOpen}
+        entityType="Constituency"
+        onSubmit={handleSuggestNewConstituencySubmit}
       />
 
       <Card className="mb-8 p-6 shadow-md">

@@ -15,7 +15,9 @@ import { MapPin, Users, User, Type, Code, Building, Globe, Landmark, History, Pa
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
 import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
-import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
+import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { SuggestEditForm } from '@/components/common/suggest-edit-form';
 
 const LOCAL_STORAGE_FOLLOWED_CONSTITUENCIES_KEY = 'govtrackr_followed_constituencies';
 
@@ -25,11 +27,16 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
   const relatedNews = constituency ? getNewsByConstituencyId(constituency.id) : [];
   const { toast } = useToast();
   const currentUser = getCurrentUser();
+  const router = useRouter();
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
 
   const [isFollowingConstituency, setIsFollowingConstituency] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+
+  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
+  const [suggestionFieldName, setSuggestionFieldName] = useState('');
+  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
 
   useEffect(() => {
     if (constituency) {
@@ -132,7 +139,7 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
         }
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSuggestEditClick('Description', constituency.description || '')} >
+            <Button variant="outline" onClick={() => handleSuggestEditClick('Overview Details', constituency.description || `Population: ${constituency.population}, Area: ${constituency.areaSqKm} sq. km`)} >
               <Edit className="mr-2 h-4 w-4" /> Suggest Edit
             </Button>
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
@@ -145,6 +152,16 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
             )}
           </div>
         }
+      />
+
+      <SuggestEditForm
+        isOpen={isSuggestEditModalOpen}
+        onOpenChange={setIsSuggestEditModalOpen}
+        entityType="Constituency"
+        entityName={constituency?.name || ''}
+        fieldName={suggestionFieldName}
+        oldValue={suggestionOldValue}
+        onSubmit={handleConstituencySuggestionSubmit}
       />
 
       <div id="constituency-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -408,12 +425,30 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
     </div>
   );
 
-  // Placeholder for SuggestEditForm integration - This function needs to be defined if used
   const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
-    // setSuggestionFieldName(fieldName); // Example state update
-    // setSuggestionOldValue(oldValue); // Example state update
-    // setIsSuggestEditModalOpen(true); // Example state update
-    toast({ title: "Suggest Edit Clicked (Placeholder)", description: `Field: ${fieldName}`});
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
+    setSuggestionFieldName(fieldName);
+    setSuggestionOldValue(oldValue);
+    setIsSuggestEditModalOpen(true);
+  };
+
+  const handleConstituencySuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+    console.log("Constituency Edit Suggestion:", {
+      entityType: "Constituency",
+      entityName: constituency?.name,
+      fieldName: suggestionFieldName,
+      oldValue: suggestionOldValue,
+      ...suggestion,
+    });
+    toast({
+      title: "Suggestion Submitted",
+      description: `Edit suggestion for ${suggestionFieldName} on constituency '${constituency?.name}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestEditModalOpen(false);
   };
 
   async function handleExportPdf() {

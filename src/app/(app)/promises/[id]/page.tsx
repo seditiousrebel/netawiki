@@ -16,7 +16,9 @@ import type { PromiseItem, PromiseStatus, PromiseEvidenceLink, PromiseStatusUpda
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
-import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
+import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { SuggestEditForm } from '@/components/common/suggest-edit-form';
 
 const LOCAL_STORAGE_FOLLOWED_PROMISES_KEY = 'govtrackr_followed_promises';
 
@@ -48,12 +50,17 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
   const promise = getPromiseById(params.id);
   const { toast } = useToast();
   const currentUser = getCurrentUser();
+  const router = useRouter();
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
 
   const [isFollowingPromise, setIsFollowingPromise] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [relatedNews, setRelatedNews] = useState<NewsArticleLink[]>([]);
+
+  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
+  const [suggestionFieldName, setSuggestionFieldName] = useState('');
+  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
 
   useEffect(() => {
     if (promise) {
@@ -173,7 +180,7 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
         description={<div className="text-sm text-muted-foreground">Promised by: {promiserLink}</div>}
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSuggestEditClick('Description', promise.description)} >
+            <Button variant="outline" onClick={() => handleSuggestEditClick('Description', promise.description || '')} >
               <Edit className="mr-2 h-4 w-4" /> Suggest Edit
             </Button>
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
@@ -186,6 +193,16 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
             )}
           </div>
         }
+      />
+
+      <SuggestEditForm
+        isOpen={isSuggestEditModalOpen}
+        onOpenChange={setIsSuggestEditModalOpen}
+        entityType="Promise"
+        entityName={promise?.title || ''}
+        fieldName={suggestionFieldName}
+        oldValue={suggestionOldValue}
+        onSubmit={handlePromiseSuggestionSubmit}
       />
 
       <div id="promise-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -400,12 +417,30 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
     </div>
   );
 
-  // Placeholder for SuggestEditForm integration
   const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
-    // setSuggestionFieldName(fieldName); // Example state update
-    // setSuggestionOldValue(oldValue); // Example state update
-    // setIsSuggestEditModalOpen(true); // Example state update
-    toast({ title: "Suggest Edit Clicked (Placeholder)", description: `Field: ${fieldName}` });
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
+    setSuggestionFieldName(fieldName);
+    setSuggestionOldValue(oldValue);
+    setIsSuggestEditModalOpen(true);
+  };
+
+  const handlePromiseSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+    console.log("Promise Edit Suggestion:", {
+      entityType: "Promise",
+      entityName: promise?.title,
+      fieldName: suggestionFieldName,
+      oldValue: suggestionOldValue,
+      ...suggestion,
+    });
+    toast({
+      title: "Suggestion Submitted",
+      description: `Edit suggestion for ${suggestionFieldName} on promise '${promise?.title}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestEditModalOpen(false);
   };
 
   async function handleExportPdf() {

@@ -16,7 +16,9 @@ import type { VoteRecord, BillTimelineEvent, NewsArticleLink, Bill } from '@/typ
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
 import { exportElementAsPDF } from '@/lib/utils'; // Assuming this will be added for export
-import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
+import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { SuggestEditForm } from '@/components/common/suggest-edit-form';
 
 const LOCAL_STORAGE_FOLLOWED_BILLS_KEY = 'govtrackr_followed_bills';
 
@@ -29,6 +31,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
   const bill = getBillById(params.id);
   const { toast } = useToast();
   const currentUser = getCurrentUser();
+  const router = useRouter();
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
 
   const [relatedNews, setRelatedNews] = useState<NewsArticleLink[]>([]);
@@ -37,6 +40,11 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
   const [hoverBillRating, setHoverBillRating] = useState(0);
   const { addNotification } = useNotificationStore(); // Get addNotification
   const notificationTriggered = useRef(false); // Ref to track notification trigger
+
+  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
+  const [suggestionFieldName, setSuggestionFieldName] = useState('');
+  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
+
 
   useEffect(() => {
     if (bill && !notificationTriggered.current) {
@@ -71,12 +79,31 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
     return <p>Bill not found.</p>;
   }
 
-  const handleSuggestEdit = () => {
-    toast({
-      title: "Suggest Edit Feature",
-      description: "This functionality is under development. Approved suggestions will update the content. You can see mock suggestions being managed on the /admin/suggestions page.",
-      duration: 6000,
+  // This function is triggered by the "Suggest Edit" button in the PageHeader
+  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
+    setSuggestionFieldName(fieldName);
+    setSuggestionOldValue(oldValue);
+    setIsSuggestEditModalOpen(true);
+  };
+
+  const handleSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+    console.log("Suggestion submitted for Bill:", {
+      entityType: "Bill",
+      entityName: bill?.title,
+      fieldName: suggestionFieldName,
+      oldValue: suggestionOldValue,
+      ...suggestion,
     });
+    toast({
+      title: "Suggestion Submitted",
+      description: `Suggestion for ${suggestionFieldName} on bill '${bill?.title}' has been submitted. Thank you!`,
+      duration: 5000,
+    });
+    setIsSuggestEditModalOpen(false);
   };
 
   const handleFollowBillToggle = () => {
@@ -147,7 +174,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
         }
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSuggestEditClick('Summary', bill.summary)}>
+            <Button variant="outline" onClick={() => handleSuggestEditClick('Summary', bill.summary || '')}>
               <Edit className="mr-2 h-4 w-4" /> Suggest Edit
             </Button>
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
@@ -160,6 +187,16 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
             )}
           </div>
         }
+      />
+
+      <SuggestEditForm
+        isOpen={isSuggestEditModalOpen}
+        onOpenChange={setIsSuggestEditModalOpen}
+        entityType="Bill"
+        entityName={bill?.title || ''}
+        fieldName={suggestionFieldName}
+        oldValue={suggestionOldValue}
+        onSubmit={handleSuggestionSubmit}
       />
 
       {/* Add an ID to the main content wrapper for PDF export targeting */}
@@ -448,13 +485,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
     </div>
   );
 
-  // Placeholder for SuggestEditForm integration
-  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
-    // setSuggestionFieldName(fieldName);
-    // setSuggestionOldValue(oldValue);
-    // setIsSuggestEditModalOpen(true);
-    toast({ title: "Suggest Edit Clicked (Placeholder)", description: `Field: ${fieldName}`});
-  };
+  // Note: handleSuggestEditClick is now defined above, this placeholder is removed.
 
   async function handleExportPdf() {
     if (!bill) return;

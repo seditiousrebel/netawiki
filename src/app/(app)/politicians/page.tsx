@@ -11,11 +11,13 @@ import type { Politician, Party } from '@/types/gov';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
-// import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth'; // No longer needed for this button
+import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
 
 export default function PoliticiansPage() {
-  // const currentUser = getCurrentUser(); // No longer needed for this button
+  const currentUser = getCurrentUser();
+  const router = useRouter();
   const { toast } = useToast();
   const [isSuggestNewPoliticianModalOpen, setIsSuggestNewPoliticianModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -137,7 +139,16 @@ export default function PoliticiansPage() {
         title="Politicians"
         description="Explore profiles of political figures."
         actions={(
-          <Button variant="default" onClick={() => setIsSuggestNewPoliticianModalOpen(true)}>
+          <Button
+            variant="default"
+            onClick={() => {
+              if (isUserLoggedIn()) {
+                setIsSuggestNewPoliticianModalOpen(true);
+              } else {
+                router.push('/auth/login');
+              }
+            }}
+          >
             <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Politician
           </Button>
         )}

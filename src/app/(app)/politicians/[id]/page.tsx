@@ -17,7 +17,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { SuggestEditForm } from '@/components/common/suggest-edit-form';
 import { useNotificationStore } from "@/lib/notifications";
 import ScoreBarChart from '@/components/charts/ScoreBarChart';
-import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
+import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
 import { exportElementAsPDF } from '@/lib/utils';
 
 interface PoliticianVote extends VoteRecord {
@@ -73,6 +74,7 @@ function formatCombinedCareerTimeline(
 export default function PoliticianProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
   const currentUser = getCurrentUser();
+  const router = useRouter();
   const politician = getPoliticianById(params.id);
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
@@ -134,6 +136,10 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   }, [politician]);
 
   const handleSuggestBioEdit = () => {
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
     if (!politician) return;
     setSuggestionFieldName("Biography");
     setSuggestionOldValue(politician.bio || '');
