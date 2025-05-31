@@ -75,7 +75,7 @@ export interface Politician {
   dateOfBirth?: string;
   dateOfDeath?: string; // New
   placeOfBirth?: { // New
-    district?: string; // This should be constituency as per previous changes, will align later if needed.
+    district?: string; 
     address?: string;
   };
   partyId?: string; // Link to Party
@@ -95,11 +95,9 @@ export interface Politician {
   committeeMemberships?: CommitteeMembership[];
   statementsAndQuotes?: StatementQuote[];
   
-  // Status fields
   isActiveInPolitics?: boolean; // New
   lastActivityDate?: string; // New: ISO date string
 
-  // System Data / Analytics
   overallRating?: number; // e.g., 1-5 stars (User Rating Average)
   userRatingCount?: number; // New
   voteScore?: number; // e.g., 0-100% (hypothetical or derived)
@@ -107,6 +105,7 @@ export interface Politician {
   popularityScore?: number; // New field for popularity
   
   dataAiHint?: string;
+  controversyIds?: string[]; // New: Link to controversies
 }
 
 export interface Party {
@@ -120,6 +119,7 @@ export interface Party {
   ideology?: string[];
   foundedDate?: string;
   dataAiHint?: string;
+  controversyIds?: string[]; // New: Link to controversies
 }
 
 export interface PromiseItem {
@@ -175,12 +175,12 @@ export interface UserProfile {
   followedPoliticians: string[]; // Politician IDs
   followedParties: string[]; // Party IDs
   newsFeedPreferences?: Record<string, any>; // Flexible preferences
-  // verificationStatus?: 'Verified' | 'Unverified' | 'Pending'; // This is where user verification would go
+  verificationStatus?: 'Verified' | 'Unverified' | 'Pending'; 
 }
 
 export interface EditSuggestion {
   id: string;
-  contentType: 'politician' | 'party' | 'promise' | 'bill';
+  contentType: 'politician' | 'party' | 'promise' | 'bill' | 'controversy';
   contentId: string; // ID of the item being edited
   fieldName: string; // e.g., 'bio', 'promise.description'
   oldValue: any;
@@ -191,4 +191,72 @@ export interface EditSuggestion {
   submittedAt: string; // ISO Date string
   reviewedBy?: string; // Admin User ID
   reviewedAt?: string; // ISO Date string
+}
+
+// --- Controversy Related Types ---
+export type InvolvedEntityType = 'politician' | 'party' | 'organization';
+
+export interface InvolvedEntity {
+  type: InvolvedEntityType;
+  id: string; // ID of the politician, party, etc.
+  name: string; // Name for display
+  role?: string; // Role in the controversy
+}
+
+export interface ControversyUpdate {
+  date: string; // ISO Date string
+  description: string;
+  sourceUrl?: string;
+}
+
+export interface ControversyEvidenceLink {
+  url: string;
+  description?: string;
+  dateAdded?: string;
+}
+
+export interface ControversyOfficialResponse {
+  entityName: string; // Name of the entity responding (e.g., Politician's Office, Party Spokesperson)
+  responseText: string;
+  date: string; // ISO Date string
+  sourceUrl?: string;
+}
+
+export interface ControversyMediaCoverage {
+  url: string;
+  title: string;
+  sourceName: string; // e.g., "National Times"
+  date?: string; // ISO Date string
+}
+
+export interface ControversyLegalProceeding {
+  caseNumber?: string;
+  court?: string;
+  status?: string; // e.g., "Ongoing", "Concluded"
+  outcome?: string;
+  date?: string; // Date of proceeding or update
+  summary?: string;
+}
+
+export interface Controversy {
+  id: string;
+  slug?: string;
+  title: string;
+  description: string; // Can be rich text or markdown
+  involvedEntities: InvolvedEntity[];
+  dates?: {
+    started?: string; // ISO Date string
+    ended?: string; // ISO Date string
+  };
+  period?: string; // General description like "2020-2021" if specific dates are not known
+  severityIndicator: 'Low' | 'Medium' | 'High' | 'Critical';
+  status: 'Alleged' | 'Under Investigation' | 'Investigation Concluded' | 'Legal Action Initiated' | 'Proven' | 'Cleared' | 'Dismissed' | 'Ongoing';
+  tags?: string[]; // e.g., ["corruption", "ethics-violation", "scandal"]
+  updates?: ControversyUpdate[]; // Chronological updates
+  evidenceLinks?: ControversyEvidenceLink[];
+  officialResponses?: ControversyOfficialResponse[];
+  mediaCoverageLinks?: ControversyMediaCoverage[];
+  legalProceedings?: ControversyLegalProceeding[];
+  summaryOutcome?: string; // Overall summary of the outcome
+  dataAiHint?: string; // For main image if any
 }

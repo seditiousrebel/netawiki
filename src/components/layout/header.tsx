@@ -1,9 +1,10 @@
+
 "use client";
 
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Search, UserCircle, ShieldCheck } from 'lucide-react';
+import { Menu, Search, UserCircle, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/gov'; // Assuming UserProfile type might be used later
@@ -14,6 +15,7 @@ const navLinks = [
   { href: '/parties', label: 'Parties' },
   { href: '/bills', label: 'Bills' },
   { href: '/promises', label: 'Promises' },
+  { href: '/controversies', label: 'Controversies' },
   { href: '/feed', label: 'My Feed' },
 ];
 
@@ -48,7 +50,7 @@ export function AppHeader() {
               href={link.href}
               className={cn(
                 'transition-colors hover:text-primary',
-                pathname === link.href ? 'text-primary' : 'text-foreground/70'
+                pathname.startsWith(link.href) ? 'text-primary' : 'text-foreground/70'
               )}
             >
               {link.label}
@@ -97,7 +99,7 @@ export function AppHeader() {
                       href={link.href}
                       className={cn(
                         'text-lg transition-colors hover:text-primary',
-                        pathname === link.href ? 'text-primary font-semibold' : 'text-foreground/80'
+                        pathname.startsWith(link.href) ? 'text-primary font-semibold' : 'text-foreground/80'
                       )}
                     >
                       {link.label}

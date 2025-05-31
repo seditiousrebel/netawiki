@@ -114,6 +114,7 @@ export const mockPoliticians: Politician[] = [
     voteScore: 78,
     promiseFulfillmentRate: 50, 
     popularityScore: 85,
+    controversyIds: ['c1', 'c3'],
   },
   {
     id: 'p2',
@@ -145,7 +146,7 @@ export const mockPoliticians: Politician[] = [
     constituency: '5th Congressional District',
     province: 'Northern Province',
     dateOfBirth: '1980-09-25',
-    placeOfBirth: { district: 'Northland County' }, // This was district, should be constituency based on earlier change. Aligning.
+    placeOfBirth: { district: 'Northland County' },
     gender: 'Male',
     education: [
       { institution: 'Commerce Institute', degree: 'MBA', field: 'Business Administration', graduationYear: '2008' },
@@ -162,6 +163,7 @@ export const mockPoliticians: Politician[] = [
     voteScore: 65,
     promiseFulfillmentRate: 0, 
     popularityScore: 72,
+    controversyIds: ['c2'],
   },
   {
     id: 'p3',

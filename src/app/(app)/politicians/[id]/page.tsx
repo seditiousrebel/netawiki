@@ -2,15 +2,15 @@
 "use client";
 
 import Image from 'next/image';
-import { getPoliticianById, getPromisesByPolitician, mockParties, getBillsBySponsor, mockBills } from '@/lib/mock-data';
+import { getPoliticianById, getPromisesByPolitician, mockParties, getBillsBySponsor, mockBills, getControversiesByPoliticianId } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
-import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote } from '@/types/gov';
+import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { useState } from 'react';
 
@@ -34,6 +34,8 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
   const promises = getPromisesByPolitician(params.id);
   const party = politician.partyId ? mockParties.find(p => p.id === politician.partyId) : null;
   const sponsoredBills = getBillsBySponsor(politician.id);
+  const relatedControversies = getControversiesByPoliticianId(politician.id);
+
 
   const politicianVotes: PoliticianVote[] = [];
   mockBills.forEach(bill => {
@@ -99,15 +101,6 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
       duration: 3000,
     });
   };
-
-  const handleViewControversies = () => {
-    toast({
-      title: "Controversy Tracking",
-      description: "This feature is under development. It will show controversies associated with this politician.",
-      duration: 5000,
-    });
-  };
-
 
   return (
     <div>
@@ -369,11 +362,6 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                     <span className="text-sm text-muted-foreground">Popularity Score</span>
                   </div>
                 )}
-                 <div className="mt-3 pt-3 border-t">
-                    <Button variant="link" onClick={handleViewControversies} className="p-0 h-auto text-sm text-muted-foreground hover:text-primary flex items-center gap-1">
-                        <ShieldAlert className="h-4 w-4"/> View Associated Controversies
-                    </Button>
-                 </div>
                  <p className="text-xs text-muted-foreground pt-2 border-t mt-2">
                     Note: Analytics data is for demonstration purposes.
                 </p>
@@ -543,6 +531,41 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
             </Card>
           )}
 
+          {relatedControversies.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <ShieldAlert className="h-5 w-5 text-primary"/> Associated Controversies
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {relatedControversies.map((controversy: Controversy) => (
+                    <li key={controversy.id} className="p-3 border rounded-md bg-secondary/50 hover:bg-secondary/70 transition-colors">
+                      <Link href={`/controversies/${controversy.id}`} className="font-semibold text-primary hover:underline">
+                        {controversy.title}
+                      </Link>
+                      <div className="flex justify-between items-center mt-1">
+                        <p className="text-xs text-muted-foreground">
+                          Status: {controversy.status}
+                        </p>
+                        <Badge variant={
+                            controversy.severityIndicator === 'Critical' || controversy.severityIndicator === 'High' ? 'destructive' :
+                            controversy.severityIndicator === 'Medium' ? 'secondary' : 'outline'
+                        } className="text-xs">
+                           Severity: {controversy.severityIndicator}
+                        </Badge>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/controversies" className="mt-4 inline-block">
+                   <Button variant="link" className="p-0 h-auto text-primary text-sm">View all controversies</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle className="font-headline text-xl">Promises</CardTitle>
@@ -579,6 +602,3 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
     </div>
   );
 }
-
-
-    
