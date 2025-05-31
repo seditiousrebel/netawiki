@@ -23,6 +23,8 @@ interface PoliticianVote extends VoteRecord {
   voteDate: string;
 }
 
+const LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY = 'govtrackr_followed_politicians';
+
 export default function PoliticianProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
   const politician = getPoliticianById(params.id);
@@ -47,6 +49,23 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
       setFormattedDateOfDeath(null);
     }
   }, [politician?.dateOfBirth, politician?.dateOfDeath]);
+
+  useEffect(() => {
+    if (politician) {
+      try {
+        const followedPoliticiansStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY);
+        if (followedPoliticiansStr) {
+          const followedIds: string[] = JSON.parse(followedPoliticiansStr);
+          if (followedIds.includes(politician.id)) {
+            setIsFollowing(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error reading followed politicians from localStorage:", error);
+        // Gracefully handle cases where localStorage might be unavailable or data is corrupted
+      }
+    }
+  }, [politician]);
   
   if (!politician) {
     return <p>Politician not found.</p>;
@@ -115,10 +134,37 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   };
 
   const handleFollowToggle = () => {
-    setIsFollowing(!isFollowing);
+    const newFollowingState = !isFollowing;
+    setIsFollowing(newFollowingState);
+
+    try {
+      const followedPoliticiansStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY);
+      let followedIds: string[] = followedPoliticiansStr ? JSON.parse(followedPoliticiansStr) : [];
+
+      if (newFollowingState) { // If user is now following
+        if (!followedIds.includes(politician.id)) {
+          followedIds.push(politician.id);
+        }
+      } else { // If user is now unfollowing
+        followedIds = followedIds.filter(id => id !== politician.id);
+      }
+      localStorage.setItem(LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY, JSON.stringify(followedIds));
+    } catch (error) {
+      console.error("Error updating followed politicians in localStorage:", error);
+       toast({
+        title: "Could not update follow status",
+        description: "There was an issue saving your follow preference. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      // Revert state if localStorage fails
+      setIsFollowing(!newFollowingState);
+      return;
+    }
+
     toast({
-      title: !isFollowing ? `Following ${politician.name}` : `Unfollowed ${politician.name}`,
-      description: !isFollowing ? "You'll now receive updates in your feed." : "You will no longer receive updates.",
+      title: newFollowingState ? `Following ${politician.name}` : `Unfollowed ${politician.name}`,
+      description: newFollowingState ? "You'll now receive updates in your feed (demo)." : "You will no longer receive updates (demo).",
       duration: 3000,
     });
   };
@@ -687,4 +733,3 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   );
 }
     
-
