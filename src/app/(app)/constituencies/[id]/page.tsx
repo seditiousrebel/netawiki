@@ -5,12 +5,12 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getConstituencyById, getPoliticianById, getNewsByConstituencyId } from '@/lib/mock-data';
-import type { Constituency, Politician, NewsArticleLink } from '@/types/gov';
+import type { Constituency, Politician, NewsArticleLink, DevelopmentProject, LocalIssue } from '@/types/gov';
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Users, User, Type, Code, Building, Globe, Landmark, History, Package, Newspaper, AlertTriangle, Edit } from 'lucide-react';
+import { MapPin, Users, User, Type, Code, Building, Globe, Landmark, History, Package, Newspaper, AlertTriangle, Edit, Info, CheckCircle, Layers } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
 
@@ -139,7 +139,7 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                     </ul>
                   </div>
                 )}
-                 <p className="text-xs text-muted-foreground pt-2 border-t">Note: More detailed demographic data will be available in future updates.</p>
+                 <p className="text-xs text-muted-foreground pt-2 border-t mt-2">Note: More detailed demographic data will be available in future updates.</p>
               </CardContent>
             </Card>
           )}
@@ -154,9 +154,10 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                         <div key={idx} className="text-sm p-3 border rounded-md bg-muted/30">
                             <h4 className="font-semibold">{result.electionName}</h4>
                             {result.winnerPoliticianName && <p>Winner: {result.winnerPoliticianId ? <Link href={`/politicians/${result.winnerPoliticianId}`} className="text-primary hover:underline">{result.winnerPoliticianName}</Link> : result.winnerPoliticianName} ({result.winningPartyName || 'N/A'})</p>}
-                            {result.detailsUrl && <Link href={result.detailsUrl} className="text-xs text-primary hover:underline">View Full Results</Link>}
+                            {result.detailsUrl && <Link href={result.detailsUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">View Full Results</Link>}
                         </div>
                     ))}
+                     <p className="text-xs text-muted-foreground pt-2 border-t mt-2">Note: Full election result breakdowns will be available in future updates.</p>
                 </CardContent>
             </Card>
           )}
@@ -170,12 +171,13 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><Package className="text-primary"/>Key Development Projects</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                    {constituency.developmentProjects.map(project => (
+                    {constituency.developmentProjects.map((project: DevelopmentProject) => (
                         <div key={project.id} className="text-sm pb-2 border-b last:border-b-0">
-                            <p className="font-semibold">{project.name} <Badge variant="outline" className="ml-1 text-xs">{project.status}</Badge></p>
+                            <p className="font-semibold">{project.name} <Badge variant={project.status === 'Completed' ? 'default' : project.status === 'Ongoing' ? 'secondary' : 'outline'} className={`text-xs ${project.status === 'Completed' ? 'bg-green-500 text-white' : ''}`}>{project.status}</Badge></p>
                             {project.description && <p className="text-xs text-muted-foreground mt-0.5">{project.description}</p>}
                             {project.budget && <p className="text-xs">Budget: {project.budget}</p>}
                             {project.expectedCompletion && <p className="text-xs">Expected Completion: {project.expectedCompletion}</p>}
+                             {project.implementingAgency && <p className="text-xs">Agency: {project.implementingAgency}</p>}
                         </div>
                     ))}
                 </CardContent>
@@ -188,11 +190,17 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><AlertTriangle className="text-primary"/>Major Local Issues</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                    {constituency.localIssues.map(issue => (
+                    {constituency.localIssues.map((issue: LocalIssue) => (
                         <div key={issue.id} className="text-sm pb-2 border-b last:border-b-0">
-                           <p className="font-semibold">{issue.title} <Badge variant={issue.status === 'Addressed' ? 'default' : 'secondary'} className={`text-xs ${issue.status === 'Addressed' ? 'bg-green-500 text-white' : ''}`}>{issue.status}</Badge></p>
+                           <p className="font-semibold">{issue.title} 
+                             <Badge variant={issue.status === 'Addressed' ? 'default' : issue.severity === 'High' ? 'destructive' : 'secondary'} 
+                                    className={`text-xs ml-1.5 ${issue.status === 'Addressed' ? 'bg-green-500 text-white' : ''}`}>
+                                {issue.status} {issue.severity && `(${issue.severity})`}
+                             </Badge>
+                           </p>
                            {issue.description && <p className="text-xs text-muted-foreground mt-0.5">{issue.description}</p>}
-                           {issue.reportedBy && <p className="text-xs text-muted-foreground">Reported by: {issue.reportedBy} on {issue.dateReported ? format(new Date(issue.dateReported), 'MM/dd/yyyy') : 'N/A'}</p>}
+                           {issue.reportedBy && <p className="text-xs text-muted-foreground">Reported by: {issue.reportedBy} {issue.dateReported && `on ${format(new Date(issue.dateReported), 'MM/dd/yyyy')}`}</p>}
+                           {issue.resolutionDetails && <p className="text-xs text-green-700 mt-0.5">Resolution: {issue.resolutionDetails}</p>}
                         </div>
                     ))}
                 </CardContent>
@@ -225,7 +233,7 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
-                            Tags 
+                           <Layers className="h-5 w-5 text-primary"/> Tags 
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="flex flex-wrap gap-2">
