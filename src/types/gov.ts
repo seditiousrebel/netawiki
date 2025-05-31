@@ -57,6 +57,14 @@ export type CommitteeMembership = {
   endDate?: string; // 'Present' if ongoing
 };
 
+export type StatementQuote = {
+  id: string;
+  quoteText: string;
+  sourceName: string;
+  sourceUrl?: string;
+  dateOfStatement: string; // ISO Date string
+};
+
 export interface Politician {
   id: string;
   name: string; // English Name
@@ -79,12 +87,13 @@ export interface Politician {
   bio?: string; // Biography/About Me (rich text, suggestible)
   politicalIdeology?: string[]; // New - tags/text
   languagesSpoken?: string[]; // New
-  constituency?: string; // e.g., "California's 12th congressional district"
+  constituency?: string; 
   province?: string;
   education?: EducationEntry[];
   assetDeclarations?: AssetDeclaration[];
   criminalRecords?: CriminalRecord[];
   committeeMemberships?: CommitteeMembership[];
+  statementsAndQuotes?: StatementQuote[]; // New
   
   // Status fields
   isActiveInPolitics?: boolean; // New

@@ -1,5 +1,5 @@
 
-import type { Politician, AssetDeclaration, CriminalRecord, CommitteeMembership } from '@/types/gov';
+import type { Politician, AssetDeclaration, CriminalRecord, CommitteeMembership, StatementQuote } from '@/types/gov';
 
 const aliceAssetDeclarations: AssetDeclaration[] = [
   { year: 2023, description: 'Primary Residence, Anytown', value: '$500,000 - $750,000', sourceUrl: 'https://example.com/alice-assets-2023.pdf' },
@@ -35,6 +35,31 @@ const aliceCommitteeMemberships: CommitteeMembership[] = [
 const bobCommitteeMemberships: CommitteeMembership[] = [
     { committeeName: 'House Committee on Ways and Means', role: 'Member', startDate: '2019-01-15', endDate: 'Present' },
     { committeeName: 'House Committee on Small Business', role: 'Ranking Member', startDate: '2023-01-10', endDate: 'Present' },
+];
+
+const aliceStatementsAndQuotes: StatementQuote[] = [
+  {
+    id: 'sq1',
+    quoteText: "Transparency is not just a buzzword; it's the bedrock of a healthy democracy. We must strive for openness in all governmental affairs.",
+    sourceName: "Annual State of the Union Speech",
+    sourceUrl: "https://example.com/speech-transcript",
+    dateOfStatement: "2024-01-20",
+  },
+  {
+    id: 'sq2',
+    quoteText: "Investing in education is investing in our future. Every child deserves access to quality learning resources.",
+    sourceName: "Education Summit Keynote",
+    dateOfStatement: "2023-11-05",
+  },
+];
+
+const bobStatementsAndQuotes: StatementQuote[] = [
+  {
+    id: 'sq3',
+    quoteText: "Fiscal responsibility and a balanced budget are paramount to ensuring long-term economic stability for our nation.",
+    sourceName: "Chamber of Commerce Address",
+    dateOfStatement: "2024-02-10",
+  }
 ];
 
 
@@ -81,6 +106,7 @@ export const mockPoliticians: Politician[] = [
     assetDeclarations: aliceAssetDeclarations,
     criminalRecords: [], 
     committeeMemberships: aliceCommitteeMemberships,
+    statementsAndQuotes: aliceStatementsAndQuotes,
     isActiveInPolitics: true,
     verificationStatus: 'Verified',
     overallRating: 4.5,
@@ -128,6 +154,7 @@ export const mockPoliticians: Politician[] = [
     assetDeclarations: [],
     criminalRecords: bobCriminalRecords,
     committeeMemberships: bobCommitteeMemberships,
+    statementsAndQuotes: bobStatementsAndQuotes,
     isActiveInPolitics: true,
     verificationStatus: 'Pending',
     overallRating: 3.8,
@@ -154,7 +181,7 @@ export const mockPoliticians: Politician[] = [
     gender: 'Female',
     education: [{ institution: 'Community College', degree: 'Associate Degree', field: 'Urban Studies', graduationYear: '2018' }],
     isActiveInPolitics: false,
-    dateOfDeath: '2023-11-10', // Example for date of death
+    dateOfDeath: '2023-11-10', 
     verificationStatus: 'Unverified',
     overallRating: 4.1,
     userRatingCount: 75,

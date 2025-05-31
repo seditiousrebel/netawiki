@@ -7,10 +7,10 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
-import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician } from '@/types/gov';
+import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { useState } from 'react';
 
@@ -379,7 +379,7 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                 )}
                 {politician.popularityScore !== undefined && (
                   <div className="flex items-center gap-2">
-                     <CircleHelp className="h-5 w-5 text-purple-500" /> {/* Placeholder for popularity icon */}
+                     <CircleHelp className="h-5 w-5 text-purple-500" /> 
                     <span className="font-semibold text-lg">{politician.popularityScore}</span>
                     <span className="text-sm text-muted-foreground">Popularity Score</span>
                   </div>
@@ -392,6 +392,33 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
                  <p className="text-xs text-muted-foreground pt-2 border-t mt-2">
                     Note: Analytics data is for demonstration purposes.
                 </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {politician.statementsAndQuotes && politician.statementsAndQuotes.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <Quote className="h-5 w-5 text-primary"/> Notable Statements & Quotes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {politician.statementsAndQuotes.map((sq: StatementQuote) => (
+                  <div key={sq.id} className="border-l-4 border-primary pl-4 py-2 bg-secondary/30 rounded-r-md">
+                    <blockquote className="italic text-foreground/90">
+                      "{sq.quoteText}"
+                    </blockquote>
+                    <footer className="mt-2 text-xs text-muted-foreground">
+                      &mdash; {politician.name}, {sq.sourceName} ({new Date(sq.dateOfStatement).toLocaleDateString()})
+                      {sq.sourceUrl && (
+                        <a href={sq.sourceUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-primary hover:underline inline-flex items-center gap-1">
+                          Source <ExternalLink className="h-3 w-3"/>
+                        </a>
+                      )}
+                    </footer>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           )}
