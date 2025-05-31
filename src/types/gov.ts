@@ -64,6 +64,7 @@ export interface Politician {
   politicalJourney: PoliticalJourneyEvent[];
   bio?: string;
   district?: string; // e.g., "California's 12th congressional district"
+  province?: string; // New field for province
   dateOfBirth?: string;
   gender?: string;
   education?: EducationEntry[];

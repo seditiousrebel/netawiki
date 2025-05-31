@@ -61,6 +61,7 @@ export const mockPoliticians: Politician[] = [
     ],
     bio: 'Alice Democratia is a dedicated public servant with over a decade of experience in governance, championing transparency and citizen engagement.',
     district: 'Statewide',
+    province: 'Capital Province',
     dateOfBirth: '1975-03-12',
     gender: 'Female',
     education: [
@@ -94,6 +95,7 @@ export const mockPoliticians: Politician[] = [
     ],
     bio: 'Bob Republicanus brings a strong business background to his role, focusing on economic growth and fiscal responsibility.',
     district: '5th Congressional District',
+    province: 'Northern Province',
     dateOfBirth: '1980-09-25',
     gender: 'Male',
     education: [
@@ -106,6 +108,22 @@ export const mockPoliticians: Politician[] = [
     overallRating: 3.8,
     voteScore: 65,
     promiseFulfillmentRate: 0, // (0 fulfilled / 2 total promises) * 100
+  },
+  {
+    id: 'p3',
+    name: 'Carol Independenta',
+    positions: [{ title: 'City Council Member', startDate: '2022-01-01' }],
+    contactInfo: { email: 'carol@example.com', website: 'https://carol.example.com' },
+    photoUrl: 'https://placehold.co/300x300.png',
+    dataAiHint: 'politician portrait',
+    politicalJourney: [{ date: '2022-01-01', event: 'Elected to City Council' }],
+    bio: 'Carol Independenta is a fresh voice in local politics, advocating for community initiatives.',
+    district: 'Downtown District',
+    province: 'Capital Province',
+    dateOfBirth: '1990-06-15',
+    gender: 'Female',
+    education: [{ institution: 'Community College', degree: 'Associate Degree', field: 'Urban Studies', graduationYear: '2018' }],
+    overallRating: 4.1,
   },
 ];
 
