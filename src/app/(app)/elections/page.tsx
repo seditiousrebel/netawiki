@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, CalendarDays, VoteIcon, CheckCircle, Clock } from 'lucide-react';
 import type { Election, ElectionStatus } from '@/types/gov';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils'; // Added missing import
 
 function getElectionStatusBadgeVariant(status: ElectionStatus) {
   switch (status) {
