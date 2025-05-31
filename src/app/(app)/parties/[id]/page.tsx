@@ -483,13 +483,14 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                         stance.issueTitle
                       )}
                     </h4>
-                    <p>
-                      Stance: <Badge variant={stance.stance === 'Supports' ? 'default' : stance.stance === 'Opposes' ? 'destructive' : 'secondary'}
+                    <div className="flex items-center gap-1 mt-1">
+                      <span className="font-medium">Stance:</span>
+                      <Badge variant={stance.stance === 'Supports' ? 'default' : stance.stance === 'Opposes' ? 'destructive' : 'secondary'}
                                    className={stance.stance === 'Supports' ? 'bg-green-500 text-white' : stance.stance === 'Opposes' ? 'bg-red-500 text-white' : ''}>
                                    {stance.stance}
-                               </Badge>
-                      {stance.dateOfStance && <span className="text-xs text-muted-foreground ml-2">({new Date(stance.dateOfStance).toLocaleDateString()})</span>}
-                    </p>
+                      </Badge>
+                      {stance.dateOfStance && <span className="text-xs text-muted-foreground">({new Date(stance.dateOfStance).toLocaleDateString()})</span>}
+                    </div>
                     {stance.statement && <p className="text-foreground/80 mt-1 italic">"{stance.statement}"</p>}
                     {stance.statementUrl && (
                       <a href={stance.statementUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1 mt-1">
