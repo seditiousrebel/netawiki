@@ -12,7 +12,7 @@ import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; // Import React
 import { Textarea } from '@/components/ui/textarea';
 
 interface PoliticianVote extends VoteRecord {
@@ -23,7 +23,8 @@ interface PoliticianVote extends VoteRecord {
   voteDate: string;
 }
 
-export default function PoliticianProfilePage({ params }: { params: { id: string } }) {
+export default function PoliticianProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+  const params = React.use(paramsPromise); // Unwrap the params promise
   const politician = getPoliticianById(params.id);
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
@@ -669,3 +670,5 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
     </div>
   );
 }
+
+    
