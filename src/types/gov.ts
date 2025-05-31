@@ -19,6 +19,14 @@ export type PoliticalJourneyEvent = {
   description?: string;
 };
 
+export type PartyAffiliation = {
+  partyId: string;
+  partyName: string;
+  role?: string;
+  startDate: string;
+  endDate?: string; // Undefined or 'Present' if current
+};
+
 export type LeadershipMember = {
   name: string;
   role: string;
@@ -71,15 +79,16 @@ export interface Politician {
   nepaliName?: string; // New
   aliases?: string[]; // New - e.g., Nicknames
   slug?: string; // New - for URL
-  gender?: string;
+  gender?: 'Male' | 'Female' | 'Other' | string; // Allow string for flexibility, but define common options
   dateOfBirth?: string;
   dateOfDeath?: string; // New
   placeOfBirth?: { // New
-    district?: string; 
+    district?: string;
     address?: string;
   };
-  partyId?: string; // Link to Party
-  partyName?: string; // Denormalized for quick display
+  partyId?: string; // Link to Party (current primary)
+  partyName?: string; // Denormalized for quick display (current primary)
+  partyAffiliations?: PartyAffiliation[]; // New: For historical party affiliations
   positions: Array<{ title: string; startDate: string; endDate?: string }>;
   contactInfo: ContactInfo;
   photoUrl: string; // URL to image

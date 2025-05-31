@@ -17,6 +17,8 @@ export default function PoliticiansPage() {
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedConstituency, setSelectedConstituency] = useState('');
   const [selectedPosition, setSelectedPosition] = useState('');
+  const [selectedGender, setSelectedGender] = useState('');
+  const [selectedActivityStatus, setSelectedActivityStatus] = useState('');
   const [sortOption, setSortOption] = useState('default');
   const [filteredPoliticians, setFilteredPoliticians] = useState<Politician[]>(mockPoliticians);
 
@@ -34,8 +36,13 @@ export default function PoliticiansPage() {
     Array.from(new Set(mockPoliticians.map(p => p.positions[0]?.title).filter(Boolean))) as string[]
   , []);
 
+  const genders = useMemo(() =>
+    Array.from(new Set(mockPoliticians.map(p => p.gender).filter(Boolean))) as string[]
+  , []);
+
+
   useEffect(() => {
-    let updatedPoliticians = [...mockPoliticians]; // Create a mutable copy
+    let updatedPoliticians = [...mockPoliticians]; 
 
     // Apply filters
     if (searchTerm) {
@@ -57,6 +64,14 @@ export default function PoliticiansPage() {
     if (selectedPosition) {
       updatedPoliticians = updatedPoliticians.filter(p => p.positions[0]?.title === selectedPosition);
     }
+    if (selectedGender) {
+      updatedPoliticians = updatedPoliticians.filter(p => p.gender === selectedGender);
+    }
+    if (selectedActivityStatus) {
+      const isActive = selectedActivityStatus === 'active';
+      updatedPoliticians = updatedPoliticians.filter(p => p.isActiveInPolitics === isActive);
+    }
+
 
     // Apply sorting
     switch (sortOption) {
@@ -98,7 +113,7 @@ export default function PoliticiansPage() {
     }
 
     setFilteredPoliticians(updatedPoliticians);
-  }, [searchTerm, selectedParty, selectedProvince, selectedConstituency, selectedPosition, sortOption]);
+  }, [searchTerm, selectedParty, selectedProvince, selectedConstituency, selectedPosition, selectedGender, selectedActivityStatus, sortOption]);
 
   return (
     <div>
@@ -108,15 +123,15 @@ export default function PoliticiansPage() {
         // actions={<Button variant="default"><PlusCircle className="mr-2 h-4 w-4" />Add Politician</Button>}
       />
 
-      <div className="mb-6 flex flex-col sm:flex-row flex-wrap gap-4">
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         <Input
           placeholder="Search by name..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-xs flex-grow sm:flex-grow-0"
+          className="sm:col-span-2 md:col-span-1"
         />
         <Select value={selectedParty} onValueChange={(value) => setSelectedParty(value === 'all' ? '' : value)}>
-          <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectTrigger>
             <SelectValue placeholder="Filter by party" />
           </SelectTrigger>
           <SelectContent>
@@ -127,7 +142,7 @@ export default function PoliticiansPage() {
           </SelectContent>
         </Select>
         <Select value={selectedProvince} onValueChange={(value) => setSelectedProvince(value === 'all' ? '' : value)}>
-          <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectTrigger>
             <SelectValue placeholder="Filter by province" />
           </SelectTrigger>
           <SelectContent>
@@ -138,7 +153,7 @@ export default function PoliticiansPage() {
           </SelectContent>
         </Select>
         <Select value={selectedConstituency} onValueChange={(value) => setSelectedConstituency(value === 'all' ? '' : value)}>
-          <SelectTrigger className="w-full sm:w-[200px]">
+          <SelectTrigger>
             <SelectValue placeholder="Filter by constituency" />
           </SelectTrigger>
           <SelectContent>
@@ -149,7 +164,7 @@ export default function PoliticiansPage() {
           </SelectContent>
         </Select>
         <Select value={selectedPosition} onValueChange={(value) => setSelectedPosition(value === 'all' ? '' : value)}>
-          <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectTrigger>
             <SelectValue placeholder="Filter by position" />
           </SelectTrigger>
           <SelectContent>
@@ -159,8 +174,29 @@ export default function PoliticiansPage() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={selectedGender} onValueChange={(value) => setSelectedGender(value === 'all' ? '' : value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Filter by gender" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Genders</SelectItem>
+            {genders.map(gender => (
+              <SelectItem key={gender} value={gender}>{gender}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={selectedActivityStatus} onValueChange={(value) => setSelectedActivityStatus(value === 'all' ? '' : value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Activity Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={sortOption} onValueChange={setSortOption}>
-          <SelectTrigger className="w-full sm:w-[220px]">
+          <SelectTrigger>
             <SelectValue placeholder="Sort by..." />
           </SelectTrigger>
           <SelectContent>

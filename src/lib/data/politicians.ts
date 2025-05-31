@@ -1,5 +1,5 @@
 
-import type { Politician, AssetDeclaration, CriminalRecord, CommitteeMembership, StatementQuote } from '@/types/gov';
+import type { Politician, AssetDeclaration, CriminalRecord, CommitteeMembership, StatementQuote, PartyAffiliation } from '@/types/gov';
 
 const aliceAssetDeclarations: AssetDeclaration[] = [
   { year: 2023, description: 'Primary Residence, Anytown', value: '$500,000 - $750,000', sourceUrl: 'https://example.com/alice-assets-2023.pdf' },
@@ -62,6 +62,16 @@ const bobStatementsAndQuotes: StatementQuote[] = [
   }
 ];
 
+const alicePartyAffiliations: PartyAffiliation[] = [
+  { partyId: 'party0', partyName: 'Student Progressive Front', role: 'Regional Secretary', startDate: '2000-09-01', endDate: '2002-05-30' },
+  { partyId: 'party1', partyName: 'Blue Unity Party', role: 'Member', startDate: '2008-01-15' /* Current */ }
+];
+
+const bobPartyAffiliations: PartyAffiliation[] = [
+  { partyId: 'party2', partyName: 'Red Alliance Group', role: 'Precinct Captain', startDate: '2010-03-01', endDate: '2014-12-31' },
+  { partyId: 'party2', partyName: 'Red Alliance Group', role: 'Member', startDate: '2015-01-01' /* Current */ }
+];
+
 
 export const mockPoliticians: Politician[] = [
   {
@@ -72,6 +82,7 @@ export const mockPoliticians: Politician[] = [
     slug: 'alice-democratia',
     partyId: 'party1',
     partyName: 'Blue Unity Party',
+    partyAffiliations: alicePartyAffiliations,
     positions: [{ title: 'Senator', startDate: '2020-01-15' }],
     contactInfo: { 
       email: 'alice@example.com',
@@ -87,9 +98,12 @@ export const mockPoliticians: Politician[] = [
     photoUrl: 'https://placehold.co/300x300.png',
     dataAiHint: 'politician portrait',
     politicalJourney: [
-      { date: '2010-05-01', event: 'Elected City Councilor' },
-      { date: '2015-11-03', event: 'Elected Mayor' },
+      { date: '2005-06-01', event: 'Graduated State University (M.A. Public Administration)' },
+      { date: '2010-05-01', event: 'Elected City Councilor', description: 'Represented District 3.' },
+      { date: '2015-11-03', event: 'Elected Mayor of Hopeville' },
+      { date: '2019-10-05', event: 'Awarded "Community Champion Award"', description: 'For efforts in urban revitalization.' },
       { date: '2020-01-15', event: 'Sworn in as Senator' },
+      { date: '2022-07-01', event: 'Published "The Future of Governance" Policy Paper' },
     ],
     bio: 'Alice Democratia is a dedicated public servant with over a decade of experience in governance, championing transparency and citizen engagement.',
     politicalIdeology: ['Progressivism', 'Social Justice', 'Environmentalism'],
@@ -124,6 +138,7 @@ export const mockPoliticians: Politician[] = [
     slug: 'bob-republicanus',
     partyId: 'party2',
     partyName: 'Red Alliance Group',
+    partyAffiliations: bobPartyAffiliations,
     positions: [{ title: 'Representative', startDate: '2018-01-20' }],
     contactInfo: { 
       email: 'bob@example.com',
@@ -137,8 +152,9 @@ export const mockPoliticians: Politician[] = [
     photoUrl: 'https://placehold.co/300x300.png',
     dataAiHint: 'politician portrait',
     politicalJourney: [
-      { date: '2012-08-10', event: 'Founded local business association' },
+      { date: '2012-08-10', event: 'Founded local business association', description: 'Focused on supporting small enterprises.' },
       { date: '2018-01-20', event: 'Elected as Representative' },
+      { date: '2021-03-15', event: 'Received "Small Business Advocate of the Year" award' },
     ],
     bio: 'Bob Republicanus brings a strong business background to his role, focusing on economic growth and fiscal responsibility.',
     politicalIdeology: ['Conservatism', 'Fiscal Responsibility', 'Free Markets'],
@@ -170,6 +186,7 @@ export const mockPoliticians: Politician[] = [
     name: 'Carol Independenta',
     slug: 'carol-independenta',
     positions: [{ title: 'City Council Member', startDate: '2022-01-01' }],
+    partyAffiliations: [{partyId: 'independent', partyName: 'Independent', startDate: '2021-11-01'}],
     contactInfo: { email: 'carol@example.com', website: 'https://carol.example.com' },
     photoUrl: 'https://placehold.co/300x300.png',
     dataAiHint: 'politician portrait',

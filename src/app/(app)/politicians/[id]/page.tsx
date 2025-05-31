@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
-import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy } from '@/types/gov';
+import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,7 +23,47 @@ interface PoliticianVote extends VoteRecord {
   voteDate: string;
 }
 
+interface TimelineItem {
+  date: string;
+  title: string;
+  description?: string;
+}
+
 const LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY = 'govtrackr_followed_politicians';
+
+// Helper function to combine and sort career events
+function formatCombinedCareerTimeline(
+  journeyEvents: PoliticalJourneyEvent[] = [],
+  partyAffiliations: PartyAffiliation[] = []
+): TimelineItem[] {
+  const combinedEvents: TimelineItem[] = [];
+
+  journeyEvents.forEach(event => {
+    combinedEvents.push({
+      date: event.date,
+      title: event.event,
+      description: event.description,
+    });
+  });
+
+  partyAffiliations.forEach(aff => {
+    combinedEvents.push({
+      date: aff.startDate,
+      title: `Joined ${aff.partyName}`,
+      description: aff.role ? `Role: ${aff.role}` : undefined,
+    });
+    if (aff.endDate && aff.endDate !== 'Present') {
+      combinedEvents.push({
+        date: aff.endDate,
+        title: `Left ${aff.partyName}`,
+        description: aff.role ? `Previous Role: ${aff.role}` : undefined,
+      });
+    }
+  });
+
+  return combinedEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
 
 export default function PoliticianProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
@@ -75,6 +115,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   const party = politician.partyId ? mockParties.find(p => p.id === politician.partyId) : null;
   const sponsoredBills = getBillsBySponsor(politician.id);
   const relatedControversies = getControversiesByPoliticianId(politician.id);
+  const careerTimelineItems = formatCombinedCareerTimeline(politician.politicalJourney, politician.partyAffiliations);
 
 
   const politicianVotes: PoliticianVote[] = [];
@@ -542,7 +583,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
               <CardTitle className="font-headline text-xl">Career Timeline</CardTitle>
             </CardHeader>
             <CardContent>
-              <TimelineDisplay items={formatPoliticalJourneyForTimeline(politician.politicalJourney)} />
+              <TimelineDisplay items={careerTimelineItems} />
             </CardContent>
           </Card>
 
