@@ -1,5 +1,17 @@
 
-import type { Election, ElectionCandidate, ElectionStatus, ElectionType, ElectionCandidateStatus } from '@/types/gov';
+import type { Election, ElectionCandidate, ElectionStatus, ElectionType, ElectionCandidateStatus, ElectionTimelineEvent } from '@/types/gov';
+
+const generalElection2024Timeline: ElectionTimelineEvent[] = [
+  { date: '2024-08-01', event: 'Official Election Announcement', description: 'The Election Commission officially announced the date and schedule for the 2024 General Election.'},
+  { date: '2024-09-15', event: 'Voter Registration Deadline', description: 'Last day for citizens to register or update their voter information.'},
+  { date: '2024-10-01', event: 'Candidate Nomination Period Opens', description: 'Parties and independent candidates can file their nominations.'},
+  { date: '2024-10-10', event: 'Candidate Nomination Deadline', description: 'Final day for submitting candidate nominations.'},
+  { date: '2024-10-15', event: 'Campaign Period Officially Begins', description: 'Candidates and parties are permitted to start their official campaigns.', relatedDocumentUrl: 'https://example.com/campaign-rules.pdf'},
+  { date: '2024-11-13', event: 'Campaign Silence Period Starts', description: 'All campaigning must cease 48 hours before voting day.'},
+  { date: '2024-11-15', event: 'Voting Day', description: 'Polling stations open across the country for citizens to cast their votes.'},
+  { date: '2024-11-16', event: 'Vote Counting Begins', description: 'Counting of votes commences at designated centers.'},
+  { date: '2024-11-20', event: 'Preliminary Results Announcement (Expected)', description: 'Initial results and trends expected to be announced.'},
+];
 
 export const mockElections: Election[] = [
   {
@@ -13,6 +25,7 @@ export const mockElections: Election[] = [
     status: 'Scheduled' as ElectionStatus,
     totalRegisteredVoters: 18000000,
     pollingStationsCount: 22000,
+    timelineEvents: generalElection2024Timeline,
     tags: ['parliamentary', 'federal'],
     dataAiHint: 'election voting poll',
   },
@@ -29,6 +42,11 @@ export const mockElections: Election[] = [
     voterTurnoutPercentage: 65.5,
     totalRegisteredVoters: 3500000,
     totalVotesCast: 2292500,
+    timelineEvents: [
+        { date: '2023-03-01', event: 'Election Announced' },
+        { date: '2023-04-15', event: 'Voting Day' },
+        { date: '2023-04-20', event: 'Results Declared' }
+    ],
     tags: ['provincial-assembly', 'bagmati'],
     dataAiHint: 'regional map government',
   },
@@ -147,3 +165,4 @@ export function getElectionById(id: string): Election | undefined {
 export function getCandidatesByElectionId(electionId: string): ElectionCandidate[] {
   return mockElectionCandidates.filter(c => c.electionId === electionId);
 }
+

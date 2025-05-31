@@ -1,5 +1,4 @@
 
-
 export type ContactInfo = {
   email?: string;
   phone?: string; // Personal/General Phone
@@ -501,6 +500,13 @@ export type ElectionStatus =
   | 'Postponed'
   | 'Cancelled';
 
+export type ElectionTimelineEvent = {
+  date: string; // ISO Date string
+  event: string; // e.g., "Nomination Deadline", "Campaign Period Starts", "Voting Day", "Results Announced"
+  description?: string;
+  relatedDocumentUrl?: string;
+};
+
 export interface Election {
   id: string;
   slug: string;
@@ -517,6 +523,7 @@ export interface Election {
   totalRegisteredVoters?: number;
   totalVotesCast?: number;
   pollingStationsCount?: number;
+  timelineEvents?: ElectionTimelineEvent[]; // New
   tags?: string[]; // e.g., ["parliamentary", "presidential"]
   dataAiHint?: string; // For a representative image
 }
@@ -571,3 +578,4 @@ export interface ElectionCandidate {
 //   winnerPoliticianId?: string; // Could be null in certain PR systems or if no clear winner immediately
 //   winnerPartyId?: string;
 // }
+

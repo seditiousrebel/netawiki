@@ -1,16 +1,20 @@
 
 "use client";
 
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/common/page-header';
 import { mockElections } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, CalendarDays, VoteIcon, CheckCircle, Clock } from 'lucide-react';
-import type { Election, ElectionStatus } from '@/types/gov';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { ArrowRight, CalendarDays, VoteIcon, CheckCircle, Clock, SearchIcon, FileText } from 'lucide-react';
+import type { Election, ElectionStatus, ElectionType } from '@/types/gov';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils'; // Added missing import
+import { cn } from '@/lib/utils';
 
 function getElectionStatusBadgeVariant(status: ElectionStatus) {
   switch (status) {
@@ -46,7 +50,67 @@ function getElectionStatusIcon(status: ElectionStatus) {
 
 
 export default function ElectionsPage() {
-  const elections = mockElections;
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedType, setSelectedType] = useState<ElectionType | ''>('');
+  const [selectedStatus, setSelectedStatus] = useState<ElectionStatus | ''>('');
+  const [sortOption, setSortOption] = useState('date_desc'); // Default sort
+  const [filteredElections, setFilteredElections] = useState<Election[]>(mockElections);
+
+  const allElectionTypes = useMemo(() => {
+    const types = new Set<ElectionType>();
+    mockElections.forEach(election => types.add(election.electionType));
+    return Array.from(types).sort();
+  }, []);
+
+  const allElectionStatuses = useMemo(() => {
+    const statuses = new Set<ElectionStatus>();
+    mockElections.forEach(election => statuses.add(election.status));
+    return Array.from(statuses).sort();
+  }, []);
+
+  useEffect(() => {
+    let updatedElections = [...mockElections];
+
+    // Search term filter
+    if (searchTerm) {
+      updatedElections = updatedElections.filter(election =>
+        election.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (election.description && election.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    // Type filter
+    if (selectedType) {
+      updatedElections = updatedElections.filter(election => election.electionType === selectedType);
+    }
+    
+    // Status filter
+    if (selectedStatus) {
+      updatedElections = updatedElections.filter(election => election.status === selectedStatus);
+    }
+
+    // Apply sorting
+    const getDateVal = (dateStr: string): number => new Date(dateStr).getTime();
+
+    switch (sortOption) {
+      case 'date_asc':
+        updatedElections.sort((a, b) => getDateVal(a.date) - getDateVal(b.date));
+        break;
+      case 'name_asc':
+        updatedElections.sort((a,b) => a.name.localeCompare(b.name));
+        break;
+      case 'name_desc':
+        updatedElections.sort((a,b) => b.name.localeCompare(a.name));
+        break;
+      case 'date_desc':
+      default:
+        updatedElections.sort((a, b) => getDateVal(b.date) - getDateVal(a.date));
+        break;
+    }
+
+    setFilteredElections(updatedElections);
+  }, [searchTerm, selectedType, selectedStatus, sortOption]);
+
 
   return (
     <div>
@@ -55,9 +119,63 @@ export default function ElectionsPage() {
         description="Track upcoming, ongoing, and past elections, results, and candidate information."
       />
 
-      {elections.length > 0 ? (
+      <Card className="mb-8 p-6 shadow-md">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
+          <div className="sm:col-span-2 md:col-span-4">
+            <Label htmlFor="search-elections">Search Elections</Label>
+            <div className="relative">
+              <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="search-elections"
+                placeholder="Name or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="filter-type">Type</Label>
+            <Select value={selectedType} onValueChange={(value) => setSelectedType(value === 'all' ? '' : value as ElectionType)}>
+              <SelectTrigger id="filter-type"><SelectValue placeholder="Filter by type" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                {allElectionTypes.map(type => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="filter-status">Status</Label>
+            <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value === 'all' ? '' : value as ElectionStatus)}>
+              <SelectTrigger id="filter-status"><SelectValue placeholder="Filter by status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {allElectionStatuses.map(status => (
+                  <SelectItem key={status} value={status}>{status}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="col-span-full sm:col-span-1 md:col-span-2">
+            <Label htmlFor="sort-elections">Sort By</Label>
+            <Select value={sortOption} onValueChange={setSortOption}>
+              <SelectTrigger id="sort-elections"><SelectValue placeholder="Sort by..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date_desc">Date (Newest First)</SelectItem>
+                <SelectItem value="date_asc">Date (Oldest First)</SelectItem>
+                <SelectItem value="name_asc">Name (A-Z)</SelectItem>
+                <SelectItem value="name_desc">Name (Z-A)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </Card>
+
+      {filteredElections.length > 0 ? (
         <div className="space-y-6">
-          {elections.map((election: Election) => (
+          {filteredElections.map((election: Election) => (
             <Card key={election.id} className="shadow-md hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex justify-between items-start gap-2">
@@ -100,11 +218,12 @@ export default function ElectionsPage() {
         </div>
       ) : (
         <div className="text-center py-10">
-            <VoteIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+            <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
             <p className="mt-4 text-lg font-medium">No elections found.</p>
-            <p className="text-sm text-muted-foreground">Check back later for updates on upcoming elections.</p>
+            <p className="text-sm text-muted-foreground">Try adjusting your search or filter criteria.</p>
         </div>
       )}
     </div>
   );
 }
+

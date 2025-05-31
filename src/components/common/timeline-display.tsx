@@ -1,5 +1,5 @@
 
-import type { PoliticalJourneyEvent, BillTimelineEvent, PromiseStatusUpdate, ControversyUpdate } from '@/types/gov';
+import type { PoliticalJourneyEvent, BillTimelineEvent, PromiseStatusUpdate, ControversyUpdate, ElectionTimelineEvent } from '@/types/gov';
 
 interface TimelineItem {
   date: string;
@@ -84,7 +84,16 @@ export function formatPromiseStatusUpdatesForTimeline(statusUpdates: PromiseStat
 export function formatControversyUpdatesForTimeline(updates: ControversyUpdate[]): TimelineItem[] {
   return updates.map(update => ({
     date: update.date,
-    title: update.description,
+    title: update.description, // Using description as the main title for controversy updates
     relatedDocumentUrl: update.sourceUrl,
+  }));
+}
+
+export function formatElectionTimelineEventsForTimeline(events: ElectionTimelineEvent[]): TimelineItem[] {
+  return events.map(event => ({
+    date: event.date,
+    title: event.event,
+    description: event.description,
+    relatedDocumentUrl: event.relatedDocumentUrl,
   }));
 }

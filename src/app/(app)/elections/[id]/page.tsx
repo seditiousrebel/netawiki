@@ -2,16 +2,17 @@
 "use client";
 
 import React from 'react';
-import { getElectionById, getCandidatesByElectionId, getPoliticianById, getPartyById } from '@/lib/mock-data';
+import { getElectionById, getCandidatesByElectionId, getPoliticianById, getPartyById, getNewsByElectionId } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { CalendarDays, Users, VoteIcon, MapPin, BarChart3, UserCircle, Flag, ExternalLink, CheckCircle, Award } from 'lucide-react';
-import type { Election, ElectionCandidate, ElectionStatus, Politician, Party } from '@/types/gov';
+import { CalendarDays, Users, VoteIcon, MapPin, BarChart3, UserCircle, Flag, ExternalLink, CheckCircle, Award, Newspaper, History } from 'lucide-react';
+import type { Election, ElectionCandidate, ElectionStatus, Politician, Party, NewsArticleLink, ElectionTimelineEvent } from '@/types/gov';
 import { format } from 'date-fns';
 import Image from 'next/image';
+import { TimelineDisplay, formatElectionTimelineEventsForTimeline } from '@/components/common/timeline-display';
 
 function getElectionStatusBadgeVariant(status: ElectionStatus) {
   // Same as list page, can be refactored to a common util if needed
@@ -28,6 +29,9 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
   const params = React.use(paramsPromise);
   const election = getElectionById(params.id);
   const candidates = election ? getCandidatesByElectionId(election.id) : [];
+  const relatedNews = election ? getNewsByElectionId(election.id) : [];
+  const timelineItems = election?.timelineEvents ? formatElectionTimelineEventsForTimeline(election.timelineEvents) : [];
+
 
   if (!election) {
     return (
@@ -89,6 +93,17 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
               )}
             </CardContent>
           </Card>
+
+          {timelineItems.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><History className="text-primary"/>Election Timeline</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TimelineDisplay items={timelineItems} />
+              </CardContent>
+            </Card>
+          )}
 
           {candidates.length > 0 && (
             <Card>
@@ -162,21 +177,32 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-          {/* Placeholder for additional cards: Election Timeline, Related News, Voter Turnout Analysis etc. */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-headline text-xl">Election Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground text-sm">(Timeline of key election events like nomination deadlines, campaign periods, voting day, result announcements will be displayed here.)</p>
-            </CardContent>
-          </Card>
+           {relatedNews.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><Newspaper className="text-primary"/>Related News</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {relatedNews.map((news: NewsArticleLink) => (
+                    <li key={news.id} className="text-sm border-b pb-2 last:border-b-0">
+                      <a href={news.url || `/news/${news.slug || news.id}`} target={news.url ? "_blank" : "_self"} rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
+                        {news.title}
+                      </a>
+                      <p className="text-xs text-muted-foreground">{news.sourceName} - {format(new Date(news.publicationDate), 'MM/dd/yyyy')}</p>
+                      {news.summary && <p className="text-xs text-foreground/80 mt-1 line-clamp-2">{news.summary}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
            <Card>
             <CardHeader>
-              <CardTitle className="font-headline text-xl">Related News</CardTitle>
+              <CardTitle className="font-headline text-xl">Voter Turnout Analysis</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-sm">(News articles related to this election will appear here.)</p>
+              <p className="text-muted-foreground text-sm">(Detailed voter turnout analysis will be displayed here in future updates.)</p>
             </CardContent>
           </Card>
         </div>
@@ -184,3 +210,4 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
     </div>
   );
 }
+
