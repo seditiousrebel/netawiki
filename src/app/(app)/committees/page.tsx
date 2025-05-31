@@ -89,14 +89,6 @@ export default function CommitteesPage() {
     return chairperson ? chairperson.politicianName : null;
   };
 
-    setFilteredCommittees(tempCommittees);
-  }, [committees, searchTerm, selectedType, selectedHouse, sortOption]);
-
-  const getChairpersonName = (committee: Committee): string | null => {
-    const chairperson = committee.members?.find(member => member.role === 'Chairperson');
-    return chairperson ? chairperson.politicianName : null;
-  };
-
   const handleOpenSuggestNewCommitteeModal = () => {
     if (isUserLoggedIn()) {
       setIsSuggestNewCommitteeModalOpen(true);
