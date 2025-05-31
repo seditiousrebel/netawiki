@@ -87,7 +87,7 @@ export interface Politician {
   bio?: string; // Biography/About Me (rich text, suggestible)
   politicalIdeology?: string[]; // New - tags/text
   languagesSpoken?: string[]; // New
-  constituency?: string; 
+  constituency?: string;
   province?: string;
   education?: EducationEntry[];
   assetDeclarations?: AssetDeclaration[];
@@ -98,6 +98,7 @@ export interface Politician {
   // Status fields
   isActiveInPolitics?: boolean; // New
   verificationStatus?: 'Verified' | 'Unverified' | 'Pending'; // New
+  lastActivityDate?: string; // New: ISO date string
 
   // System Data / Analytics
   overallRating?: number; // e.g., 1-5 stars (User Rating Average)

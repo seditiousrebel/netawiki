@@ -109,6 +109,7 @@ export const mockPoliticians: Politician[] = [
     statementsAndQuotes: aliceStatementsAndQuotes,
     isActiveInPolitics: true,
     verificationStatus: 'Verified',
+    lastActivityDate: '2024-07-15T10:00:00Z',
     overallRating: 4.5,
     userRatingCount: 123,
     voteScore: 78,
@@ -157,6 +158,7 @@ export const mockPoliticians: Politician[] = [
     statementsAndQuotes: bobStatementsAndQuotes,
     isActiveInPolitics: true,
     verificationStatus: 'Pending',
+    lastActivityDate: '2024-06-20T14:30:00Z',
     overallRating: 3.8,
     userRatingCount: 98,
     voteScore: 65,
@@ -183,6 +185,7 @@ export const mockPoliticians: Politician[] = [
     isActiveInPolitics: false,
     dateOfDeath: '2023-11-10', 
     verificationStatus: 'Unverified',
+    lastActivityDate: '2023-11-01T09:00:00Z', // Example, might be when profile was last confirmed or a statement made before death
     overallRating: 4.1,
     userRatingCount: 75,
     popularityScore: 90,

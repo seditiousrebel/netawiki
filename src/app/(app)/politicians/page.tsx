@@ -40,7 +40,9 @@ export default function PoliticiansPage() {
     // Apply filters
     if (searchTerm) {
       updatedPoliticians = updatedPoliticians.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.nepaliName && p.nepaliName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (p.aliases && p.aliases.some(alias => alias.toLowerCase().includes(searchTerm.toLowerCase())))
       );
     }
     if (selectedParty) {
@@ -65,19 +67,33 @@ export default function PoliticiansPage() {
         updatedPoliticians.sort((a, b) => b.name.localeCompare(a.name));
         break;
       case 'rating_desc':
-        updatedPoliticians.sort((a, b) => (b.overallRating ?? 0) - (a.overallRating ?? 0));
+        updatedPoliticians.sort((a, b) => (b.overallRating ?? -1) - (a.overallRating ?? -1));
         break;
       case 'rating_asc':
-        updatedPoliticians.sort((a, b) => (a.overallRating ?? 0) - (b.overallRating ?? 0));
+        updatedPoliticians.sort((a, b) => (a.overallRating ?? -1) - (b.overallRating ?? -1));
         break;
       case 'popularity_desc':
-        updatedPoliticians.sort((a, b) => (b.popularityScore ?? 0) - (a.popularityScore ?? 0));
+        updatedPoliticians.sort((a, b) => (b.popularityScore ?? -1) - (a.popularityScore ?? -1));
         break;
       case 'popularity_asc':
-        updatedPoliticians.sort((a, b) => (a.popularityScore ?? 0) - (b.popularityScore ?? 0));
+        updatedPoliticians.sort((a, b) => (a.popularityScore ?? -1) - (b.popularityScore ?? -1));
+        break;
+      case 'activity_desc': // Newest first
+        updatedPoliticians.sort((a, b) => {
+          const dateA = a.lastActivityDate ? new Date(a.lastActivityDate).getTime() : 0;
+          const dateB = b.lastActivityDate ? new Date(b.lastActivityDate).getTime() : 0;
+          return dateB - dateA; // Sort descending
+        });
+        break;
+      case 'activity_asc': // Oldest first
+        updatedPoliticians.sort((a, b) => {
+          const dateA = a.lastActivityDate ? new Date(a.lastActivityDate).getTime() : Number.MAX_SAFE_INTEGER;
+          const dateB = b.lastActivityDate ? new Date(b.lastActivityDate).getTime() : Number.MAX_SAFE_INTEGER;
+          return dateA - dateB; // Sort ascending
+        });
         break;
       default:
-        // No sorting or default sort
+        // No sorting or default sort based on mock data order
         break;
     }
 
@@ -155,6 +171,8 @@ export default function PoliticiansPage() {
             <SelectItem value="rating_asc">Rating (Low to High)</SelectItem>
             <SelectItem value="popularity_desc">Popularity (High to Low)</SelectItem>
             <SelectItem value="popularity_asc">Popularity (Low to High)</SelectItem>
+            <SelectItem value="activity_desc">Recently Active (Newest)</SelectItem>
+            <SelectItem value="activity_asc">Recently Active (Oldest)</SelectItem>
           </SelectContent>
         </Select>
       </div>
