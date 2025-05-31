@@ -9,15 +9,21 @@ import BillStatusChart from '@/components/charts/BillStatusChart'; // Import Bil
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowRight, FileText, Edit, SearchIcon } from 'lucide-react';
+import { ArrowRight, FileText, Edit, SearchIcon, PlusCircle } from 'lucide-react';
 import type { Bill, BillStatus } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { Input } from '@/components/ui/input';
+import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
 export default function BillsPage() {
   const { toast } = useToast();
+  const currentUser = getCurrentUser();
+  const router = useRouter();
+  const [isSuggestNewBillModalOpen, setIsSuggestNewBillModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<BillStatus | ''>('');
   const [sortOption, setSortOption] = useState('introduced_desc'); // Default sort
@@ -72,7 +78,29 @@ export default function BillsPage() {
     setFilteredBills(updatedBills);
   }, [searchTerm, selectedStatus, sortOption]);
 
+  const handleOpenSuggestNewBillModal = () => {
+    if (isUserLoggedIn()) {
+      setIsSuggestNewBillModalOpen(true);
+    } else {
+      router.push('/auth/login');
+    }
+  };
+
+  const handleSuggestNewBillSubmit = (newEntryData: any) => {
+    console.log("New Bill Suggestion:", newEntryData);
+    toast({
+      title: "Suggestion Submitted",
+      description: `Suggestion for new bill '${newEntryData.title || 'N/A'}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestNewBillModalOpen(false);
+  };
+
   const handleSuggestEdit = () => {
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
     toast({
       title: "Suggest Edit Feature",
       description: "This functionality is under development. Approved suggestions will update the content. You can see mock suggestions being managed on the /admin/suggestions page.",
@@ -85,6 +113,18 @@ export default function BillsPage() {
       <PageHeader
         title="Bill Tracking"
         description="Follow legislative bills, their summaries, sponsorship, and status."
+        actions={
+          <Button variant="default" onClick={handleOpenSuggestNewBillModal}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Bill
+          </Button>
+        }
+      />
+
+      <SuggestNewEntryForm
+        isOpen={isSuggestNewBillModalOpen}
+        onOpenChange={setIsSuggestNewBillModalOpen}
+        entityType="Bill"
+        onSubmit={handleSuggestNewBillSubmit}
       />
 
       <Card className="mb-8">

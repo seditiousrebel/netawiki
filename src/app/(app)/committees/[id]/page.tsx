@@ -14,7 +14,9 @@ import type { Committee, CommitteeMemberLink, CommitteeMeeting, CommitteeReport,
 import { TimelineDisplay, formatCommitteeActivityForTimeline } from '@/components/common/timeline-display';
 import { useToast } from "@/hooks/use-toast";
 import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
-import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
+import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { SuggestEditForm } from '@/components/common/suggest-edit-form';
 
 const LOCAL_STORAGE_FOLLOWED_COMMITTEES_KEY = 'govtrackr_followed_committees';
 
@@ -25,11 +27,16 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
   const activityTimelineItems = committee?.activityTimeline ? formatCommitteeActivityForTimeline(committee.activityTimeline) : [];
   const { toast } = useToast();
   const currentUser = getCurrentUser();
+  const router = useRouter();
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
 
   const [isFollowingCommittee, setIsFollowingCommittee] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+
+  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
+  const [suggestionFieldName, setSuggestionFieldName] = useState('');
+  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
 
   useEffect(() => {
     if (committee) {
@@ -130,7 +137,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
         }
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSuggestEditClick('Description', committee.description || '')} >
+            <Button variant="outline" onClick={() => handleSuggestEditClick('Mandate', committee.mandate || '')} >
               <Edit className="mr-2 h-4 w-4" /> Suggest Edit
             </Button>
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
@@ -143,6 +150,16 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
             )}
           </div>
         }
+      />
+
+      <SuggestEditForm
+        isOpen={isSuggestEditModalOpen}
+        onOpenChange={setIsSuggestEditModalOpen}
+        entityType="Committee"
+        entityName={committee?.name || ''}
+        fieldName={suggestionFieldName}
+        oldValue={suggestionOldValue}
+        onSubmit={handleCommitteeSuggestionSubmit}
       />
 
       <div id="committee-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -393,12 +410,30 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
     </div>
   );
 
-  // Placeholder for SuggestEditForm integration - This function needs to be defined if used
   const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
-    // setSuggestionFieldName(fieldName); // Example state update
-    // setSuggestionOldValue(oldValue); // Example state update
-    // setIsSuggestEditModalOpen(true); // Example state update
-    toast({ title: "Suggest Edit Clicked (Placeholder)", description: `Field: ${fieldName}` });
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
+    setSuggestionFieldName(fieldName);
+    setSuggestionOldValue(oldValue);
+    setIsSuggestEditModalOpen(true);
+  };
+
+  const handleCommitteeSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+    console.log("Committee Edit Suggestion:", {
+      entityType: "Committee",
+      entityName: committee?.name,
+      fieldName: suggestionFieldName,
+      oldValue: suggestionOldValue,
+      ...suggestion,
+    });
+    toast({
+      title: "Suggestion Submitted",
+      description: `Edit suggestion for ${suggestionFieldName} on committee '${committee?.name}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestEditModalOpen(false);
   };
 
   async function handleExportPdf() {

@@ -15,7 +15,9 @@ import Image from 'next/image';
 import { TimelineDisplay, formatElectionTimelineEventsForTimeline } from '@/components/common/timeline-display';
 import { useToast } from "@/hooks/use-toast";
 import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
-import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
+import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { SuggestEditForm } from '@/components/common/suggest-edit-form';
 
 const LOCAL_STORAGE_FOLLOWED_ELECTIONS_KEY = 'govtrackr_followed_elections';
 
@@ -38,11 +40,16 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
   const timelineItems = election?.timelineEvents ? formatElectionTimelineEventsForTimeline(election.timelineEvents) : [];
   const { toast } = useToast();
   const currentUser = getCurrentUser();
+  const router = useRouter();
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
 
   const [isFollowingElection, setIsFollowingElection] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+
+  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
+  const [suggestionFieldName, setSuggestionFieldName] = useState('');
+  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
 
   useEffect(() => {
     if (election) {
@@ -155,6 +162,16 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
             )}
           </div>
         }
+      />
+
+      <SuggestEditForm
+        isOpen={isSuggestEditModalOpen}
+        onOpenChange={setIsSuggestEditModalOpen}
+        entityType="Election"
+        entityName={election?.name || ''}
+        fieldName={suggestionFieldName}
+        oldValue={suggestionOldValue}
+        onSubmit={handleElectionSuggestionSubmit}
       />
 
       <div id="election-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -374,12 +391,30 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
     </div>
   );
 
-  // Placeholder for SuggestEditForm integration
   const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
-    // setSuggestionFieldName(fieldName); // Example state update
-    // setSuggestionOldValue(oldValue); // Example state update
-    // setIsSuggestEditModalOpen(true); // Example state update
-    toast({ title: "Suggest Edit Clicked (Placeholder)", description: `Field: ${fieldName}` });
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
+    setSuggestionFieldName(fieldName);
+    setSuggestionOldValue(oldValue);
+    setIsSuggestEditModalOpen(true);
+  };
+
+  const handleElectionSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+    console.log("Election Edit Suggestion:", {
+      entityType: "Election",
+      entityName: election?.name,
+      fieldName: suggestionFieldName,
+      oldValue: suggestionOldValue,
+      ...suggestion,
+    });
+    toast({
+      title: "Suggestion Submitted",
+      description: `Edit suggestion for ${suggestionFieldName} on election '${election?.name}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestEditModalOpen(false);
   };
 
   async function handleExportPdf() {

@@ -14,7 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 import { TimelineDisplay, formatControversyUpdatesForTimeline } from '@/components/common/timeline-display';
 import React, { useState, useEffect } from 'react';
 import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
-import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
+import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { SuggestEditForm } from '@/components/common/suggest-edit-form';
 import { format } from 'date-fns';
 
 const LOCAL_STORAGE_FOLLOWED_CONTROVERSIES_KEY = 'govtrackr_followed_controversies';
@@ -24,11 +26,16 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
   const controversy = getControversyById(params.id);
   const { toast } = useToast();
   const currentUser = getCurrentUser();
+  const router = useRouter();
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
 
   const [isFollowingControversy, setIsFollowingControversy] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+
+  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
+  const [suggestionFieldName, setSuggestionFieldName] = useState('');
+  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
 
   useEffect(() => {
     if (controversy) {
@@ -148,7 +155,7 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
         }
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSuggestEditClick('Summary', controversy.summaryOutcome || controversy.description)} >
+            <Button variant="outline" onClick={() => handleSuggestEditClick('Description', controversy.description || '')} >
               <Edit className="mr-2 h-4 w-4" /> Suggest Edit
             </Button>
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
@@ -161,6 +168,16 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
             )}
           </div>
         }
+      />
+
+      <SuggestEditForm
+        isOpen={isSuggestEditModalOpen}
+        onOpenChange={setIsSuggestEditModalOpen}
+        entityType="Controversy"
+        entityName={controversy?.title || ''}
+        fieldName={suggestionFieldName}
+        oldValue={suggestionOldValue}
+        onSubmit={handleControversySuggestionSubmit}
       />
 
       <div id="controversy-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -386,12 +403,30 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
     </div>
   );
 
-  // Placeholder for SuggestEditForm integration
   const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
-    // setSuggestionFieldName(fieldName); // Example state update
-    // setSuggestionOldValue(oldValue); // Example state update
-    // setIsSuggestEditModalOpen(true); // Example state update
-    toast({ title: "Suggest Edit Clicked (Placeholder)", description: `Field: ${fieldName}` });
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
+    setSuggestionFieldName(fieldName);
+    setSuggestionOldValue(oldValue);
+    setIsSuggestEditModalOpen(true);
+  };
+
+  const handleControversySuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+    console.log("Controversy Edit Suggestion:", {
+      entityType: "Controversy",
+      entityName: controversy?.title,
+      fieldName: suggestionFieldName,
+      oldValue: suggestionOldValue,
+      ...suggestion,
+    });
+    toast({
+      title: "Suggestion Submitted",
+      description: `Edit suggestion for ${suggestionFieldName} on controversy '${controversy?.title}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestEditModalOpen(false);
   };
 
   async function handleExportPdf() {

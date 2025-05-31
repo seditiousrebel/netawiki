@@ -26,7 +26,7 @@ export const getCurrentUser = () => {
       return { id: 'mockUser', name: 'Mock User', role: roleFromStorage };
     }
   }
-  return { id: 'mockUser', name: 'Mock User', role: 'Admin' }; // Default to Admin for now
+  return { id: 'mockUser', name: 'Mock User', role: 'Guest' }; // Default to Guest
 };
 
 /**
@@ -44,4 +44,13 @@ export const setCurrentUserRole = (newRole: 'Guest' | 'Editor' | 'Admin' | 'Supe
   } else {
     console.warn('setCurrentUserRole can only be used in the browser environment for mocking purposes.');
   }
+};
+
+/**
+ * Checks if the current user is logged in.
+ * @returns True if the user's role is not 'Guest', false otherwise.
+ */
+export const isUserLoggedIn = (): boolean => {
+  const user = getCurrentUser();
+  return user.role !== 'Guest';
 };

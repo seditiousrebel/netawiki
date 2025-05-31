@@ -11,9 +11,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { ArrowRight, CalendarDays, VoteIcon, CheckCircle, Clock, SearchIcon, FileText } from 'lucide-react';
+import { ArrowRight, CalendarDays, VoteIcon, CheckCircle, Clock, SearchIcon, FileText, PlusCircle } from 'lucide-react';
 import type { Election, ElectionStatus, ElectionType } from '@/types/gov';
 import { format } from 'date-fns';
+import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { useToast } from "@/hooks/use-toast";
 import { cn } from '@/lib/utils';
 
 function getElectionStatusBadgeVariant(status: ElectionStatus) {
@@ -50,6 +54,10 @@ function getElectionStatusIcon(status: ElectionStatus) {
 
 
 export default function ElectionsPage() {
+  const currentUser = getCurrentUser();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isSuggestNewElectionModalOpen, setIsSuggestNewElectionModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<ElectionType | ''>('');
   const [selectedStatus, setSelectedStatus] = useState<ElectionStatus | ''>('');
@@ -112,11 +120,44 @@ export default function ElectionsPage() {
   }, [searchTerm, selectedType, selectedStatus, sortOption]);
 
 
+    setFilteredElections(updatedElections);
+  }, [searchTerm, selectedType, selectedStatus, sortOption]);
+
+  const handleOpenSuggestNewElectionModal = () => {
+    if (isUserLoggedIn()) {
+      setIsSuggestNewElectionModalOpen(true);
+    } else {
+      router.push('/auth/login');
+    }
+  };
+
+  const handleSuggestNewElectionSubmit = (newEntryData: any) => {
+    console.log("New Election Suggestion:", newEntryData);
+    toast({
+      title: "Suggestion Submitted",
+      description: `Suggestion for new election '${newEntryData.name || 'N/A'}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestNewElectionModalOpen(false);
+  };
+
   return (
     <div>
       <PageHeader
         title="Elections Hub"
         description="Track upcoming, ongoing, and past elections, results, and candidate information."
+        actions={
+          <Button variant="default" onClick={handleOpenSuggestNewElectionModal}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Election
+          </Button>
+        }
+      />
+
+      <SuggestNewEntryForm
+        isOpen={isSuggestNewElectionModalOpen}
+        onOpenChange={setIsSuggestNewElectionModalOpen}
+        entityType="Election"
+        onSubmit={handleSuggestNewElectionSubmit}
       />
 
       <Card className="mb-8 p-6 shadow-md">

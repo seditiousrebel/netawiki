@@ -9,12 +9,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Users, Landmark, Building, Search, ArrowRight } from 'lucide-react';
+import { Users, Landmark, Building, Search, ArrowRight, PlusCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { useToast } from "@/hooks/use-toast"; // Added for toast notifications
 import { Label } from '@/components/ui/label';
 
 export default function CommitteesPage() {
+  const { toast } = useToast(); // Initialize useToast
+  const currentUser = getCurrentUser();
+  const router = useRouter();
+  const [isSuggestNewCommitteeModalOpen, setIsSuggestNewCommitteeModalOpen] = useState(false);
   const [committees, setCommittees] = useState<Committee[]>([]);
   const [filteredCommittees, setFilteredCommittees] = useState<Committee[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -81,11 +89,49 @@ export default function CommitteesPage() {
     return chairperson ? chairperson.politicianName : null;
   };
 
+    setFilteredCommittees(tempCommittees);
+  }, [committees, searchTerm, selectedType, selectedHouse, sortOption]);
+
+  const getChairpersonName = (committee: Committee): string | null => {
+    const chairperson = committee.members?.find(member => member.role === 'Chairperson');
+    return chairperson ? chairperson.politicianName : null;
+  };
+
+  const handleOpenSuggestNewCommitteeModal = () => {
+    if (isUserLoggedIn()) {
+      setIsSuggestNewCommitteeModalOpen(true);
+    } else {
+      router.push('/auth/login');
+    }
+  };
+
+  const handleSuggestNewCommitteeSubmit = (newEntryData: any) => {
+    console.log("New Committee Suggestion:", newEntryData);
+    toast({
+      title: "Suggestion Submitted",
+      description: `Suggestion for new committee '${newEntryData.name || 'N/A'}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestNewCommitteeModalOpen(false);
+  };
+
   return (
     <div>
       <PageHeader
         title="Parliamentary Committees"
         description="Explore committees, their mandates, members, and activities."
+        actions={
+          <Button variant="default" onClick={handleOpenSuggestNewCommitteeModal}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Committee
+          </Button>
+        }
+      />
+
+      <SuggestNewEntryForm
+        isOpen={isSuggestNewCommitteeModalOpen}
+        onOpenChange={setIsSuggestNewCommitteeModalOpen}
+        entityType="Committee"
+        onSubmit={handleSuggestNewCommitteeSubmit}
       />
 
       <Card className="mb-8 p-6 shadow-md">
