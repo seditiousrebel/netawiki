@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,21 +54,25 @@ export default function HomePage() {
                 icon={<Users className="h-10 w-10 text-primary" />}
                 title="Politician Profiles"
                 description="Detailed info, voting records, and political journeys."
+                href="/politicians"
               />
               <FeatureCard
                 icon={<Flag className="h-10 w-10 text-primary" />}
                 title="Party Overviews"
                 description="Leadership, history, and ideologies of political parties."
+                href="/parties"
               />
               <FeatureCard
                 icon={<FileText className="h-10 w-10 text-primary" />}
                 title="Bill Tracking"
                 description="Follow bills from introduction to law with summaries and votes."
+                href="/bills"
               />
               <FeatureCard
                 icon={<ListChecks className="h-10 w-10 text-primary" />}
                 title="Promise Monitoring"
                 description="Track promises made by politicians and their current status."
+                href="/promises"
               />
             </div>
           </div>
@@ -111,20 +116,30 @@ interface FeatureCardProps {
   icon: React.ReactNode;
   title: string;
   description: string;
+  href?: string;
 }
 
-function FeatureCard({ icon, title, description }: FeatureCardProps) {
-  return (
-    <Card className="text-center shadow-lg hover:shadow-xl transition-shadow">
+function FeatureCard({ icon, title, description, href }: FeatureCardProps) {
+  const cardContent = (
+    <Card className="text-center shadow-lg hover:shadow-xl transition-shadow h-full flex flex-col">
       <CardHeader>
         <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
           {icon}
         </div>
         <CardTitle className="font-headline text-xl">{title}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-grow">
         <CardDescription>{description}</CardDescription>
       </CardContent>
     </Card>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="block h-full">
+        {cardContent}
+      </Link>
+    );
+  }
+  return cardContent;
 }
