@@ -4,6 +4,7 @@
 import { getPromiseById, getPoliticianById, getPartyById, getNewsByPromiseId } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
+import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -44,6 +45,7 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
   const params = React.use(paramsPromise);
   const promise = getPromiseById(params.id);
   const { toast } = useToast();
+  const currentUser = getCurrentUser();
 
   const [isFollowingPromise, setIsFollowingPromise] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
@@ -166,11 +168,11 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
       <PageHeader
         title={promise.title}
         description={<div className="text-sm text-muted-foreground">Promised by: {promiserLink}</div>}
-        actions={
+        actions={canAccess(currentUser.role, EDITOR_ROLES) ? (
           <Button variant="outline" onClick={handleSuggestEdit}>
             <Edit className="mr-2 h-4 w-4" /> Suggest Edit
           </Button>
-        }
+        ) : null}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

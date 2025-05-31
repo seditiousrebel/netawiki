@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { SuggestEditForm } from '@/components/common/suggest-edit-form';
 import { useNotificationStore } from "@/lib/notifications"; // Added useNotificationStore
 import ScoreBarChart from '@/components/charts/ScoreBarChart'; // Import ScoreBarChart
+import { getCurrentUser, canAccess, EDITOR_ROLES, ADMIN_ROLES } from '@/lib/auth';
 
 interface PoliticianVote extends VoteRecord {
   billId: string;
@@ -70,6 +71,7 @@ function formatCombinedCareerTimeline(
 
 export default function PoliticianProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
+  const currentUser = getCurrentUser();
   const politician = getPoliticianById(params.id);
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
@@ -284,11 +286,11 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             )}
           </div>
         }
-        actions={
+        actions={canAccess(currentUser.role, EDITOR_ROLES) ? (
           <Button variant="outline" onClick={handleSuggestBioEdit}>
             <Edit className="mr-2 h-4 w-4" /> Suggest Edit for Bio
           </Button>
-        }
+        ) : null}
       />
 
       {politician && (
@@ -749,7 +751,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             </Card>
           )}
 
-          {politician.assetDeclarations && politician.assetDeclarations.length > 0 && (
+          {canAccess(currentUser.role, ADMIN_ROLES) && politician.assetDeclarations && politician.assetDeclarations.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="font-headline text-xl flex items-center gap-2">
@@ -774,7 +776,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             </Card>
           )}
 
-          {politician.criminalRecords && politician.criminalRecords.length > 0 && (
+          {canAccess(currentUser.role, ADMIN_ROLES) && politician.criminalRecords && politician.criminalRecords.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="font-headline text-xl flex items-center gap-2">

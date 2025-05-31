@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/common/page-header';
+import { getCurrentUser, canAccess, ADMIN_ROLES } from '@/lib/auth';
 import {
   Table,
   TableHeader,
@@ -36,6 +37,13 @@ const getRoleBadgeVariant = (role: string): 'default' | 'secondary' | 'outline' 
 };
 
 export default function UserRoleManagementPage() {
+  const currentUser = getCurrentUser();
+
+  // For user management, let's say only SuperAdmins can access
+  if (!canAccess(currentUser.role, ADMIN_ROLES)) { // Or a more restrictive role like ['SuperAdmin']
+    return <div className="container mx-auto py-8 text-center">Access Denied. You do not have permission to view this page.</div>;
+  }
+
   return (
     <div className="container mx-auto py-8">
       <PageHeader

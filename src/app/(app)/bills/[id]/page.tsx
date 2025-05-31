@@ -6,10 +6,11 @@ import { getBillById, getNewsByBillId, getCommitteeByName } from '@/lib/mock-dat
 import { PageHeader } from '@/components/common/page-header';
 import { useNotificationStore } from "@/lib/notifications"; // Added useNotificationStore
 import { Button } from '@/components/ui/button';
+import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Users, CalendarDays, CheckSquare, XSquare, ExternalLink, Landmark, FileText, ListCollapse, BookOpen, Info, Tag, Layers, Building, Clock, GitBranch, ShieldCheck, Newspaper, Star, UserPlus, CheckCircle } from 'lucide-react';
+import { Edit, Users, CalendarDays, CheckSquare, XSquare, ExternalLink, Landmark, FileText, ListCollapse, BookOpen, Info, Tag, Layers, Building, Clock, GitBranch, ShieldCheck, Newspaper, Star, UserPlus, CheckCircle, History } from 'lucide-react';
 import Link from 'next/link';
 import { TimelineDisplay, formatBillTimelineEventsForTimeline } from '@/components/common/timeline-display';
 import type { VoteRecord, BillTimelineEvent, NewsArticleLink, Bill } from '@/types/gov';
@@ -26,6 +27,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
   const params = React.use(paramsPromise);
   const bill = getBillById(params.id);
   const { toast } = useToast();
+  const currentUser = getCurrentUser();
 
   const [relatedNews, setRelatedNews] = useState<NewsArticleLink[]>([]);
   const [isFollowingBill, setIsFollowingBill] = useState(false);
@@ -141,11 +143,11 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                 {bill.billType && <Badge variant="outline">{bill.billType}</Badge>}
             </div>
         }
-        actions={
+        actions={canAccess(currentUser.role, EDITOR_ROLES) ? (
           <Button variant="outline" onClick={handleSuggestEdit}>
             <Edit className="mr-2 h-4 w-4" /> Suggest Edit
           </Button>
-        }
+        ) : null}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -272,6 +274,37 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                       </a>
                       <p className="text-xs text-muted-foreground">{news.sourceName} - {format(new Date(news.publicationDate), 'MM/dd/yyyy')}</p>
                       {news.summary && <p className="text-xs text-foreground/80 mt-1">{news.summary}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Revision History Card - Assuming bill.revisionHistory is available */}
+          {bill.revisionHistory && bill.revisionHistory.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <History className="h-5 w-5 text-primary"/> Revision History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-4">
+                  {bill.revisionHistory.map((event) => (
+                    <li key={event.id} className="border-b pb-3 last:border-b-0">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-semibold text-md">{event.event}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(event.date).toLocaleDateString()} by {event.author}
+                        </span>
+                      </div>
+                      {event.details && <p className="text-sm text-foreground/80 mb-1">{event.details}</p>}
+                      {event.suggestionId && (
+                        <p className="text-xs text-muted-foreground">
+                          Based on suggestion: <Badge variant="outline" className="font-mono text-xs">{event.suggestionId}</Badge>
+                        </p>
+                      )}
                     </li>
                   ))}
                 </ul>

@@ -4,6 +4,7 @@
 import { getControversyById } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
+import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Users, CalendarDays, FileText, ExternalLink, ShieldAlert, AlertTriangle, MessageSquare, Building, Tag, ListChecks, Scale, Briefcase, Milestone, Newspaper, BookOpen, Star, UserPlus, CheckCircle } from 'lucide-react';
@@ -20,6 +21,7 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
   const params = React.use(paramsPromise);
   const controversy = getControversyById(params.id);
   const { toast } = useToast();
+  const currentUser = getCurrentUser();
 
   const [isFollowingControversy, setIsFollowingControversy] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
@@ -141,11 +143,11 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
             {controversy.period && !controversy.dates?.started && <span className="text-muted-foreground">Period: {controversy.period}</span>}
           </div>
         }
-        actions={
+        actions={canAccess(currentUser.role, EDITOR_ROLES) ? (
           <Button variant="outline" onClick={handleSuggestEdit}>
             <Edit className="mr-2 h-4 w-4" /> Suggest Edit
           </Button>
-        }
+        ) : null}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

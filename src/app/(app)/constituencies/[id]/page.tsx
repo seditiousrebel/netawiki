@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { getConstituencyById, getPoliticianById, getNewsByConstituencyId } from '@/lib/mock-data';
 import type { Constituency, Politician, NewsArticleLink, DevelopmentProject, LocalIssue } from '@/types/gov';
 import { PageHeader } from '@/components/common/page-header';
+import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
   const constituency = getConstituencyById(params.id);
   const relatedNews = constituency ? getNewsByConstituencyId(constituency.id) : [];
   const { toast } = useToast();
+  const currentUser = getCurrentUser();
 
   const [isFollowingConstituency, setIsFollowingConstituency] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
@@ -125,11 +127,11 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
             <span className="flex items-center gap-1 text-muted-foreground"><MapPin className="h-4 w-4"/>{constituency.district}, {constituency.province}</span>
           </div>
         }
-        actions={
+        actions={canAccess(currentUser.role, EDITOR_ROLES) ? (
            <Button variant="outline" onClick={handleSuggestEdit}>
             <Edit className="mr-2 h-4 w-4" /> Suggest Edit
           </Button>
-        }
+        ) : null}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -267,6 +267,7 @@ export interface Party {
   dataAiHint?: string;
   controversyIds?: string[];
   tags?: string[];
+  revisionHistory?: RevisionHistoryItem[];
 }
 
 export type VoteOption = 'Yea' | 'Nay' | 'Abstain' | 'Not Voting';
@@ -336,6 +337,7 @@ export interface Bill {
   committees?: string[];
   impact?: string; // Briefly, what laws it amends/repeals
   tags?: string[];
+  revisionHistory?: RevisionHistoryItem[];
 }
 
 export interface UserProfile {

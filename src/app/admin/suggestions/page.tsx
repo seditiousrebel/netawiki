@@ -1,132 +1,61 @@
+"use client"; // Add this line
+
+import React, { useState, useEffect } from 'react'; // Add useState and useEffect
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Check, X, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { EditSuggestion } from '@/types/gov';
-
-// --- Edit Suggestion Types and Data ---
-// (Assuming EditSuggestion is already well-defined in @/types/gov)
-
-const mockEditSuggestions: EditSuggestion[] = [
-  {
-    id: 's1',
-    contentType: 'politician',
-    contentId: 'p1',
-    fieldName: 'bio',
-    oldValue: 'Alice Democratia is a dedicated public servant...',
-    suggestedValue: 'Alice Democratia is a highly experienced public servant with over 15 years in governance...',
-    reason: 'Updated bio with more current information about her experience.',
-    evidenceUrl: 'https://example.com/news/alice-democratia-experience',
-    status: 'Pending',
-    submittedBy: 'user456',
-    submittedAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-  },
-  {
-    id: 's2',
-    contentType: 'party',
-    contentId: 'party2',
-    fieldName: 'history',
-    oldValue: 'Established in 1985, advocating for free markets...',
-    suggestedValue: 'Established in 1985, the Red Alliance Group has consistently advocated for robust free markets and individual liberties, adapting its platform over decades.',
-    reason: 'More detailed and accurate historical summary.',
-    evidenceUrl: 'https://example.com/party/red-alliance/history-update',
-    status: 'Approved',
-    submittedBy: 'user789',
-    submittedAt: new Date(Date.now() - 2 * 86400000).toISOString(), // 2 days ago
-    reviewedBy: 'admin01',
-    reviewedAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-   {
-    id: 's3',
-    contentType: 'promise',
-    contentId: 'pr3',
-    fieldName: 'status',
-    oldValue: 'Broken',
-    suggestedValue: 'Pending',
-    reason: 'This promise was re-evaluated and is now considered pending further review.',
-    evidenceUrl: '', // No evidence provided for this one
-    status: 'Rejected',
-    submittedBy: 'user101',
-    submittedAt: new Date(Date.now() - 3 * 86400000).toISOString(), // 3 days ago
-    reviewedBy: 'admin02',
-    reviewedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-  },
-];
-
-// --- New Entry Suggestion Types and Data ---
-interface NewEntrySuggestionData {
-  name: string;
-  partyName?: string;
-  positions?: string; // Simplified for this example
-  bio?: string;
-  contactInfo?: { email?: string };
-  photoUrl?: string;
-  // ensure all fields from the form are here if they should be displayed
-}
-
-interface NewEntrySuggestion {
-  id: string;
-  entityType: string; // e.g., "Politician", "Party"
-  data: NewEntrySuggestionData;
-  reason: string;
-  evidenceUrl: string;
-  status: 'PendingNewEntry' | 'ApprovedNewEntry' | 'RejectedNewEntry'; // Distinct statuses
-  submittedBy: string;
-  submittedAt: string; // ISO Date string
-  reviewedBy?: string; // Admin User ID
-  reviewedAt?: string; // ISO Date string
-}
-
-const mockNewEntrySuggestions: NewEntrySuggestion[] = [
-  {
-    id: 'new-s1',
-    entityType: 'Politician',
-    data: {
-      name: 'John Q. Public',
-      partyName: 'People\'s Voice Party',
-      positions: 'Community Organizer, Activist',
-      bio: 'John Q. Public has been a vocal advocate for community rights and transparency for over a decade. He believes in grassroots movements to effect change.',
-      contactInfo: { email: 'john.public@example.com' },
-      photoUrl: 'https://example.com/photos/john_q_public.jpg',
-    },
-    reason: 'This individual is a prominent new figure in local politics and should be listed.',
-    evidenceUrl: 'https://example.com/news/jqp_profile',
-    status: 'PendingNewEntry',
-    submittedBy: 'citizenX',
-    submittedAt: new Date(Date.now() - 86400000 * 0.5).toISOString(), // 0.5 days ago
-  },
-  {
-    id: 'new-s2',
-    entityType: 'Party', // Example for another entity type
-    data: {
-      name: 'Future Forward Alliance',
-      // other party specific fields...
-    },
-    reason: 'Newly formed political party gaining traction.',
-    evidenceUrl: 'https://example.com/ffa_announcement',
-    status: 'ApprovedNewEntry',
-    submittedBy: 'analystY',
-    submittedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-    reviewedBy: 'admin01',
-    reviewedAt: new Date(Date.now() - 86400000).toISOString(),
-  }
-];
+import { getCurrentUser, canAccess, EDITOR_ROLES, ADMIN_ROLES } from '@/lib/auth';
+import {
+  mockEditSuggestions as initialEditSuggestions,
+  mockNewEntrySuggestions as initialNewEntrySuggestions,
+  approveEditSuggestion,
+  rejectEditSuggestion,
+  approveNewEntrySuggestion,
+  rejectNewEntrySuggestion,
+  NewEntrySuggestion
+} from '@/lib/data/suggestions';
 
 
 export default function AdminSuggestionsPage() {
-  const editSuggestions = mockEditSuggestions;
-  const newEntrySuggestions = mockNewEntrySuggestions;
+  const currentUser = getCurrentUser();
+
+  if (!canAccess(currentUser.role, EDITOR_ROLES)) {
+    return <div className="container mx-auto py-8 text-center">Access Denied. You do not have permission to view this page.</div>;
+  }
+
+  const [editSuggestions, setEditSuggestions] = useState<EditSuggestion[]>(initialEditSuggestions);
+  const [newEntrySuggestions, setNewEntrySuggestions] = useState<NewEntrySuggestion[]>(initialNewEntrySuggestions);
+
+  // Simulate fetching data on mount
+  useEffect(() => {
+    // In a real app, you might fetch fresh data here.
+    // For this mock, we're just ensuring the state is set from the initial import.
+    setEditSuggestions(initialEditSuggestions);
+    setNewEntrySuggestions(initialNewEntrySuggestions);
+  }, []);
 
   const handleApprove = (id: string, type: 'edit' | 'new') => {
-    console.log(`Approved ${type} suggestion: ${id}`);
-    // Here you would typically update the status in your backend/state
+    if (type === 'edit') {
+      approveEditSuggestion(id, currentUser.id);
+      setEditSuggestions(prev => prev.map(s => s.id === id ? { ...s, status: 'Approved', reviewedBy: currentUser.id, reviewedAt: new Date().toISOString() } : s));
+    } else {
+      approveNewEntrySuggestion(id, currentUser.id);
+      setNewEntrySuggestions(prev => prev.map(s => s.id === id ? { ...s, status: 'ApprovedNewEntry', reviewedBy: currentUser.id, reviewedAt: new Date().toISOString() } : s));
+    }
     alert(`Approved ${type} suggestion: ${id} (mock)`);
   };
 
   const handleReject = (id: string, type: 'edit' | 'new') => {
-    console.log(`Rejected ${type} suggestion: ${id}`);
-    // Here you would typically update the status in your backend/state
+    if (type === 'edit') {
+      rejectEditSuggestion(id, currentUser.id);
+      setEditSuggestions(prev => prev.map(s => s.id === id ? { ...s, status: 'Rejected', reviewedBy: currentUser.id, reviewedAt: new Date().toISOString() } : s));
+    } else {
+      rejectNewEntrySuggestion(id, currentUser.id);
+      setNewEntrySuggestions(prev => prev.map(s => s.id === id ? { ...s, status: 'RejectedNewEntry', reviewedBy: currentUser.id, reviewedAt: new Date().toISOString() } : s));
+    }
     alert(`Rejected ${type} suggestion: ${id} (mock)`);
   };
 
@@ -211,11 +140,17 @@ export default function AdminSuggestionsPage() {
                       </p>
                   )}
                 </CardContent>
-                {suggestion.status === 'Pending' && (
+                {suggestion.status === 'Pending' && canAccess(currentUser.role, ADMIN_ROLES) && (
                   <CardFooter className="flex justify-end gap-2">
                     <Button variant="outline" size="sm" onClick={() => alert(`Viewing item related to ${suggestion.contentId} (mock)`)}><Eye className="mr-1 h-4 w-4" /> View Item</Button>
                     <Button variant="destructive" size="sm" onClick={() => handleReject(suggestion.id, 'edit')}><X className="mr-1 h-4 w-4" /> Reject</Button>
                     <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleApprove(suggestion.id, 'edit')}><Check className="mr-1 h-4 w-4" /> Approve</Button>
+                  </CardFooter>
+                )}
+                {suggestion.status === 'Pending' && !canAccess(currentUser.role, ADMIN_ROLES) && canAccess(currentUser.role, EDITOR_ROLES) && (
+                  <CardFooter className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={() => alert(`Viewing item related to ${suggestion.contentId} (mock)`)}><Eye className="mr-1 h-4 w-4" /> View Item</Button>
+                    <p className="text-xs text-muted-foreground">Admin privileges required to approve/reject.</p>
                   </CardFooter>
                 )}
               </Card>
@@ -296,11 +231,16 @@ export default function AdminSuggestionsPage() {
                       </p>
                   )}
                 </CardContent>
-                {suggestion.status === 'PendingNewEntry' && (
+                {suggestion.status === 'PendingNewEntry' && canAccess(currentUser.role, ADMIN_ROLES) && (
                   <CardFooter className="flex justify-end gap-2">
                     {/* <Button variant="outline" size="sm"><Eye className="mr-1 h-4 w-4" /> View (N/A)</Button> */}
                     <Button variant="destructive" size="sm" onClick={() => handleReject(suggestion.id, 'new')}><X className="mr-1 h-4 w-4" /> Reject</Button>
                     <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => handleApprove(suggestion.id, 'new')}><Check className="mr-1 h-4 w-4" /> Approve</Button>
+                  </CardFooter>
+                )}
+                {suggestion.status === 'PendingNewEntry' && !canAccess(currentUser.role, ADMIN_ROLES) && canAccess(currentUser.role, EDITOR_ROLES) && (
+                  <CardFooter className="flex justify-end gap-2">
+                    <p className="text-xs text-muted-foreground">Admin privileges required to approve/reject.</p>
                   </CardFooter>
                 )}
               </Card>
