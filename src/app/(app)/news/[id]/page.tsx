@@ -235,11 +235,7 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
                 </Button>
               </a>
             ) : (
-              <Link href="/news">
-                <Button variant="outline" className="flex items-center gap-2">
-                  <ArrowLeft className="h-4 w-4" /> Back to News
-                </Button>
-              </Link>
+              null
             )}
             {/* Suggest Edit, Export, and Delete buttons */}
             {!article.isAggregated && ( // Assuming suggest edit is not for aggregated articles
@@ -383,7 +379,7 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
                       <div className="flex justify-between items-center mb-1">
                         <span className="font-semibold text-md">{event.event}</span>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(event.date).toLocaleDateString()} by {event.author}
+                          {format(new Date(event.date), 'MM/dd/yyyy')} by {event.author}
                         </span>
                       </div>
                       {event.details && <p className="text-sm text-foreground/80 mb-1">{event.details}</p>}
