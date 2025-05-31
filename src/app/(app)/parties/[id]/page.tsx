@@ -512,14 +512,18 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm">
-                  {partyMembers.slice(0, 5).map(member => ( 
-                    <li key={member.id}>
-                      <Link href={`/politicians/${member.id}`} className="text-primary hover:underline">
-                        {member.name}
-                      </Link>
-                       {member.positions[0] && <span className="text-muted-foreground text-xs"> - {member.positions[0].title}</span>}
-                    </li>
-                  ))}
+                  {partyMembers.slice(0, 5).map(member => {
+                    const partyRoleEntry = party.leadership.find(leader => leader.politicianId === member.id);
+                    const displayRole = partyRoleEntry ? partyRoleEntry.role : (member.positions[0] ? member.positions[0].title : 'Member');
+                    return (
+                      <li key={member.id}>
+                        <Link href={`/politicians/${member.id}`} className="text-primary hover:underline">
+                          {member.name}
+                        </Link>
+                        {displayRole && <span className="text-muted-foreground text-xs"> - {displayRole}</span>}
+                      </li>
+                    );
+                  })}
                 </ul>
                 {partyMembers.length > 5 && (
                     <Link href={`/politicians?partyId=${party.id}`} className="mt-2 inline-block">
@@ -609,3 +613,6 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
     </div>
   );
 }
+
+
+    
