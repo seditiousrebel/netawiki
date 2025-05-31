@@ -19,6 +19,7 @@ import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { format } from 'date-fns'; // Added import for format
 
 type SeverityIndicator = Controversy['severityIndicator'];
 type ControversyStatus = Controversy['status'];
@@ -152,13 +153,16 @@ export default function ControversiesPage() {
         }
       />
 
-      <SuggestNewEntryForm
-        isOpen={isSuggestNewControversyModalOpen}
-        onOpenChange={setIsSuggestNewControversyModalOpen}
-        entityType={'Controversy' as EntityType}
-        entitySchema={entitySchemas.Controversy} 
-        onSubmit={handleSuggestNewControversySubmit}
-      />
+      {isSuggestNewControversyModalOpen && entitySchemas.Controversy && ( // Added check for entitySchemas.Controversy
+        <SuggestNewEntryForm
+            isOpen={isSuggestNewControversyModalOpen}
+            onOpenChange={setIsSuggestNewControversyModalOpen}
+            entityType={'Controversy' as EntityType}
+            entitySchema={entitySchemas.Controversy} 
+            onSubmit={handleSuggestNewControversySubmit}
+        />
+      )}
+
 
       <Card className="mb-8 p-6 shadow-md">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
@@ -228,7 +232,7 @@ export default function ControversiesPage() {
                     </CardTitle>
                     <CardDescription>
                       Status: <Badge variant={controversy.status === 'Proven' || controversy.status === 'Legal Action Initiated' ? 'destructive' : 'secondary'}>{controversy.status}</Badge>
-                      {controversy.dates?.started && ` | Started: ${new Date(controversy.dates.started).toLocaleDateString()}`}
+                      {controversy.dates?.started && ` | Started: ${format(new Date(controversy.dates.started), 'MM/dd/yyyy')}`}
                     </CardDescription>
                   </div>
                   <Badge variant={getSeverityBadgeVariant(controversy.severityIndicator)}>
@@ -268,3 +272,5 @@ export default function ControversiesPage() {
   );
 }
 
+
+      
