@@ -11,9 +11,19 @@ import PartyDistributionPieChart from '@/components/charts/PartyDistributionPieC
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Import Card components
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
+import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { useToast } from "@/hooks/use-toast";
 
 
 export default function PartiesPage() {
+  const currentUser = getCurrentUser();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isSuggestNewPartyModalOpen, setIsSuggestNewPartyModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIdeology, setSelectedIdeology] = useState('');
   const [selectedNationalStatus, setSelectedNationalStatus] = useState('all');
@@ -103,11 +113,44 @@ export default function PartiesPage() {
   }, [searchTerm, selectedIdeology, selectedNationalStatus, selectedActiveStatus, sortOption]);
 
 
+    setFilteredParties(updatedParties);
+  }, [searchTerm, selectedIdeology, selectedNationalStatus, selectedActiveStatus, sortOption]);
+
+  const handleOpenSuggestNewPartyModal = () => {
+    if (isUserLoggedIn()) {
+      setIsSuggestNewPartyModalOpen(true);
+    } else {
+      router.push('/auth/login');
+    }
+  };
+
+  const handleSuggestNewPartySubmit = (newEntryData: any) => {
+    console.log("New Party Suggestion:", newEntryData);
+    toast({
+      title: "Suggestion Submitted",
+      description: `Suggestion for new party '${newEntryData.name || 'N/A'}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestNewPartyModalOpen(false);
+  };
+
   return (
     <div>
       <PageHeader
         title="Political Parties"
         description="Learn about different political parties, their history, and leadership."
+        actions={
+          <Button variant="default" onClick={handleOpenSuggestNewPartyModal}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Party
+          </Button>
+        }
+      />
+
+      <SuggestNewEntryForm
+        isOpen={isSuggestNewPartyModalOpen}
+        onOpenChange={setIsSuggestNewPartyModalOpen}
+        entityType="Party"
+        onSubmit={handleSuggestNewPartySubmit}
       />
 
       {partyDistributionData.length > 0 && (

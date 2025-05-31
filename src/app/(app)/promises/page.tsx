@@ -7,12 +7,15 @@ import { mockPromises, mockPoliticians, mockParties } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Edit, User, CalendarClock, CheckCircle, XCircle, RefreshCw, AlertTriangle, Building, Users2, Percent, Landmark, CalendarCheck2, Info, Link2, FileText, ArrowRight, History, ClipboardList, SearchIcon } from 'lucide-react';
+import { ExternalLink, Edit, User, CalendarClock, CheckCircle, XCircle, RefreshCw, AlertTriangle, Building, Users2, Percent, Landmark, CalendarCheck2, Info, Link2, FileText, ArrowRight, History, ClipboardList, SearchIcon, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import type { PromiseStatus, PromiseItem, PromiseEvidenceLink } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { Input } from '@/components/ui/input';
+import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
@@ -43,6 +46,9 @@ function getStatusVisuals(status: PromiseStatus): { icon: React.ReactNode; badge
 
 export default function PromisesPage() {
   const { toast } = useToast();
+  const currentUser = getCurrentUser();
+  const router = useRouter();
+  const [isSuggestNewPromiseModalOpen, setIsSuggestNewPromiseModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -181,8 +187,29 @@ export default function PromisesPage() {
     setFilteredPromises(updatedPromises);
   }, [searchTerm, selectedStatus, selectedCategory, selectedPromiser, selectedDeadlineYear, sortOption]);
 
+  const handleOpenSuggestNewPromiseModal = () => {
+    if (isUserLoggedIn()) {
+      setIsSuggestNewPromiseModalOpen(true);
+    } else {
+      router.push('/auth/login');
+    }
+  };
+
+  const handleSuggestNewPromiseSubmit = (newEntryData: any) => {
+    console.log("New Promise Suggestion:", newEntryData);
+    toast({
+      title: "Suggestion Submitted",
+      description: `Suggestion for new promise '${newEntryData.title || 'N/A'}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestNewPromiseModalOpen(false);
+  };
 
   const handleSuggestEdit = (promiseId: string) => {
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
     toast({
       title: `Suggest Edit for Promise: ${promiseId}`,
       description: "This functionality is under development. Approved suggestions will update the content. You can see mock suggestions being managed on the /admin/suggestions page.",
@@ -219,6 +246,18 @@ export default function PromisesPage() {
       <PageHeader
         title="Promise Tracker"
         description="Monitor promises made by politicians and parties, and their current status."
+        actions={
+          <Button variant="default" onClick={handleOpenSuggestNewPromiseModal}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Promise
+          </Button>
+        }
+      />
+
+      <SuggestNewEntryForm
+        isOpen={isSuggestNewPromiseModalOpen}
+        onOpenChange={setIsSuggestNewPromiseModalOpen}
+        entityType="Promise"
+        onSubmit={handleSuggestNewPromiseSubmit}
       />
 
       <Card className="mb-8 p-6 shadow-md">
