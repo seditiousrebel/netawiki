@@ -43,7 +43,8 @@ export const getCurrentUser = () => {
 
     const roleFromStorage = localStorage.getItem('currentUserRole');
     if (roleFromStorage && roles.includes(roleFromStorage)) {
-      return { id: 'mockUser', name: 'Mock User', email: 'mockuser@example.com', role: roleFromStorage };
+      const userName = roleFromStorage === 'Admin' ? 'Admin Mock User' : roleFromStorage === 'Editor' ? 'Editor Mock User' : 'Mock Member';
+      return { id: 'mockUser', name: userName, email: 'mockuser@example.com', role: roleFromStorage };
     }
   }
   // Default to Guest if no specific simulation or role is found
@@ -61,7 +62,7 @@ export const setCurrentUserRole = (newRole: 'Guest' | 'Member' | 'Editor' | 'Adm
     localStorage.setItem('currentUserRole', newRole);
     // Clear simulated email if role is set directly, to avoid conflicts
     localStorage.removeItem('simulatedUserEmail');
-    window.dispatchEvent(new Event('userRoleChanged'));
+    window.dispatchEvent(new Event('userRoleChanged')); // To help components react
     console.log(`Mock user role set to: ${newRole}. Refresh the page to see changes.`);
   } else {
     console.warn('setCurrentUserRole can only be used in the browser environment for mocking purposes.');
@@ -76,3 +77,16 @@ export const isUserLoggedIn = (): boolean => {
   const user = getCurrentUser();
   return user.role !== 'Guest';
 };
+
+/**
+ * Simulates logging out the current user.
+ */
+export const logout = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('currentUserRole');
+    localStorage.removeItem('simulatedUserEmail');
+    window.dispatchEvent(new Event('userLoggedOut')); // To help components react
+    console.log('User logged out (simulated).');
+  }
+};
+

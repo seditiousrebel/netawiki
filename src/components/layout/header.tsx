@@ -4,14 +4,22 @@
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Search, UserCircle, ShieldCheck } from 'lucide-react';
+import { Menu, Search, UserCircle, ShieldCheck, LogOut } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/gov';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import NotificationBell from './NotificationBell';
-import { getCurrentUser } from '@/lib/auth'; // Import getCurrentUser
+import { getCurrentUser, logout } from '@/lib/auth'; // Import getCurrentUser and logout
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Simplified navLinks for the main app header
 const navLinks = [
@@ -27,20 +35,41 @@ export function AppHeader() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
-    const currentUser = getCurrentUser();
-    if (currentUser && currentUser.role !== 'Guest') {
-      setUser({ id: currentUser.id, name: currentUser.name, email: currentUser.email, followedPoliticians: [], followedParties: [] });
-    } else {
-      setUser(null);
-    }
+    const updateUserData = () => {
+      const currentUser = getCurrentUser();
+      if (currentUser && currentUser.role !== 'Guest') {
+        setUser({ id: currentUser.id, name: currentUser.name, email: currentUser.email, followedPoliticians: [], followedParties: [] });
+      } else {
+        setUser(null);
+      }
+    };
+
+    updateUserData(); // Initial check
+
+    // Listen for custom events that might signify user state change
+    window.addEventListener('userRoleChanged', updateUserData);
+    window.addEventListener('userLoggedOut', updateUserData);
+
+    return () => {
+      window.removeEventListener('userRoleChanged', updateUserData);
+      window.removeEventListener('userLoggedOut', updateUserData);
+    };
   }, [pathname]); // Re-check user on pathname change (e.g., after login/logout simulation)
 
   const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery(''); // Clear search query after submission
       setIsSheetOpen(false); // Close sheet on search
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setUser(null); // Update UI immediately
+    router.push('/auth/login');
+    setIsSheetOpen(false); // Close sheet if open
   };
 
   const profileLink = user ? `/profile/${user.id}` : '/auth/login';
@@ -76,7 +105,7 @@ export function AppHeader() {
             <Input
               type="search"
               placeholder="Search..."
-              className="h-9 pl-8 pr-2 w-40 lg:w-56 xl:w-64 rounded-full focus:ring-primary/50" // Added rounded-full
+              className="h-9 pl-8 pr-2 w-40 lg:w-56 xl:w-64 rounded-full focus:ring-primary/50"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -85,19 +114,35 @@ export function AppHeader() {
           <NotificationBell />
 
           {user ? (
-            <Link href={profileLink}>
-              <Button variant="ghost" className="gap-1.5 px-2 sm:px-3 rounded-full"> {/* Added rounded-full */}
-                <UserCircle className="h-5 w-5" />
-                <span className="hidden sm:inline text-sm">{user.name || 'Profile'}</span>
-              </Button>
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="gap-1.5 px-2 sm:px-3 rounded-full">
+                  <UserCircle className="h-5 w-5" />
+                  <span className="hidden sm:inline text-sm">{user.name || 'Profile'}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>{user.name || 'My Account'}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href={profileLink} className="cursor-pointer">
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    <span>My Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sign Out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <div className="hidden md:flex items-center gap-1">
               <Link href="/auth/login">
-                <Button variant="ghost" size="sm" className="rounded-full">Log In</Button> {/* Added rounded-full */}
+                <Button variant="ghost" size="sm" className="rounded-full">Log In</Button>
               </Link>
               <Link href="/auth/signup">
-                <Button variant="default" size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full">Sign Up</Button> {/* Added rounded-full */}
+                <Button variant="default" size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full">Sign Up</Button>
               </Link>
             </div>
           )}
@@ -111,8 +156,12 @@ export function AppHeader() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0">
-                <SheetHeader className="p-4 border-b">
-                  <SheetTitle className="text-lg font-semibold text-primary">Menu</SheetTitle>
+                 <SheetHeader className="p-4 border-b">
+                  <SheetTitle className="text-lg font-semibold text-primary sr-only">Mobile Menu</SheetTitle>
+                   <Link href="/feed" className="flex items-center gap-2 text-lg font-headline font-semibold text-primary" onClick={() => setIsSheetOpen(false)}>
+                    <ShieldCheck className="h-7 w-7" />
+                    <span>GovTrackr</span>
+                  </Link>
                 </SheetHeader>
                 <div className="p-4">
                   <form onSubmit={handleSearchSubmit} className="relative mb-4">
@@ -143,12 +192,18 @@ export function AppHeader() {
                     ))}
                     <div className="pt-3 border-t mt-2">
                        {user ? (
+                         <>
                           <Link href={profileLink} onClick={() => setIsSheetOpen(false)}>
                             <Button variant="ghost" className="w-full justify-start gap-2 text-base p-2.5">
                               <UserCircle className="h-5 w-5" />
                               My Profile
                             </Button>
                           </Link>
+                           <Button variant="ghost" className="w-full justify-start gap-2 text-base p-2.5 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={handleLogout}>
+                              <LogOut className="h-5 w-5" />
+                              Sign Out
+                           </Button>
+                         </>
                         ) : (
                           <>
                             <Link href="/auth/login" className="block w-full" onClick={() => setIsSheetOpen(false)}>
