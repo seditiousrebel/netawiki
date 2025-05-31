@@ -1,3 +1,4 @@
+
 // src/lib/auth.ts
 
 export const ADMIN_ROLES = ['Admin', 'SuperAdmin'];
@@ -13,32 +14,53 @@ export const canAccess = (userRole: string, requiredRoles: string[]): boolean =>
   return requiredRoles.includes(userRole);
 };
 
+// --- Mock User Data & Simulation ---
+
+// List of dummy users for testing:
+// 1. Regular User:
+//    - Email: seditiousrebel@gmail.com
+//    - Password: sachinn1 (Note: Password is not used by this mock system)
+//    - Intended Role: Member
+// 2. Admin User:
+//    - Email: bhup0004@gmail.com
+//    - Password: sachinn1 (Note: Password is not used by this mock system)
+//    - Intended Role: Admin
+
 // Mock current user for development purposes
 // In a real application, this would come from your authentication system
 export const getCurrentUser = () => {
-  // Cycle through roles for testing: Guest, Editor, Admin
-  const roles = ['Guest', 'Editor', 'Admin'];
-  // To simulate different users, you could use localStorage or a more sophisticated mock
-  // For now, let's just pick one, or allow easy switching via a global variable or dev tools
+  const roles = ['Guest', 'Editor', 'Admin', 'SuperAdmin', 'Member']; // Added Member
+
   if (typeof window !== 'undefined') {
+    const simulatedEmail = localStorage.getItem('simulatedUserEmail');
+
+    if (simulatedEmail === 'bhup0004@gmail.com') {
+      return { id: 'adminUser', name: 'Bhup Admin', email: 'bhup0004@gmail.com', role: 'Admin' };
+    }
+    if (simulatedEmail === 'seditiousrebel@gmail.com') {
+      return { id: 'memberUser', name: 'Seditious Rebel', email: 'seditiousrebel@gmail.com', role: 'Member' };
+    }
+
     const roleFromStorage = localStorage.getItem('currentUserRole');
     if (roleFromStorage && roles.includes(roleFromStorage)) {
-      return { id: 'mockUser', name: 'Mock User', role: roleFromStorage };
+      return { id: 'mockUser', name: 'Mock User', email: 'mockuser@example.com', role: roleFromStorage };
     }
   }
-  return { id: 'mockUser', name: 'Mock User', role: 'Guest' }; // Default to Guest
+  // Default to Guest if no specific simulation or role is found
+  return { id: 'guestUser', name: 'Guest User', email: 'guest@example.com', role: 'Guest' };
 };
 
 /**
  * Simulates updating the current user's role.
  * This is a mock function for development and testing RBAC.
- * In a real application, user roles would be managed by an authentication system.
+ * You can also use localStorage.setItem('simulatedUserEmail', 'email@example.com') to simulate specific users.
  * @param newRole The new role to assign to the mock user.
  */
-export const setCurrentUserRole = (newRole: 'Guest' | 'Editor' | 'Admin' | 'SuperAdmin') => {
+export const setCurrentUserRole = (newRole: 'Guest' | 'Member' | 'Editor' | 'Admin' | 'SuperAdmin') => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('currentUserRole', newRole);
-    // Optional: dispatch a custom event to notify components of role change
+    // Clear simulated email if role is set directly, to avoid conflicts
+    localStorage.removeItem('simulatedUserEmail');
     window.dispatchEvent(new Event('userRoleChanged'));
     console.log(`Mock user role set to: ${newRole}. Refresh the page to see changes.`);
   } else {
