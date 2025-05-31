@@ -4,9 +4,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/common/page-header';
 import { EntityCard } from '@/components/common/entity-card';
-import { mockParties } from '@/lib/mock-data';
+import { mockParties, mockPoliticians } from '@/lib/mock-data'; // Added mockPoliticians
 import type { Party } from '@/types/gov';
 import { Input } from '@/components/ui/input';
+import PartyDistributionPieChart from '@/components/charts/PartyDistributionPieChart'; // Import Pie Chart
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Import Card components
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
@@ -25,6 +27,20 @@ export default function PartiesPage() {
       party.ideology?.forEach(ideo => ideologies.add(ideo));
     });
     return Array.from(ideologies).sort();
+  }, []);
+
+  const partyDistributionData = useMemo(() => {
+    const counts: { [partyId: string]: number } = {};
+    mockPoliticians.forEach(politician => {
+      if (politician.partyId) {
+        counts[politician.partyId] = (counts[politician.partyId] || 0) + 1;
+      }
+    });
+    return Object.entries(counts).map(([partyId, count]) => {
+      const party = mockParties.find(p => p.id === partyId);
+      return { name: party?.name || 'Unknown Party', value: count };
+    }).filter(p => p.value > 0) // Filter out parties with no politicians for cleaner chart
+    .sort((a,b) => b.value - a.value); // Sort by number of politicians
   }, []);
 
   useEffect(() => {
@@ -93,6 +109,17 @@ export default function PartiesPage() {
         title="Political Parties"
         description="Learn about different political parties, their history, and leadership."
       />
+
+      {partyDistributionData.length > 0 && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="font-headline text-xl">Party Representation (Number of Politicians)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PartyDistributionPieChart data={partyDistributionData} />
+          </CardContent>
+        </Card>
+      )}
 
       <div className="mb-8 p-6 bg-card rounded-lg shadow">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3 gap-4 items-end">

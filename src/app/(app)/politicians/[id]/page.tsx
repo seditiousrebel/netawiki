@@ -12,9 +12,11 @@ import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent, NewsArticleLink } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Added useRef
 import { Textarea } from '@/components/ui/textarea';
 import { SuggestEditForm } from '@/components/common/suggest-edit-form';
+import { useNotificationStore } from "@/lib/notifications"; // Added useNotificationStore
+import ScoreBarChart from '@/components/charts/ScoreBarChart'; // Import ScoreBarChart
 
 interface PoliticianVote extends VoteRecord {
   billId: string;
@@ -81,6 +83,22 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
 
   const [formattedDateOfBirth, setFormattedDateOfBirth] = useState<string | null>(null);
   const [formattedDateOfDeath, setFormattedDateOfDeath] = useState<string | null>(null);
+  const { addNotification } = useNotificationStore(); // Get addNotification
+  const notificationTriggered = useRef(false); // Ref to track notification trigger
+
+  useEffect(() => {
+    if (politician && !notificationTriggered.current) {
+      const timeoutId = setTimeout(() => {
+        addNotification(
+          `New bill 'Infrastructure Improvement Act' sponsored by ${politician.name} has been introduced.`,
+          'info',
+          '/bills/mock-bill-123'
+        );
+      }, 3000);
+      notificationTriggered.current = true;
+      return () => clearTimeout(timeoutId);
+    }
+  }, [politician, addNotification]);
 
   useEffect(() => {
     if (politician?.dateOfBirth) {
@@ -510,6 +528,14 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {(politician.voteScore !== undefined || politician.promiseFulfillmentRate !== undefined) && (
+                  <div className="mb-6">
+                    <ScoreBarChart data={[
+                      ...(politician.voteScore !== undefined ? [{ name: 'Vote Score', value: politician.voteScore }] : []),
+                      ...(politician.promiseFulfillmentRate !== undefined ? [{ name: 'Promise Fulfillment', value: politician.promiseFulfillmentRate }] : []),
+                    ]} />
+                  </div>
+                )}
                 {politician.overallRating !== undefined && (
                   <div className="flex items-center gap-2">
                     <Star className="h-5 w-5 text-yellow-400" />
@@ -519,20 +545,21 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
                     )}
                   </div>
                 )}
-                {politician.voteScore !== undefined && (
-                  <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-primary" />
-                    <span className="font-semibold text-lg">{politician.voteScore}%</span>
-                    <span className="text-sm text-muted-foreground">Vote Score (Hypothetical)</span>
-                  </div>
+                {/* Display individual scores if needed, or rely on chart */}
+                {politician.voteScore !== undefined && politician.promiseFulfillmentRate === undefined && (
+                   <div className="flex items-center gap-2">
+                     <Users className="h-5 w-5 text-primary" />
+                     <span className="font-semibold text-lg">{politician.voteScore}%</span>
+                     <span className="text-sm text-muted-foreground">Vote Score (Hypothetical)</span>
+                   </div>
                 )}
-                {politician.promiseFulfillmentRate !== undefined && (
-                  <div className="flex items-center gap-2">
-                    <ListChecks className="h-5 w-5 text-green-500" />
-                    <span className="font-semibold text-lg">{politician.promiseFulfillmentRate}%</span>
-                    <span className="text-sm text-muted-foreground">Promise Fulfillment</span>
-                  </div>
-                )}
+                 {politician.promiseFulfillmentRate !== undefined && politician.voteScore === undefined && (
+                   <div className="flex items-center gap-2">
+                     <ListChecks className="h-5 w-5 text-green-500" />
+                     <span className="font-semibold text-lg">{politician.promiseFulfillmentRate}%</span>
+                     <span className="text-sm text-muted-foreground">Promise Fulfillment</span>
+                   </div>
+                 )}
                 {politician.popularityScore !== undefined && (
                   <div className="flex items-center gap-2">
                      <CircleHelp className="h-5 w-5 text-purple-500" />

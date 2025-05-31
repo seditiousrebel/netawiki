@@ -4,14 +4,15 @@
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Search, UserCircle, ShieldCheck, Users, Landmark, ClipboardList, ShieldAlert, Vote, FileText, MapPinIcon, Bell } from 'lucide-react'; // Added Bell
+import { Menu, Search, UserCircle, ShieldCheck, Users, Landmark, ClipboardList, ShieldAlert, Vote, FileText, MapPinIcon } from 'lucide-react'; // Removed Bell
 import { usePathname } from 'next/navigation';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'; // Added Popover
+// import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'; // Removed Popover
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/gov';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation'; // Added
 import { Input } from '@/components/ui/input'; // Added
+import NotificationBell from './NotificationBell'; // Added NotificationBell import
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -28,12 +29,12 @@ const navLinks = [
 ];
 
 // Mock Notification Data
-const mockNotifications = [
-  { id: 'n1', title: 'Suggestion Approved', message: 'Your suggestion for Politician Alice D. bio was approved.', date: '2 hours ago', read: false, link: '/admin/suggestions' },
-  { id: 'n2', title: 'New Bill: Education Reform Act', message: 'A new bill matching your interest "Education" was introduced.', date: '1 day ago', read: false, link: '/bills/bill_edu_reform' }, // Assuming a bill slug or ID
-  { id: 'n3', title: 'Promise Update: Park Project', message: 'The "City Park Revitalization" promise you follow is now "In Progress".', date: '3 days ago', read: true, link: '/promises#promise_park_1' }, // Assuming promise ID for anchor link
-  { id: 'n4', title: 'Welcome to GovTrackr!', message: 'Explore features and start following entities.', date: '1 week ago', read: true, link: '/' }
-];
+// const mockNotifications = [
+//   { id: 'n1', title: 'Suggestion Approved', message: 'Your suggestion for Politician Alice D. bio was approved.', date: '2 hours ago', read: false, link: '/admin/suggestions' },
+//   { id: 'n2', title: 'New Bill: Education Reform Act', message: 'A new bill matching your interest "Education" was introduced.', date: '1 day ago', read: false, link: '/bills/bill_edu_reform' }, // Assuming a bill slug or ID
+//   { id: 'n3', title: 'Promise Update: Park Project', message: 'The "City Park Revitalization" promise you follow is now "In Progress".', date: '3 days ago', read: true, link: '/promises#promise_park_1' }, // Assuming promise ID for anchor link
+//   { id: 'n4', title: 'Welcome to GovTrackr!', message: 'Explore features and start following entities.', date: '1 week ago', read: true, link: '/' }
+// ];
 
 export function AppHeader() {
   const pathname = usePathname();
@@ -49,7 +50,7 @@ export function AppHeader() {
     return () => clearTimeout(timer);
   }, []);
 
-  const unreadNotificationCount = mockNotifications.filter(n => !n.read).length;
+  // const unreadNotificationCount = mockNotifications.filter(n => !n.read).length; // Removed, will be handled by Zustand store
 
   const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -97,58 +98,7 @@ export function AppHeader() {
             />
           </form>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                {unreadNotificationCount > 0 && (
-                  <span className="absolute top-1 right-1 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 justify-center items-center text-white text-[10px] leading-none">
-                      {/* Optional: {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount} */}
-                    </span>
-                  </span>
-                )}
-                <span className="sr-only">Open notifications</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-96 p-0" align="end">
-              <div className="p-4 border-b">
-                <h3 className="text-lg font-medium">Notifications</h3>
-              </div>
-              {mockNotifications.length === 0 ? (
-                <p className="text-center text-sm text-muted-foreground py-10">No new notifications.</p>
-              ) : (
-                <div className="max-h-[400px] overflow-y-auto">
-                  {mockNotifications.map((notification) => (
-                    <Link key={notification.id} href={notification.link || '#'} passHref legacyBehavior>
-                      <a className={cn(
-                        "block p-3 hover:bg-accent/50 focus:outline-none focus:bg-accent/60",
-                        !notification.read && "bg-accent/40" // Slightly different background for unread
-                      )}>
-                        <div className="flex items-start justify-between">
-                           <h4 className="font-semibold text-sm mb-0.5">{notification.title}</h4>
-                           {!notification.read && <span className="h-2.5 w-2.5 rounded-full bg-primary ml-2 mt-1 shrink-0" title="Unread"></span>}
-                        </div>
-                        <p className="text-xs text-muted-foreground mb-1">{notification.message}</p>
-                        <p className="text-xs text-muted-foreground/80">{notification.date}</p>
-                      </a>
-                    </Link>
-                  ))}
-                </div>
-              )}
-              <div className="p-2 border-t flex items-center justify-between bg-background/95 sticky bottom-0">
-                <Button variant="ghost" size="sm" className="text-xs" onClick={() => console.log('Mark all as read (mock)')}>
-                  Mark all as read
-                </Button>
-                <Link href="/notifications" passHref legacyBehavior>
-                  <Button variant="link" size="sm" className="text-primary text-xs">
-                    View all notifications
-                  </Button>
-                </Link>
-              </div>
-            </PopoverContent>
-          </Popover>
+          <NotificationBell />
 
           {user ? (
             <Link href="/settings">
