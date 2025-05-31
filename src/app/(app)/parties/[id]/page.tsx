@@ -9,12 +9,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
-import React from 'react'; // Import React for React.use
+import React, { useState, useEffect } from 'react'; // Import React, useState, useEffect
 
 export default function PartyProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise); // Unwrap the params promise
   const party = getPartyById(params.id);
   const { toast } = useToast();
+
+  const [formattedFoundedDate, setFormattedFoundedDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (party?.foundedDate) {
+      setFormattedFoundedDate(new Date(party.foundedDate).toLocaleDateString());
+    }
+  }, [party?.foundedDate]);
 
   if (!party) {
     return <p>Party not found.</p>;
@@ -60,7 +68,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                 <h2 className="text-2xl font-headline font-semibold mb-2">{party.name}</h2>
                 {party.foundedDate && (
                     <p className="text-sm text-muted-foreground flex items-center gap-1 mb-2">
-                        <CalendarDays className="h-4 w-4" /> Founded: {new Date(party.foundedDate).toLocaleDateString()}
+                        <CalendarDays className="h-4 w-4" /> Founded: {formattedFoundedDate || '...'}
                     </p>
                 )}
                 {party.electionSymbolUrl && (
