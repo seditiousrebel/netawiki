@@ -3,6 +3,10 @@ export type ContactInfo = {
   phone?: string;
   address?: string;
   website?: string;
+  twitter?: string;
+  facebook?: string;
+  linkedin?: string;
+  instagram?: string;
 };
 
 export type PoliticalJourneyEvent = {

@@ -3,7 +3,7 @@ import { getPoliticianById, getPromisesByPolitician, mockParties } from '@/lib/m
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram } from 'lucide-react';
 import { TimelineDisplay, formatPoliticalJourneyForTimeline } from '@/components/common/timeline-display';
 import Link from 'next/link';
 import type { PromiseItem } from '@/types/gov';
@@ -104,7 +104,7 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
               {politician.contactInfo.email && (
                 <p className="flex items-center gap-2 text-sm">
                   <Mail className="h-4 w-4 text-primary" />
-                  <a href={`mailto:${politician.contactInfo.email}`} className="hover:underline">{politician.contactInfo.email}</a>
+                  <a href={`mailto:${politician.contactInfo.email}`} className="hover:underline truncate">{politician.contactInfo.email}</a>
                 </p>
               )}
               {politician.contactInfo.phone && (
@@ -115,8 +115,40 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
               {politician.contactInfo.website && (
                 <p className="flex items-center gap-2 text-sm">
                   <Globe className="h-4 w-4 text-primary" />
-                  <a href={politician.contactInfo.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                  <a href={politician.contactInfo.website} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
                     Official Website
+                  </a>
+                </p>
+              )}
+              {politician.contactInfo.twitter && (
+                <p className="flex items-center gap-2 text-sm">
+                  <Twitter className="h-4 w-4 text-primary" />
+                  <a href={politician.contactInfo.twitter} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
+                    @{politician.contactInfo.twitter.split('/').pop()}
+                  </a>
+                </p>
+              )}
+              {politician.contactInfo.facebook && (
+                <p className="flex items-center gap-2 text-sm">
+                  <Facebook className="h-4 w-4 text-primary" />
+                  <a href={politician.contactInfo.facebook} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
+                    Facebook Profile
+                  </a>
+                </p>
+              )}
+              {politician.contactInfo.linkedin && (
+                <p className="flex items-center gap-2 text-sm">
+                  <Linkedin className="h-4 w-4 text-primary" />
+                  <a href={politician.contactInfo.linkedin} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
+                    LinkedIn Profile
+                  </a>
+                </p>
+              )}
+              {politician.contactInfo.instagram && (
+                <p className="flex items-center gap-2 text-sm">
+                  <Instagram className="h-4 w-4 text-primary" />
+                  <a href={politician.contactInfo.instagram} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
+                    @{politician.contactInfo.instagram.split('/').pop()?.replace(/[/]/g,'')}
                   </a>
                 </p>
               )}

@@ -8,7 +8,13 @@ export const mockPoliticians: Politician[] = [
     partyId: 'party1',
     partyName: 'Blue Unity Party',
     positions: [{ title: 'Senator', startDate: '2020-01-15' }],
-    contactInfo: { email: 'alice@example.com', website: 'https://alice.example.com' },
+    contactInfo: { 
+      email: 'alice@example.com', 
+      website: 'https://alice.example.com',
+      twitter: 'https://twitter.com/AliceDemocratia',
+      facebook: 'https://facebook.com/AliceDemocratia',
+      linkedin: 'https://linkedin.com/in/AliceDemocratia'
+    },
     photoUrl: 'https://placehold.co/300x300.png',
     dataAiHint: 'politician portrait',
     politicalJourney: [
@@ -31,7 +37,12 @@ export const mockPoliticians: Politician[] = [
     partyId: 'party2',
     partyName: 'Red Alliance Group',
     positions: [{ title: 'Representative', startDate: '2018-01-20' }],
-    contactInfo: { email: 'bob@example.com', website: 'https://bob.example.com' },
+    contactInfo: { 
+      email: 'bob@example.com', 
+      website: 'https://bob.example.com',
+      twitter: 'https://twitter.com/BobRepub',
+      instagram: 'https://instagram.com/BobRepubOfficial'
+    },
     photoUrl: 'https://placehold.co/300x300.png',
     dataAiHint: 'politician portrait',
     politicalJourney: [
