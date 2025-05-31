@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Image from 'next/image';
@@ -8,11 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge }
 from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone, DollarSign, VoteIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
-import type { PromiseItem, LeadershipEvent, Party, PartyAlliance, Controversy, PartySplitMergerEvent, PartyStance } from '@/types/gov';
+import type { PromiseItem, LeadershipEvent, Party, PartyAlliance, Controversy, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection } from '@/types/gov';
 import { TimelineDisplay } from '@/components/common/timeline-display';
 
 interface TimelineItem {
@@ -423,7 +424,6 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                       {alliance.partnerPartyNames && alliance.partnerPartyNames.length > 0 && (
                         <p className="text-xs mt-1">
                           <span className="font-medium">Partners:</span> {alliance.partnerPartyNames.join(', ')}
-                           {/* In a real app, you might try to link these names if IDs are available */}
                         </p>
                       )}
                     </li>
@@ -461,6 +461,53 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                     {stance.statementUrl && (
                       <a href={stance.statementUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1 mt-1">
                         View Official Statement <ExternalLink className="h-3 w-3"/>
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+           {party.fundingSources && party.fundingSources.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><DollarSign className="text-primary"/> Funding &amp; Transparency</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {party.fundingSources.map((source: FundingSource, idx: number) => (
+                  <div key={idx} className="text-sm border-b pb-3 last:border-b-0">
+                    <div className="flex justify-between items-start">
+                        <h4 className="font-semibold">{source.sourceName} ({source.year})</h4>
+                        <Badge variant="outline">{source.type}</Badge>
+                    </div>
+                    {source.amount && <p className="text-muted-foreground">Amount: {source.amount}</p>}
+                    {source.description && <p className="text-foreground/80 mt-1">{source.description}</p>}
+                    {source.sourceUrl && (
+                      <a href={source.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1 mt-1">
+                        View Source/Report <ExternalLink className="h-3 w-3"/>
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {party.intraPartyElections && party.intraPartyElections.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><VoteIcon className="text-primary"/> Internal Party Elections</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {party.intraPartyElections.map((election: IntraPartyElection, idx: number) => (
+                  <div key={idx} className="text-sm border-b pb-3 last:border-b-0">
+                    <h4 className="font-semibold">{election.electionTitle} ({new Date(election.date).toLocaleDateString()})</h4>
+                    {election.description && <p className="text-foreground/80 mt-1">{election.description}</p>}
+                    {election.resultsSummary && <p className="text-muted-foreground mt-1 italic">Results: {election.resultsSummary}</p>}
+                    {election.documentUrl && (
+                      <a href={election.documentUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1 mt-1">
+                        View Details/Announcement <ExternalLink className="h-3 w-3"/>
                       </a>
                     )}
                   </div>

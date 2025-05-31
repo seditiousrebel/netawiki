@@ -1,5 +1,6 @@
 
-import type { Party, LeadershipEvent, PartyAlliance, PartySplitMergerEvent, PartyStance } from '@/types/gov';
+
+import type { Party, LeadershipEvent, PartyAlliance, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection } from '@/types/gov';
 
 const bupLeadershipHistory: LeadershipEvent[] = [
   { name: 'Arthur Founder', role: 'Founding Chair', startDate: '1990-07-04', endDate: '1998-06-30' },
@@ -46,6 +47,17 @@ const ragStances: PartyStance[] = [
   { issueId: 'tax-cut-proposal-2025', issueTitle: 'Proposed Tax Cuts 2025', stance: 'Supports', statement: 'Lowering taxes will stimulate investment and job creation.', statementUrl: 'https://redalliance.example.com/stances/tax-cuts-2025', dateOfStance: '2024-05-15', isBill: false },
 ];
 
+const bupFundingSources: FundingSource[] = [
+    { year: '2023', sourceName: 'EcoFuture Foundation', amount: '$50,000', type: 'Grant', description: 'For environmental advocacy programs.', sourceUrl: 'https://example.com/ecofuture-grant-report.pdf' },
+    { year: '2023', sourceName: 'Public Donations (Aggregated)', amount: '$120,000', type: 'Donation', description: 'Collected through online platform and fundraising events.'},
+    { year: '2022', sourceName: 'Tech Innovators LLC', amount: 'Significant Contributor (Undisclosed)', type: 'Corporate Contribution', description: 'Support for technology in governance initiatives.'}
+];
+
+const bupIntraPartyElections: IntraPartyElection[] = [
+    { date: '2022-08-15', electionTitle: 'National Convention - Party Chairperson Election', resultsSummary: 'Eleanor Vanguard re-elected as Party Chair with 75% of delegate votes.', documentUrl: 'https://blueunity.example.com/election-results-2022.pdf'},
+    { date: '2023-03-01', electionTitle: 'Youth Wing Leadership Election', description: 'Election for the new President of the Blue Unity Youth Wing.', resultsSummary: 'Sarah Young elected President.'}
+];
+
 
 export const mockParties: Party[] = [
   {
@@ -87,9 +99,11 @@ export const mockParties: Party[] = [
     alliances: bupAlliances,
     splitMergerHistory: bupSplitMergerHistory,
     stancesOnIssues: bupStances,
+    fundingSources: bupFundingSources,
+    intraPartyElections: bupIntraPartyElections,
     isActive: true,
     isNationalParty: true,
-    controversyIds: ['c1'], // Linked to Project Nova Funding Scandal
+    controversyIds: ['c1'], 
   },
   {
     id: 'party2',
@@ -126,13 +140,14 @@ export const mockParties: Party[] = [
     splinterPartyNames: ['Neo-Libertarian Movement'],
     wings: [
       { name: 'Business Council', description: 'Connecting with and supporting the business community.' },
-      { name: 'Veterans Affairs Wing', keyLeaders: [{name: 'Colonel Strong', politicianId: 'p2' }]} // Assuming Col Strong is Bob R. for demo
+      { name: 'Veterans Affairs Wing', keyLeaders: [{name: 'Colonel Strong (Bob R.)', politicianId: 'p2' }]} 
     ],
     splitMergerHistory: ragSplitMergerHistory,
     stancesOnIssues: ragStances,
+    // No fundingSources or intraPartyElections for RAG in this mock update for brevity
     isActive: false, 
     isNationalParty: false, 
-    controversyIds: ['c2'], // Linked to Election Campaign Speech Incident
+    controversyIds: ['c2'], 
   },
   {
     id: 'party3-fictional',
@@ -162,7 +177,7 @@ export const mockParties: Party[] = [
     history: 'Focuses on social equality and workers\' rights.',
     foundedDate: '2005-05-01',
     ideology: ['Socialism', 'Worker Rights'],
-    parentPartyName: 'Old Labour Front', // Example for affiliations card
+    parentPartyName: 'Old Labour Front', 
     isActive: true,
     isNationalParty: true,
     dataAiHint: 'party logo purple',

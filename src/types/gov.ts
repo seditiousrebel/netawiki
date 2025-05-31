@@ -1,4 +1,5 @@
 
+
 export type ContactInfo = {
   email?: string;
   phone?: string; // Personal/General Phone
@@ -159,6 +160,23 @@ export type PartyStance = {
   isBill?: boolean; // Helper to know if issueId refers to a Bill
 };
 
+export type FundingSource = {
+  year: string;
+  sourceName: string;
+  amount?: string; // e.g., "$10,000", "Major Contributor", "Up to $50,000"
+  type: 'Donation' | 'Grant' | 'Membership Fees' | 'Corporate Contribution' | 'Other';
+  description?: string;
+  sourceUrl?: string; // Link to disclosure document or source report
+};
+
+export type IntraPartyElection = {
+  date: string; // ISO Date string
+  electionTitle: string; // e.g., "Party Chairperson Election", "Central Committee Elections"
+  description?: string;
+  resultsSummary?: string; // e.g., "John Doe elected Chairperson with 60% of votes."
+  documentUrl?: string; // Link to official results or announcement
+};
+
 
 export interface Party {
   id: string;
@@ -189,8 +207,10 @@ export interface Party {
   internationalAffiliations?: string[];
   wings?: PartyWing[];
   alliances?: PartyAlliance[]; 
-  splitMergerHistory?: PartySplitMergerEvent[]; // New
-  stancesOnIssues?: PartyStance[]; // New
+  splitMergerHistory?: PartySplitMergerEvent[]; 
+  stancesOnIssues?: PartyStance[]; 
+  fundingSources?: FundingSource[]; // New
+  intraPartyElections?: IntraPartyElection[]; // New
   isActive?: boolean;
   isNationalParty?: boolean;
   dataAiHint?: string;
