@@ -75,7 +75,7 @@ export interface Politician {
   dateOfBirth?: string;
   dateOfDeath?: string; // New
   placeOfBirth?: { // New
-    district?: string;
+    district?: string; // This should be constituency as per previous changes, will align later if needed.
     address?: string;
   };
   partyId?: string; // Link to Party
@@ -93,11 +93,10 @@ export interface Politician {
   assetDeclarations?: AssetDeclaration[];
   criminalRecords?: CriminalRecord[];
   committeeMemberships?: CommitteeMembership[];
-  statementsAndQuotes?: StatementQuote[]; // New
+  statementsAndQuotes?: StatementQuote[];
   
   // Status fields
   isActiveInPolitics?: boolean; // New
-  verificationStatus?: 'Verified' | 'Unverified' | 'Pending'; // New
   lastActivityDate?: string; // New: ISO date string
 
   // System Data / Analytics
@@ -176,6 +175,7 @@ export interface UserProfile {
   followedPoliticians: string[]; // Politician IDs
   followedParties: string[]; // Party IDs
   newsFeedPreferences?: Record<string, any>; // Flexible preferences
+  // verificationStatus?: 'Verified' | 'Unverified' | 'Pending'; // This is where user verification would go
 }
 
 export interface EditSuggestion {

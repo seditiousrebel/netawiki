@@ -82,19 +82,6 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
     }
   };
   
-  const getVerificationStatusBadge = (status: Politician['verificationStatus']) => {
-    switch (status) {
-      case 'Verified':
-        return <Badge variant="default" className="bg-green-500 text-white"><CheckCircle className="mr-1 h-3 w-3" />Verified</Badge>;
-      case 'Pending':
-        return <Badge variant="secondary"><AlertCircle className="mr-1 h-3 w-3" />Pending Verification</Badge>;
-      case 'Unverified':
-        return <Badge variant="outline"><XCircle className="mr-1 h-3 w-3" />Unverified</Badge>;
-      default:
-        return null;
-    }
-  };
-
 
   const handleSuggestEdit = () => {
     toast({
@@ -129,9 +116,7 @@ export default function PoliticianProfilePage({ params }: { params: { id: string
         description={
           <div className="space-y-1">
             <p>{politician.positions[0]?.title || 'Public Figure'}</p>
-            {politician.verificationStatus && (
-                <div className="mt-1">{getVerificationStatusBadge(politician.verificationStatus)}</div>
-            )}
+            {/* Verification status removed from here */}
           </div>
         }
         actions={
