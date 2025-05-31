@@ -99,10 +99,10 @@ export default function PromisesPage() {
                            Promised by: {getPromiserLink(promise)}
                         </p>
                         {promise.category && (
-                           <p>Category: <Badge variant="secondary" className="text-xs">{promise.category}{promise.subCategory && ` > ${promise.subCategory}`}</Badge></p>
+                           <div className="flex items-center gap-1">Category: <Badge variant="secondary" className="text-xs">{promise.category}{promise.subCategory && ` > ${promise.subCategory}`}</Badge></div>
                         )}
                          {promise.geographicScope && (
-                           <p>Scope: <Badge variant="outline" className="text-xs">{promise.geographicScope}</Badge></p>
+                           <div className="flex items-center gap-1">Scope: <Badge variant="outline" className="text-xs">{promise.geographicScope}</Badge></div>
                         )}
                       </div>
                     </div>
