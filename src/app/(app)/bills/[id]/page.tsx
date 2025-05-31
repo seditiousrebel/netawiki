@@ -160,6 +160,17 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
 
   const timelineItems = bill.timelineEvents ? formatBillTimelineEventsForTimeline(bill.timelineEvents) : [];
 
+  async function handleExportPdf() {
+    if (!bill) return;
+    const fileName = `bill-${bill.billNumber.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
+    await exportElementAsPDF('bill-details-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  function handleDeleteBill() { 
+    if (!bill) return;
+    alert(`Mock delete action for bill: ${bill.title} (${bill.billNumber})`);
+  }
+
   return (
     <div>
       <PageHeader
@@ -351,9 +362,9 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                       </div>
                       {event.details && <p className="text-sm text-foreground/80 mb-1">{event.details}</p>}
                       {event.suggestionId && (
-                        <p className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">
                           Based on suggestion: <Badge variant="outline" className="font-mono text-xs">{event.suggestionId}</Badge>
-                        </p>
+                        </div>
                       )}
                     </li>
                   ))}
@@ -484,17 +495,5 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
       </div>
     </div>
   );
-
-  // Note: handleSuggestEditClick is now defined above, this placeholder is removed.
-
-  async function handleExportPdf() {
-    if (!bill) return;
-    const fileName = `bill-${bill.billNumber.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
-    await exportElementAsPDF('bill-details-export-area', fileName, setIsGeneratingPdf);
-  }
-
-  function handleDeleteBill() { // Changed to function declaration for consistency
-    if (!bill) return;
-    alert(`Mock delete action for bill: ${bill.title} (${bill.billNumber})`);
-  }
 }
+

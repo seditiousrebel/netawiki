@@ -79,6 +79,32 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
     );
   }
 
+  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
+    setSuggestionFieldName(fieldName);
+    setSuggestionOldValue(oldValue);
+    setIsSuggestEditModalOpen(true);
+  };
+
+  const handleElectionSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+    console.log("Election Edit Suggestion:", {
+      entityType: "Election",
+      entityName: election?.name,
+      fieldName: suggestionFieldName,
+      oldValue: suggestionOldValue,
+      ...suggestion,
+    });
+    toast({
+      title: "Suggestion Submitted",
+      description: `Edit suggestion for ${suggestionFieldName} on election '${election?.name}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestEditModalOpen(false);
+  };
+
   const handleFollowElectionToggle = () => {
     if (!election) return;
     const newFollowingState = !isFollowingElection;
@@ -129,6 +155,17 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
       description: `You rated this election ${currentRating} star(s).`,
       duration: 5000,
     });
+  };
+
+  async function handleExportPdf() {
+    if (!election) return;
+    const fileName = `election-${election.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
+    await exportElementAsPDF('election-details-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  const handleDeleteElection = () => {
+    if (!election) return;
+    alert(`Mock delete action for election: ${election.name}`);
   };
 
 
@@ -337,9 +374,9 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
                       </div>
                       {event.details && <p className="text-sm text-foreground/80 mb-1">{event.details}</p>}
                       {event.suggestionId && (
-                        <p className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">
                           Based on suggestion: <Badge variant="outline" className="font-mono text-xs">{event.suggestionId}</Badge>
-                        </p>
+                        </div>
                       )}
                     </li>
                   ))}
@@ -390,43 +427,6 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
       </div>
     </div>
   );
-
-  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
-    if (!isUserLoggedIn()) {
-      router.push('/auth/login');
-      return;
-    }
-    setSuggestionFieldName(fieldName);
-    setSuggestionOldValue(oldValue);
-    setIsSuggestEditModalOpen(true);
-  };
-
-  const handleElectionSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
-    console.log("Election Edit Suggestion:", {
-      entityType: "Election",
-      entityName: election?.name,
-      fieldName: suggestionFieldName,
-      oldValue: suggestionOldValue,
-      ...suggestion,
-    });
-    toast({
-      title: "Suggestion Submitted",
-      description: `Edit suggestion for ${suggestionFieldName} on election '${election?.name}' submitted for review.`,
-      duration: 5000,
-    });
-    setIsSuggestEditModalOpen(false);
-  };
-
-  async function handleExportPdf() {
-    if (!election) return;
-    const fileName = `election-${election.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
-    await exportElementAsPDF('election-details-export-area', fileName, setIsGeneratingPdf);
-  }
-
-  const handleDeleteElection = () => {
-    if (!election) return;
-    alert(`Mock delete action for election: ${election.name}`);
-  };
 }
 
 

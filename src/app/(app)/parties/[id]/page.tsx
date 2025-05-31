@@ -20,6 +20,7 @@ import { exportElementAsPDF } from '@/lib/utils'; // Import PDF utility
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { SuggestEditForm } from '@/components/common/suggest-edit-form';
+import { format } from 'date-fns';
 
 
 interface TimelineItem {
@@ -206,6 +207,17 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
       description: `You rated ${party.name} ${currentRating} star(s).`,
       duration: 5000,
     });
+  };
+
+  async function handleExportPdf() {
+    if (!party) return;
+    const fileName = `party-${party.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
+    await exportElementAsPDF('party-details-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  const handleDeleteParty = () => {
+    if (!party) return;
+    alert(`Mock delete action for party: ${party.name}`);
   };
 
 
@@ -521,7 +533,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                         )}
                       </h4>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(alliance.startDate).toLocaleDateString()} - {alliance.endDate && alliance.endDate !== 'Ongoing' ? new Date(alliance.endDate).toLocaleDateString() : 'Ongoing'}
+                        {format(new Date(alliance.startDate), 'MM/dd/yyyy')} - {alliance.endDate && alliance.endDate !== 'Ongoing' ? format(new Date(alliance.endDate), 'MM/dd/yyyy') : 'Ongoing'}
                       </p>
                       {alliance.purpose && <p className="text-foreground/80 mt-1">{alliance.purpose}</p>}
                       {alliance.partnerPartyNames && alliance.partnerPartyNames.length > 0 && (
@@ -559,7 +571,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                                    className={stance.stance === 'Supports' ? 'bg-green-500 text-white' : stance.stance === 'Opposes' ? 'bg-red-500 text-white' : ''}>
                                    {stance.stance}
                       </Badge>
-                      {stance.dateOfStance && <span className="text-xs text-muted-foreground ml-2">({new Date(stance.dateOfStance).toLocaleDateString()})</span>}
+                      {stance.dateOfStance && <span className="text-xs text-muted-foreground ml-2">({format(new Date(stance.dateOfStance), 'MM/dd/yyyy')})</span>}
                     </div>
                     {stance.statement && <p className="text-foreground/80 mt-1 italic">"{stance.statement}"</p>}
                     {stance.statementUrl && (
@@ -606,7 +618,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
               <CardContent className="space-y-4">
                 {party.intraPartyElections.map((election: IntraPartyElection, idx: number) => (
                   <div key={idx} className="text-sm border-b pb-3 last:border-b-0">
-                    <h4 className="font-semibold">{election.electionTitle} ({new Date(election.date).toLocaleDateString()})</h4>
+                    <h4 className="font-semibold">{election.electionTitle} ({format(new Date(election.date), 'MM/dd/yyyy')})</h4>
                     {election.description && <p className="text-foreground/80 mt-1">{election.description}</p>}
                     {election.resultsSummary && <p className="text-muted-foreground mt-1 italic">Results: {election.resultsSummary}</p>}
                     {election.documentUrl && (
@@ -702,9 +714,9 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                       </div>
                       {event.details && <p className="text-sm text-foreground/80 mb-1">{event.details}</p>}
                       {event.suggestionId && (
-                        <p className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">
                           Based on suggestion: <Badge variant="outline" className="font-mono text-xs">{event.suggestionId}</Badge>
-                        </p>
+                        </div>
                       )}
                     </li>
                   ))}
@@ -889,17 +901,6 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
       </div>
     </div>
   );
-
-  async function handleExportPdf() {
-    if (!party) return;
-    const fileName = `party-${party.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
-    await exportElementAsPDF('party-details-export-area', fileName, setIsGeneratingPdf);
-  }
-
-  const handleDeleteParty = () => {
-    if (!party) return;
-    alert(`Mock delete action for party: ${party.name}`);
-  };
 }
 
 

@@ -120,6 +120,43 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
 
   const chairperson = committee.members?.find(m => m.role === 'Chairperson');
 
+  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
+    setSuggestionFieldName(fieldName);
+    setSuggestionOldValue(oldValue);
+    setIsSuggestEditModalOpen(true);
+  };
+
+  const handleCommitteeSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+    console.log("Committee Edit Suggestion:", {
+      entityType: "Committee",
+      entityName: committee?.name,
+      fieldName: suggestionFieldName,
+      oldValue: suggestionOldValue,
+      ...suggestion,
+    });
+    toast({
+      title: "Suggestion Submitted",
+      description: `Edit suggestion for ${suggestionFieldName} on committee '${committee?.name}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestEditModalOpen(false);
+  };
+
+  async function handleExportPdf() {
+    if (!committee) return;
+    const fileName = `committee-${committee.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
+    await exportElementAsPDF('committee-details-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  const handleDeleteCommittee = () => {
+    if (!committee) return;
+    alert(`Mock delete action for committee: ${committee.name}`);
+  };
+
   return (
     <div>
       <PageHeader
@@ -321,9 +358,9 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                       </div>
                       {event.details && <p className="text-sm text-foreground/80 mb-1">{event.details}</p>}
                       {event.suggestionId && (
-                        <p className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">
                           Based on suggestion: <Badge variant="outline" className="font-mono text-xs">{event.suggestionId}</Badge>
-                        </p>
+                        </div>
                       )}
                     </li>
                   ))}
@@ -409,43 +446,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
       </div>
     </div>
   );
-
-  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
-    if (!isUserLoggedIn()) {
-      router.push('/auth/login');
-      return;
-    }
-    setSuggestionFieldName(fieldName);
-    setSuggestionOldValue(oldValue);
-    setIsSuggestEditModalOpen(true);
-  };
-
-  const handleCommitteeSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
-    console.log("Committee Edit Suggestion:", {
-      entityType: "Committee",
-      entityName: committee?.name,
-      fieldName: suggestionFieldName,
-      oldValue: suggestionOldValue,
-      ...suggestion,
-    });
-    toast({
-      title: "Suggestion Submitted",
-      description: `Edit suggestion for ${suggestionFieldName} on committee '${committee?.name}' submitted for review.`,
-      duration: 5000,
-    });
-    setIsSuggestEditModalOpen(false);
-  };
-
-  async function handleExportPdf() {
-    if (!committee) return;
-    const fileName = `committee-${committee.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
-    await exportElementAsPDF('committee-details-export-area', fileName, setIsGeneratingPdf);
-  }
-
-  const handleDeleteCommittee = () => {
-    if (!committee) return;
-    alert(`Mock delete action for committee: ${committee.name}`);
-  };
 }
 
 export default CommitteeDetailPage;
+

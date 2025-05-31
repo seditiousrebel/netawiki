@@ -64,6 +64,33 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
     );
   }
 
+  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
+    setSuggestionFieldName(fieldName);
+    setSuggestionOldValue(oldValue);
+    setIsSuggestEditModalOpen(true);
+  };
+
+  const handleNewsArticleSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+    console.log("News Article Edit Suggestion:", {
+      entityType: "NewsArticle",
+      entityName: article?.title,
+      fieldName: suggestionFieldName,
+      oldValue: suggestionOldValue,
+      ...suggestion,
+    });
+    toast({
+      title: "Suggestion Submitted",
+      description: `Edit suggestion for ${suggestionFieldName} on article '${article?.title}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestEditModalOpen(false);
+  };
+
+
   const handleBookmarkToggle = () => {
     if (!article) return;
     const newBookmarkState = !isBookmarked;
@@ -173,6 +200,17 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
         {entities.map((entity, index) => <div key={index}>{entity}</div>)}
       </div>
     ) : <p className="text-sm text-muted-foreground">No specific entities tagged.</p>;
+  };
+
+  async function handleExportPdf() {
+    if (!article) return;
+    const fileName = `article-${(article.slug || article.id).toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`;
+    await exportElementAsPDF('news-article-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  const handleDeleteArticle = () => {
+    if (!article) return;
+    alert(`Mock delete action for article: ${article.title}`);
   };
 
 
@@ -350,9 +388,9 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
                       </div>
                       {event.details && <p className="text-sm text-foreground/80 mb-1">{event.details}</p>}
                       {event.suggestionId && (
-                        <p className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">
                           Based on suggestion: <Badge variant="outline" className="font-mono text-xs">{event.suggestionId}</Badge>
-                        </p>
+                        </div>
                       )}
                     </li>
                   ))}
@@ -410,41 +448,5 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
       </div>
     </div>
   );
-
-  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
-    if (!isUserLoggedIn()) {
-      router.push('/auth/login');
-      return;
-    }
-    setSuggestionFieldName(fieldName);
-    setSuggestionOldValue(oldValue);
-    setIsSuggestEditModalOpen(true);
-  };
-
-  const handleNewsArticleSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
-    console.log("News Article Edit Suggestion:", {
-      entityType: "NewsArticle",
-      entityName: article?.title,
-      fieldName: suggestionFieldName,
-      oldValue: suggestionOldValue,
-      ...suggestion,
-    });
-    toast({
-      title: "Suggestion Submitted",
-      description: `Edit suggestion for ${suggestionFieldName} on article '${article?.title}' submitted for review.`,
-      duration: 5000,
-    });
-    setIsSuggestEditModalOpen(false);
-  };
-
-  async function handleExportPdf() {
-    if (!article) return;
-    const fileName = `article-${(article.slug || article.id).toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`;
-    await exportElementAsPDF('news-article-export-area', fileName, setIsGeneratingPdf);
-  }
-
-  const handleDeleteArticle = () => {
-    if (!article) return;
-    alert(`Mock delete action for article: ${article.title}`);
-  };
 }
+

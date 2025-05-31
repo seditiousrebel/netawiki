@@ -66,13 +66,32 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
     );
   }
   
-  const handleSuggestEdit = () => {
-    toast({
-      title: "Suggest Edit Feature",
-      description: "This functionality is under development. Approved suggestions will update the content.",
-      duration: 6000,
-    });
+  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
+    setSuggestionFieldName(fieldName);
+    setSuggestionOldValue(oldValue);
+    setIsSuggestEditModalOpen(true);
   };
+
+  const handleConstituencySuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+    console.log("Constituency Edit Suggestion:", {
+      entityType: "Constituency",
+      entityName: constituency?.name,
+      fieldName: suggestionFieldName,
+      oldValue: suggestionOldValue,
+      ...suggestion,
+    });
+    toast({
+      title: "Suggestion Submitted",
+      description: `Edit suggestion for ${suggestionFieldName} on constituency '${constituency?.name}' submitted for review.`,
+      duration: 5000,
+    });
+    setIsSuggestEditModalOpen(false);
+  };
+
 
   const handleFollowToggle = () => {
     if (!constituency) return;
@@ -124,6 +143,17 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
       description: `You rated this constituency ${currentRating} star(s).`,
       duration: 5000,
     });
+  };
+
+  async function handleExportPdf() {
+    if (!constituency) return;
+    const fileName = `constituency-${constituency.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
+    await exportElementAsPDF('constituency-details-export-area', fileName, setIsGeneratingPdf);
+  }
+
+  const handleDeleteConstituency = () => {
+    if (!constituency) return;
+    alert(`Mock delete action for constituency: ${constituency.name}`);
   };
 
 
@@ -317,9 +347,9 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                       </div>
                       {event.details && <p className="text-sm text-foreground/80 mb-1">{event.details}</p>}
                       {event.suggestionId && (
-                        <p className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">
                           Based on suggestion: <Badge variant="outline" className="font-mono text-xs">{event.suggestionId}</Badge>
-                        </p>
+                        </div>
                       )}
                     </li>
                   ))}
@@ -424,41 +454,5 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
       </div>
     </div>
   );
-
-  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
-    if (!isUserLoggedIn()) {
-      router.push('/auth/login');
-      return;
-    }
-    setSuggestionFieldName(fieldName);
-    setSuggestionOldValue(oldValue);
-    setIsSuggestEditModalOpen(true);
-  };
-
-  const handleConstituencySuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
-    console.log("Constituency Edit Suggestion:", {
-      entityType: "Constituency",
-      entityName: constituency?.name,
-      fieldName: suggestionFieldName,
-      oldValue: suggestionOldValue,
-      ...suggestion,
-    });
-    toast({
-      title: "Suggestion Submitted",
-      description: `Edit suggestion for ${suggestionFieldName} on constituency '${constituency?.name}' submitted for review.`,
-      duration: 5000,
-    });
-    setIsSuggestEditModalOpen(false);
-  };
-
-  async function handleExportPdf() {
-    if (!constituency) return;
-    const fileName = `constituency-${constituency.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
-    await exportElementAsPDF('constituency-details-export-area', fileName, setIsGeneratingPdf);
-  }
-
-  const handleDeleteConstituency = () => {
-    if (!constituency) return;
-    alert(`Mock delete action for constituency: ${constituency.name}`);
-  };
 }
+
