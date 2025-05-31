@@ -8,7 +8,7 @@ import { mockParties as _mockParties } from './data/parties';
 import { mockPromises as _mockPromises } from './data/promises';
 import { mockBills as _mockBills } from './data/bills';
 import { mockControversies as _mockControversies } from './data/controversies';
-import { mockNewsArticles as _mockNewsArticles, getNewsByPartyId as _getNewsByPartyId, getNewsByPoliticianId as _getNewsByPoliticianId } from './data/news';
+import { mockNewsArticles as _mockNewsArticles, getNewsByPartyId as _getNewsByPartyId, getNewsByPoliticianId as _getNewsByPoliticianId, getNewsByPromiseId as _getNewsByPromiseId } from './data/news';
 
 
 // Re-export all the arrays to maintain the existing API
@@ -26,7 +26,7 @@ export { getPartyById, getPartyNameById } from './data/parties';
 export { getPromisesByPolitician, getPromisesByPartyId, getPromiseById } from './data/promises';
 export { getBillById, getBillsBySponsor } from './data/bills';
 export { getControversyById, getControversiesByPoliticianId, getControversiesByPartyId } from './data/controversies';
-export { getNewsByPartyId, getNewsByPoliticianId } from './data/news';
+export { getNewsByPartyId, getNewsByPoliticianId, getNewsByPromiseId } from './data/news';
 
 // Re-export types that might be used by pages directly (though ideally pages import from @/types/gov)
 export type {

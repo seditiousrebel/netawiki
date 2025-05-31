@@ -1,19 +1,22 @@
 
 "use client";
 
-import { getPromiseById, getPoliticianById, getPartyById } from '@/lib/mock-data';
+import { getPromiseById, getPoliticianById, getPartyById, getNewsByPromiseId } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { TimelineDisplay, formatPromiseStatusUpdatesForTimeline } from '@/components/common/timeline-display';
-import { Edit, Users2, User, ClipboardList, AlertTriangle, Info, FileText, CalendarClock, CalendarCheck2, Percent, Landmark, Link2, ExternalLink, History, CheckCircle, RefreshCw, XCircle } from 'lucide-react';
+import { Edit, Users2, User, ClipboardList, AlertTriangle, Info, FileText, CalendarClock, CalendarCheck2, Percent, Landmark, Link2, ExternalLink, History, CheckCircle, RefreshCw, XCircle, Star, UserPlus, Newspaper } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
-import type { PromiseItem, PromiseStatus, PromiseEvidenceLink, PromiseStatusUpdate } from '@/types/gov';
-import React from 'react';
+import type { PromiseItem, PromiseStatus, PromiseEvidenceLink, PromiseStatusUpdate, NewsArticleLink } from '@/types/gov';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { Textarea } from '@/components/ui/textarea';
+
+const LOCAL_STORAGE_FOLLOWED_PROMISES_KEY = 'govtrackr_followed_promises';
 
 function getStatusVisuals(status: PromiseStatus): { icon: React.ReactNode; badgeClass: string; } {
   switch (status) {
@@ -43,6 +46,27 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
   const promise = getPromiseById(params.id);
   const { toast } = useToast();
 
+  const [isFollowingPromise, setIsFollowingPromise] = useState(false);
+  const [currentRating, setCurrentRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [commentText, setCommentText] = useState("");
+  const [relatedNews, setRelatedNews] = useState<NewsArticleLink[]>([]);
+
+  useEffect(() => {
+    if (promise) {
+      try {
+        const followedPromisesStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_PROMISES_KEY);
+        if (followedPromisesStr) {
+          const followedPromiseIds: string[] = JSON.parse(followedPromisesStr);
+          setIsFollowingPromise(followedPromiseIds.includes(promise.id));
+        }
+      } catch (error) {
+        console.error("Error reading followed promises from localStorage:", error);
+      }
+      setRelatedNews(getNewsByPromiseId(promise.id));
+    }
+  }, [promise]);
+
   if (!promise) {
     return (
       <div className="text-center py-10">
@@ -63,6 +87,59 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
       duration: 6000,
     });
   };
+  
+  const handleFollowPromiseToggle = () => {
+    if (!promise) return;
+    const newFollowingState = !isFollowingPromise;
+    setIsFollowingPromise(newFollowingState);
+
+    try {
+      const followedPromisesStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_PROMISES_KEY);
+      let followedPromiseIds: string[] = followedPromisesStr ? JSON.parse(followedPromisesStr) : [];
+
+      if (newFollowingState) {
+        if (!followedPromiseIds.includes(promise.id)) {
+          followedPromiseIds.push(promise.id);
+        }
+      } else {
+        followedPromiseIds = followedPromiseIds.filter(id => id !== promise.id);
+      }
+      localStorage.setItem(LOCAL_STORAGE_FOLLOWED_PROMISES_KEY, JSON.stringify(followedPromiseIds));
+       toast({
+        title: newFollowingState ? `Following Promise` : `Unfollowed Promise`,
+        description: newFollowingState ? `You'll now receive updates for "${promise.title.substring(0,30)}..." (demo).` : `You will no longer receive updates for "${promise.title.substring(0,30)}..." (demo).`,
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error updating followed promises in localStorage:", error);
+      toast({
+        title: "Could not update follow status",
+        description: "There was an issue saving your follow preference. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      setIsFollowingPromise(!newFollowingState); // Revert state
+    }
+  };
+
+  const handleRatingSubmit = () => {
+    if (currentRating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please select a star rating before submitting.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    console.log("Promise Rating Submitted:", { promiseId: promise.id, rating: currentRating, comment: commentText });
+    toast({
+      title: "Review Submitted (Demo)",
+      description: `You rated this promise ${currentRating} star(s). Comment: ${commentText || 'No comment provided.'}`,
+      duration: 5000,
+    });
+  };
+
 
   const promiser = promise.politicianId 
     ? getPoliticianById(promise.politicianId) 
@@ -145,6 +222,67 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
               </CardContent>
             </Card>
           )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center gap-2">
+                <Star className="h-5 w-5 text-primary" /> Rate or Endorse this Promise
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="mb-2 text-sm font-medium">Your Rating:</p>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`h-7 w-7 cursor-pointer transition-colors ${
+                        (hoverRating || currentRating) >= star
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : 'text-gray-300 hover:text-yellow-300'
+                      }`}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      onClick={() => setCurrentRating(star)}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label htmlFor="promise-comment" className="mb-2 text-sm font-medium block">Your Comment (Optional):</label>
+                <Textarea
+                  id="promise-comment"
+                  placeholder={`Share your thoughts on this promise...`}
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  rows={4}
+                />
+              </div>
+              <Button onClick={handleRatingSubmit} className="w-full sm:w-auto" disabled={currentRating === 0}>
+                Submit Review
+              </Button>
+            </CardContent>
+          </Card>
+           {relatedNews && relatedNews.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><Newspaper className="text-primary"/> Related News</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {relatedNews.map((news: NewsArticleLink, idx: number) => (
+                    <li key={idx} className="text-sm border-b pb-2 last:border-b-0">
+                      <a href={news.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
+                        {news.title}
+                      </a>
+                      <p className="text-xs text-muted-foreground">{news.sourceName} - {format(new Date(news.publicationDate), 'MM/dd/yyyy')}</p>
+                      {news.summary && <p className="text-xs text-foreground/80 mt-1">{news.summary}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div className="lg:col-span-1 space-y-6">
@@ -200,6 +338,14 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
               </CardContent>
             </Card>
           )}
+           <Button 
+            onClick={handleFollowPromiseToggle} 
+            className="w-full"
+            variant={isFollowingPromise ? "outline" : "default"}
+          >
+            {isFollowingPromise ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+            {isFollowingPromise ? `Following Promise` : `Follow Promise`}
+          </Button>
         </div>
       </div>
     </div>

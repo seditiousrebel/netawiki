@@ -1,4 +1,5 @@
 
+
 export type ContactInfo = {
   email?: string;
   phone?: string; // Personal/General Phone
@@ -198,6 +199,7 @@ export type NewsArticleLink = {
   summary?: string;
   taggedPartyIds?: string[];
   taggedPoliticianIds?: string[];
+  taggedPromiseIds?: string[];
 };
 
 export interface Party {
@@ -235,7 +237,6 @@ export interface Party {
   fundingSources?: FundingSource[]; 
   intraPartyElections?: IntraPartyElection[]; 
   electionHistory?: ElectionPerformanceRecord[];
-  // relatedNews?: NewsArticleLink[]; // Removed, will be fetched dynamically
   isActive?: boolean;
   isNationalParty?: boolean;
   dataAiHint?: string;
@@ -430,3 +431,4 @@ export interface PromiseItem {
   // tags?: string[]; // General purpose tags
   // userFollowersCount?: number;
 }
+
