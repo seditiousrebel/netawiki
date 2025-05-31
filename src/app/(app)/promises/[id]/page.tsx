@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import type { PromiseItem, PromiseStatus, PromiseEvidenceLink, PromiseStatusUpdate } from '@/types/gov';
 import React from 'react';
+import { format } from 'date-fns';
 
 function getStatusVisuals(status: PromiseStatus): { icon: React.ReactNode; badgeClass: string; } {
   switch (status) {
@@ -122,13 +123,13 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
                   <div className="flex items-center gap-1"><strong>Responsible:</strong> <Landmark className="h-4 w-4 text-muted-foreground inline-block mr-1"/>{promise.responsibleAgency}</div>
                 )}
                  {promise.datePromised && (
-                    <div className="flex items-center gap-1"><strong>Promised on:</strong> <CalendarClock className="h-4 w-4 text-muted-foreground inline-block mr-1"/>{new Date(promise.datePromised).toLocaleDateString()}</div>
+                    <div className="flex items-center gap-1"><strong>Promised on:</strong> <CalendarClock className="h-4 w-4 text-muted-foreground inline-block mr-1"/>{format(new Date(promise.datePromised), 'MM/dd/yyyy')}</div>
                  )}
                  {promise.expectedFulfillmentDate && (
-                    <div className="flex items-center gap-1"><strong>Expected by:</strong> <CalendarClock className="h-4 w-4 text-muted-foreground inline-block mr-1"/>{new Date(promise.expectedFulfillmentDate).toLocaleDateString()}</div>
+                    <div className="flex items-center gap-1"><strong>Expected by:</strong> <CalendarClock className="h-4 w-4 text-muted-foreground inline-block mr-1"/>{format(new Date(promise.expectedFulfillmentDate), 'MM/dd/yyyy')}</div>
                  )}
                  {promise.actualFulfillmentDate && promise.status === 'Fulfilled' && (
-                    <div className="flex items-center gap-1 text-green-600"><strong>Fulfilled on:</strong> <CalendarCheck2 className="h-4 w-4 inline-block mr-1"/>{new Date(promise.actualFulfillmentDate).toLocaleDateString()}</div>
+                    <div className="flex items-center gap-1 text-green-600"><strong>Fulfilled on:</strong> <CalendarCheck2 className="h-4 w-4 inline-block mr-1"/>{format(new Date(promise.actualFulfillmentDate), 'MM/dd/yyyy')}</div>
                  )}
               </div>
             </CardContent>
