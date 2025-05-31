@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, Suspense } from 'react';
@@ -11,7 +12,7 @@ import {
   mockParties,
   mockBills,
   mockPromises,
-  mockNews,
+  mockNewsArticles, // Changed from mockNews
   mockControversies,
   mockElections,
   mockCommittees,
@@ -38,21 +39,28 @@ function SearchResultsPageContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(''); // For global text search later
   const [searchTag, setSearchTag] = useState('');
+  const [finalQuery, setFinalQuery] = useState(''); // Store the active query
+  const [finalTag, setFinalTag] = useState(''); // Store the active tag
+
 
   useEffect(() => {
     const tag = searchParams.get('tag');
-    const query = searchParams.get('q'); // For global search later
+    const query = searchParams.get('q'); 
 
     setIsLoading(true);
     setSearchResults([]);
     const results: SearchResult[] = [];
-    const finalQuery = query || ''; // Use q if present, otherwise empty (tag search handled below)
-    const finalTag = tag || '';
+    const currentQuery = query || ''; 
+    const currentTag = tag || '';
 
-    if (finalQuery) { // Global search takes precedence
-      setSearchTerm(finalQuery);
+    setFinalQuery(currentQuery);
+    setFinalTag(currentTag);
+
+
+    if (currentQuery) { 
+      setSearchTerm(currentQuery);
       setSearchTag('');
-      const lowerCaseQuery = finalQuery.toLowerCase();
+      const lowerCaseQuery = currentQuery.toLowerCase();
 
       // Helper function to check if any string in an array of strings contains the query
       const arrayFieldContainsQuery = (fields: (string | undefined)[]) =>
@@ -107,7 +115,7 @@ function SearchResultsPageContent() {
         ) {
           results.push({
             id: b.id, name: b.title, type: 'Bill', description: b.summary.substring(0, 100) + '...',
-            link: `/bills/${b.id}`, category: b.status, tags: b.tags
+            link: `/bills/${b.slug || b.id}`, category: b.status, tags: b.tags
           });
         }
       });
@@ -123,13 +131,13 @@ function SearchResultsPageContent() {
         ) {
           results.push({
             id: p.id, name: p.title, type: 'Promise', description: p.description.substring(0,100) + '...',
-            link: `/promises#${p.id}`, category: p.status, tags: p.tags
+            link: `/promises/${p.slug || p.id}`, category: p.status, tags: p.tags
           });
         }
       });
 
       // News Search
-      mockNews.forEach(n => {
+      mockNewsArticles.forEach(n => { // Changed from mockNews
         if (
           arrayFieldContainsQuery([
             n.title,
@@ -158,7 +166,7 @@ function SearchResultsPageContent() {
         ) {
           results.push({
             id: c.id, name: c.title, type: 'Controversy', description: c.description.substring(0,100) + '...',
-            link: `/controversies/${c.id}`, category: c.status, tags: c.tags
+            link: `/controversies/${c.slug || c.id}`, category: c.status, tags: c.tags
           });
         }
       });
@@ -174,7 +182,7 @@ function SearchResultsPageContent() {
         ) {
           results.push({
             id: e.id, name: e.name, type: 'Election', description: e.description || `Type: ${e.electionType}`,
-            link: `/elections/${e.id}`, category: e.electionType, tags: e.tags
+            link: `/elections/${e.slug || e.id}`, category: e.electionType, tags: e.tags
           });
         }
       });
@@ -190,7 +198,7 @@ function SearchResultsPageContent() {
         ) {
           results.push({
             id: c.id, name: c.name, type: 'Committee', description: c.mandate?.substring(0,100) + '...' || `Type: ${c.committeeType}`,
-            link: `/committees/${c.id}`, category: c.committeeType, tags: c.tags
+            link: `/committees/${c.slug || c.id}`, category: c.committeeType, tags: c.tags
           });
         }
       });
@@ -207,17 +215,17 @@ function SearchResultsPageContent() {
         ) {
           results.push({
             id: c.id, name: c.name, type: 'Constituency', description: `A ${c.type} constituency in ${c.district}, ${c.province}.`,
-            link: `/constituencies/${c.id}`, category: c.type, tags: c.tags
+            link: `/constituencies/${c.slug || c.id}`, category: c.type, tags: c.tags
           });
         }
       });
       setSearchResults(results);
 
-    } else if (finalTag) { // Tag search
-      setSearchTag(finalTag);
+    } else if (currentTag) { // Tag search
+      setSearchTag(currentTag);
       setSearchTerm('');
       // Filter Politicians
-      mockPoliticians.filter(p => p.tags?.includes(tag)).forEach(p => {
+      mockPoliticians.filter(p => p.tags?.includes(currentTag)).forEach(p => {
         results.push({
           id: p.id,
           name: p.name,
@@ -231,7 +239,7 @@ function SearchResultsPageContent() {
       });
 
       // Filter Parties
-      mockParties.filter(p => p.tags?.includes(tag)).forEach(p => {
+      mockParties.filter(p => p.tags?.includes(currentTag)).forEach(p => {
         results.push({
           id: p.id,
           name: p.name,
@@ -245,33 +253,33 @@ function SearchResultsPageContent() {
       });
 
       // Filter Bills
-      mockBills.filter(b => b.tags?.includes(tag)).forEach(b => {
+      mockBills.filter(b => b.tags?.includes(currentTag)).forEach(b => {
         results.push({
           id: b.id,
           name: b.title,
           type: 'Bill',
           description: b.summary.substring(0, 100) + '...',
-          link: `/bills/${b.id}`,
+          link: `/bills/${b.slug || b.id}`,
           category: b.status,
           tags: b.tags
         });
       });
 
       // Filter Promises
-      mockPromises.filter(p => p.tags?.includes(tag)).forEach(p => {
+      mockPromises.filter(p => p.tags?.includes(currentTag)).forEach(p => {
         results.push({
           id: p.id,
           name: p.title,
           type: 'Promise',
           description: p.description.substring(0,100) + '...',
-          link: `/promises#${p.id}`,
+          link: `/promises/${p.slug || p.id}`,
           category: p.status,
           tags: p.tags
         });
       });
 
       // Filter News (using topics or category as tags)
-      mockNews.filter(n => n.topics?.includes(tag) || (n.category && n.category.toLowerCase() === tag.toLowerCase())).forEach(n => {
+      mockNewsArticles.filter(n => n.topics?.includes(currentTag) || (n.category && n.category.toLowerCase() === currentTag.toLowerCase())).forEach(n => { // Changed from mockNews
         results.push({
           id: n.id,
           name: n.title,
@@ -285,52 +293,52 @@ function SearchResultsPageContent() {
       });
 
       // Filter Controversies
-      mockControversies.filter(c => c.tags?.includes(tag)).forEach(c => {
+      mockControversies.filter(c => c.tags?.includes(currentTag)).forEach(c => {
         results.push({
           id: c.id,
           name: c.title,
           type: 'Controversy',
           description: c.description.substring(0,100) + '...',
-          link: `/controversies/${c.id}`,
+          link: `/controversies/${c.slug || c.id}`,
           category: c.status,
           tags: c.tags
         });
       });
 
       // Filter Elections
-       mockElections.filter(e => e.tags?.includes(tag)).forEach(e => {
+       mockElections.filter(e => e.tags?.includes(currentTag)).forEach(e => {
         results.push({
           id: e.id,
           name: e.name,
           type: 'Election',
           description: e.description || `An election of type: ${e.electionType}.`,
-          link: `/elections/${e.id}`, // Assuming election detail pages exist
+          link: `/elections/${e.slug || e.id}`, // Assuming election detail pages exist
           category: e.electionType,
           tags: e.tags
         });
       });
 
       // Filter Committees
-      mockCommittees.filter(c => c.tags?.includes(tag)).forEach(c => {
+      mockCommittees.filter(c => c.tags?.includes(currentTag)).forEach(c => {
         results.push({
           id: c.id,
           name: c.name,
           type: 'Committee',
           description: c.mandate?.substring(0,100) + '...' || `A committee of type: ${c.committeeType}.`,
-          link: `/committees/${c.id}`, // Assuming committee detail pages exist
+          link: `/committees/${c.slug || c.id}`, // Assuming committee detail pages exist
           category: c.committeeType,
           tags: c.tags
         });
       });
 
       // Filter Constituencies
-      mockConstituencies.filter(c => c.tags?.includes(tag)).forEach(c => {
+      mockConstituencies.filter(c => c.tags?.includes(currentTag)).forEach(c => {
         results.push({
           id: c.id,
           name: c.name,
           type: 'Constituency',
           description: `A ${c.type} constituency in ${c.district}, ${c.province}.`,
-          link: `/constituencies/${c.id}`, // Assuming constituency detail pages exist
+          link: `/constituencies/${c.slug || c.id}`, // Assuming constituency detail pages exist
           category: c.type,
           tags: c.tags
         });
@@ -345,7 +353,7 @@ function SearchResultsPageContent() {
     setIsLoading(false);
   }, [searchParams]);
 
-  const pageTitle = finalQuery // Use finalQuery for title determination
+  const pageTitle = finalQuery
     ? `Search Results for: "${finalQuery}"`
     : finalTag
     ? `Results for Tag: "${finalTag}"`
