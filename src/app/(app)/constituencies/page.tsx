@@ -35,12 +35,12 @@ export default function ConstituenciesPage() {
     setConstituencies(getAllConstituencies());
   }, []);
 
-  const constituencyTypes = useMemo(() => 
-    Array.from(new Set(constituencies.map(c => c.type))).sort() as ConstituencyType[], 
+  const constituencyTypes = useMemo(() =>
+    Array.from(new Set(constituencies.map(c => c.type))).sort() as ConstituencyType[],
   [constituencies]);
 
-  const constituencyProvinces = useMemo(() => 
-    Array.from(new Set(constituencies.map(c => c.province))).sort(), 
+  const constituencyProvinces = useMemo(() =>
+    Array.from(new Set(constituencies.map(c => c.province))).sort(),
   [constituencies]);
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function ConstituenciesPage() {
     if (selectedProvince) {
       tempConstituencies = tempConstituencies.filter(c => c.province === selectedProvince);
     }
-    
+
     switch (sortOption) {
       case 'name_asc':
         tempConstituencies.sort((a, b) => a.name.localeCompare(b.name));
@@ -79,31 +79,6 @@ export default function ConstituenciesPage() {
       default:
         break;
     }
-
-    setFilteredConstituencies(tempConstituencies);
-  }, [constituencies, searchTerm, selectedType, selectedProvince, sortOption]);
-  
-  const getRepresentativeDisplay = (ids?: string[], names?: string[]): React.ReactNode => {
-    if (!ids || ids.length === 0) return 'N/A';
-    return (names || ids).slice(0, 2).map((nameOrId, index) => {
-      const id = ids[index];
-      const name = names?.[index] || nameOrId;
-      const politician = getPoliticianById(id);
-      return (
-        <React.Fragment key={id}>
-          {politician ? (
-            <Link href={`/politicians/${politician.id}`} className="text-primary hover:underline">
-              {name}
-            </Link>
-          ) : (
-            <span>{name}</span>
-          )}
-          {index < (names || ids).slice(0, 2).length - 1 && ', '}
-        </React.Fragment>
-      );
-    });
-  };
-
 
     setFilteredConstituencies(tempConstituencies);
   }, [constituencies, searchTerm, selectedType, selectedProvince, sortOption]);
@@ -226,12 +201,12 @@ export default function ConstituenciesPage() {
               <CardHeader className="pb-3">
                 {constituency.dataAiHint && (
                   <div className="mb-3 aspect-[16/9] overflow-hidden rounded-md">
-                    <Image 
-                      src={`https://placehold.co/400x225.png`} 
-                      alt={constituency.name} 
-                      width={400} height={225} 
+                    <Image
+                      src={`https://placehold.co/400x225.png`}
+                      alt={constituency.name}
+                      width={400} height={225}
                       className="object-cover w-full h-full"
-                      data-ai-hint={constituency.dataAiHint} 
+                      data-ai-hint={constituency.dataAiHint}
                     />
                   </div>
                 )}
@@ -287,5 +262,3 @@ export default function ConstituenciesPage() {
     </div>
   );
 }
-
-    
