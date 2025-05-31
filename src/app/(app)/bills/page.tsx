@@ -14,6 +14,8 @@ import type { Bill, BillStatus } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { Input } from '@/components/ui/input';
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { entitySchemas } from '@/lib/schemas'; // Added
+import type { EntityType } from '@/lib/data/suggestions'; // Added
 import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -123,7 +125,8 @@ export default function BillsPage() {
       <SuggestNewEntryForm
         isOpen={isSuggestNewBillModalOpen}
         onOpenChange={setIsSuggestNewBillModalOpen}
-        entityType="Bill"
+        entityType={'Bill' as EntityType} // Used EntityType
+        entitySchema={entitySchemas.Bill} // Passed the schema
         onSubmit={handleSuggestNewBillSubmit}
       />
 

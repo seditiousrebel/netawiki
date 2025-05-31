@@ -11,6 +11,8 @@ import type { Politician, Party } from '@/types/gov';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { entitySchemas } from '@/lib/schemas'; // Added
+import type { EntityType } from '@/lib/data/suggestions'; // Added
 import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
@@ -157,7 +159,8 @@ export default function PoliticiansPage() {
       <SuggestNewEntryForm
         isOpen={isSuggestNewPoliticianModalOpen}
         onOpenChange={setIsSuggestNewPoliticianModalOpen}
-        entityType="Politician"
+        entityType={'Politician' as EntityType} // Used EntityType
+        entitySchema={entitySchemas.Politician} // Passed the schema
         onSubmit={handleSuggestNewPoliticianSubmit}
       />
 

@@ -13,6 +13,8 @@ import { Users, Landmark, Building, Search, ArrowRight, PlusCircle } from 'lucid
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { entitySchemas } from '@/lib/schemas'; // Added
+import type { EntityType } from '@/lib/data/suggestions'; // Added
 import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast"; // Added for toast notifications
@@ -122,7 +124,8 @@ export default function CommitteesPage() {
       <SuggestNewEntryForm
         isOpen={isSuggestNewCommitteeModalOpen}
         onOpenChange={setIsSuggestNewCommitteeModalOpen}
-        entityType="Committee"
+        entityType={'Committee' as EntityType} // Used EntityType
+        entitySchema={entitySchemas.Committee} // Passed the schema
         onSubmit={handleSuggestNewCommitteeSubmit}
       />
 

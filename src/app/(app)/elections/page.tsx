@@ -15,6 +15,8 @@ import { ArrowRight, CalendarDays, VoteIcon, CheckCircle, Clock, SearchIcon, Fil
 import type { Election, ElectionStatus, ElectionType } from '@/types/gov';
 import { format } from 'date-fns';
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { entitySchemas } from '@/lib/schemas'; // Added
+import type { EntityType } from '@/lib/data/suggestions'; // Added
 import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
@@ -152,7 +154,8 @@ export default function ElectionsPage() {
       <SuggestNewEntryForm
         isOpen={isSuggestNewElectionModalOpen}
         onOpenChange={setIsSuggestNewElectionModalOpen}
-        entityType="Election"
+        entityType={'Election' as EntityType} // Used EntityType
+        entitySchema={entitySchemas.Election} // Passed the schema
         onSubmit={handleSuggestNewElectionSubmit}
       />
 

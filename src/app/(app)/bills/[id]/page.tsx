@@ -1,30 +1,42 @@
-
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react'; // Added useRef
+import React, { useState, useEffect, useRef } from 'react';
 import { getBillById, getNewsByBillId, getCommitteeByName } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
-import { useNotificationStore } from "@/lib/notifications"; // Added useNotificationStore
+import { useNotificationStore } from "@/lib/notifications";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Edit, Users, CalendarDays, CheckSquare, XSquare, ExternalLink, Landmark, FileText, ListCollapse, BookOpen, Info, Tag, Layers, Building, Clock, GitBranch, ShieldCheck, Newspaper, Star, UserPlus, CheckCircle, History, Download, Trash2 } from 'lucide-react'; // Added Download and Trash2
+import { Edit, Users, CalendarDays, CheckSquare, XSquare, ExternalLink, Landmark, FileText, ListCollapse, BookOpen, Info, Tag, Layers, Building, Clock, GitBranch, ShieldCheck, Newspaper, Star, UserPlus, CheckCircle, History, Download, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { TimelineDisplay, formatBillTimelineEventsForTimeline } from '@/components/common/timeline-display';
 import type { VoteRecord, BillTimelineEvent, NewsArticleLink, Bill } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
-import { exportElementAsPDF } from '@/lib/utils'; // Assuming this will be added for export
+import { exportElementAsPDF } from '@/lib/utils';
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { SuggestEditForm } from '@/components/common/suggest-edit-form';
+import { entitySchemas } from '@/lib/schemas'; // Added
+import type { EntityType } from '@/lib/data/suggestions'; // Added
 
 const LOCAL_STORAGE_FOLLOWED_BILLS_KEY = 'govtrackr_followed_bills';
 
 // Helper to generate slug from name
 const toSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
+// Helper component for edit buttons
+const EditFieldButton: React.FC<{ fieldPath: string; onClick: (fieldPath: string) => void; className?: string; tooltip?: string }> = ({ fieldPath, onClick, className, tooltip }) => (
+  <Button
+    variant="ghost"
+    size="icon"
+    className={`ml-2 h-5 w-5 ${className ?? ''} opacity-50 group-hover:opacity-100 transition-opacity`}
+    onClick={(e) => { e.stopPropagation(); onClick(fieldPath); }}
+    title={tooltip || `Suggest edit for ${fieldPath.split('.').pop()?.replace(/\[\d+\]/, '')}`}
+  >
+    <Edit className="h-3 w-3 text-muted-foreground" />
+  </Button>
+);
 
 export default function BillDetailsPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
@@ -32,19 +44,17 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
   const { toast } = useToast();
   const currentUser = getCurrentUser();
   const router = useRouter();
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const [relatedNews, setRelatedNews] = useState<NewsArticleLink[]>([]);
   const [isFollowingBill, setIsFollowingBill] = useState(false);
   const [currentBillRating, setCurrentBillRating] = useState(0);
   const [hoverBillRating, setHoverBillRating] = useState(0);
-  const { addNotification } = useNotificationStore(); // Get addNotification
-  const notificationTriggered = useRef(false); // Ref to track notification trigger
+  const { addNotification } = useNotificationStore();
+  const notificationTriggered = useRef(false);
 
   const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
-  const [suggestionFieldName, setSuggestionFieldName] = useState('');
-  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
-
+  const [editingFieldPath, setEditingFieldPath] = useState('');
 
   useEffect(() => {
     if (bill && !notificationTriggered.current) {
@@ -54,7 +64,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
           'info',
           `/bills/${bill.id}`
         );
-      }, 4000); // Slightly different delay
+      }, 4000);
       notificationTriggered.current = true;
       return () => clearTimeout(timeoutId);
     }
@@ -79,28 +89,31 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
     return <p>Bill not found.</p>;
   }
 
-  // This function is triggered by the "Suggest Edit" button in the PageHeader
-  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+  const openSuggestEditModal = (fieldPath: string) => {
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
     }
-    setSuggestionFieldName(fieldName);
-    setSuggestionOldValue(oldValue);
+    if (!bill) return;
+    setEditingFieldPath(fieldPath);
     setIsSuggestEditModalOpen(true);
   };
 
-  const handleSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+  const handleSuggestionSubmit = (suggestion: {
+    fieldPath: string;
+    suggestedValue: any;
+    oldValue: any;
+    reason: string;
+    evidenceUrl: string;
+  }) => {
     console.log("Suggestion submitted for Bill:", {
       entityType: "Bill",
-      entityName: bill?.title,
-      fieldName: suggestionFieldName,
-      oldValue: suggestionOldValue,
+      entityId: bill?.id,
       ...suggestion,
     });
     toast({
       title: "Suggestion Submitted",
-      description: `Suggestion for ${suggestionFieldName} on bill '${bill?.title}' has been submitted. Thank you!`,
+      description: `Suggestion for ${suggestion.fieldPath} on bill '${bill?.title}' has been submitted. Thank you!`,
       duration: 5000,
     });
     setIsSuggestEditModalOpen(false);
@@ -174,20 +187,22 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
   return (
     <div>
       <PageHeader
-        title={`${bill.title} (${bill.billNumber})`}
+        title={
+          <span className="group flex items-center">
+            {bill.title} <EditFieldButton fieldPath="title" onClick={openSuggestEditModal} />
+            {bill.billNumber && <span className="ml-1 group flex items-center">({bill.billNumber} <EditFieldButton fieldPath="billNumber" onClick={openSuggestEditModal}/>)</span>}
+          </span>
+        }
         description={
             <div className="flex flex-wrap gap-2 items-center mt-1">
-                <Badge variant={bill.status === 'Became Law' ? 'default' : 'secondary'} className={bill.status === 'Became Law' ? 'bg-green-500 text-white' : ''}>
-                    {bill.status}
+                <Badge variant={bill.status === 'Became Law' ? 'default' : 'secondary'} className={`group ${bill.status === 'Became Law' ? 'bg-green-500 text-white' : ''}`}>
+                    {bill.status} <EditFieldButton fieldPath="status" onClick={openSuggestEditModal} className="text-white group-hover:text-primary-foreground"/>
                 </Badge>
-                {bill.billType && <Badge variant="outline">{bill.billType}</Badge>}
+                {bill.billType && <Badge variant="outline" className="group">{bill.billType} <EditFieldButton fieldPath="billType" onClick={openSuggestEditModal}/></Badge>}
             </div>
         }
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSuggestEditClick('Summary', bill.summary || '')}>
-              <Edit className="mr-2 h-4 w-4" /> Suggest Edit
-            </Button>
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
               <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Bill Details'}
             </Button>
@@ -200,47 +215,57 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
         }
       />
 
-      <SuggestEditForm
-        isOpen={isSuggestEditModalOpen}
-        onOpenChange={setIsSuggestEditModalOpen}
-        entityType="Bill"
-        entityName={bill?.title || ''}
-        fieldName={suggestionFieldName}
-        oldValue={suggestionOldValue}
-        onSubmit={handleSuggestionSubmit}
-      />
+      {bill && isSuggestEditModalOpen && entitySchemas.Bill && (
+        <SuggestEditForm
+          isOpen={isSuggestEditModalOpen}
+          onOpenChange={setIsSuggestEditModalOpen}
+          entitySchema={entitySchemas.Bill}
+          fieldPath={editingFieldPath}
+          currentEntityData={bill}
+          entityDisplayName={bill.title}
+          onSubmit={handleSuggestionSubmit}
+        />
+      )}
 
-      {/* Add an ID to the main content wrapper for PDF export targeting */}
       <div id="bill-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="font-headline text-xl flex items-center gap-2"><FileText className="text-primary"/> Summary & Purpose</CardTitle>
+              <EditFieldButton fieldPath="summary" onClick={openSuggestEditModal} tooltip="Edit summary"/>
             </CardHeader>
             <CardContent>
               <p className="text-foreground/80 whitespace-pre-line">{bill.summary}</p>
               {bill.purpose && (
-                <div className="mt-4 pt-4 border-t">
-                  <h3 className="font-semibold text-md mb-1">Purpose:</h3>
+                <div className="mt-4 pt-4 border-t group">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-semibold text-md mb-1">Purpose:</h3>
+                    <EditFieldButton fieldPath="purpose" onClick={openSuggestEditModal} tooltip="Edit purpose"/>
+                  </div>
                   <p className="text-sm text-muted-foreground italic">{bill.purpose}</p>
                 </div>
               )}
               {bill.fullTextUrl && (
-                 <a href={bill.fullTextUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block">
-                  <Button variant="link" className="p-0 h-auto text-primary items-center">
-                    Read Full Text <ExternalLink className="ml-1 h-3 w-3" />
-                  </Button>
-               </a>
+                 <div className="mt-4 group flex items-center">
+                   <a href={bill.fullTextUrl} target="_blank" rel="noopener noreferrer" className="inline-block">
+                    <Button variant="link" className="p-0 h-auto text-primary items-center">
+                      Read Full Text <ExternalLink className="ml-1 h-3 w-3" />
+                    </Button>
+                 </a>
+                 <EditFieldButton fieldPath="fullTextUrl" onClick={openSuggestEditModal} tooltip="Edit full text URL"/>
+                 </div>
               )}
             </CardContent>
           </Card>
 
           {timelineItems.length > 0 && (
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><ListCollapse className="text-primary"/> Bill Journey</CardTitle>
+                <EditFieldButton fieldPath="timelineEvents" onClick={openSuggestEditModal} tooltip="Edit timeline events (JSON)"/>
               </CardHeader>
               <CardContent>
+                {/* TODO: Add edit buttons for individual timeline items if possible */}
                 <TimelineDisplay items={timelineItems} />
               </CardContent>
             </Card>
@@ -248,21 +273,26 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
 
           {bill.votingResults && (bill.votingResults.house || bill.votingResults.senate) && (
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl">Voting Results</CardTitle>
+                <EditFieldButton fieldPath="votingResults" onClick={openSuggestEditModal} tooltip="Edit voting results (JSON)"/>
               </CardHeader>
               <CardContent className="space-y-4">
                 {bill.votingResults.house && (
-                  <div>
-                    <h3 className="font-semibold text-md mb-1 flex items-center">House Vote ({format(new Date(bill.votingResults.house.date), 'MM/dd/yyyy')}):
-                      <Badge variant={bill.votingResults.house.passed ? "default" : "destructive"} className={`ml-2 ${bill.votingResults.house.passed ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-                        {bill.votingResults.house.passed ? 'Passed' : 'Failed'}
-                      </Badge>
-                    </h3>
+                  <div className="group">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-semibold text-md mb-1 flex items-center">House Vote ({format(new Date(bill.votingResults.house.date), 'MM/dd/yyyy')}):
+                        <Badge variant={bill.votingResults.house.passed ? "default" : "destructive"} className={`ml-2 ${bill.votingResults.house.passed ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                          {bill.votingResults.house.passed ? 'Passed' : 'Failed'}
+                        </Badge>
+                      </h3>
+                      <EditFieldButton fieldPath="votingResults.house" onClick={openSuggestEditModal} tooltip="Edit House voting results"/>
+                    </div>
                     <ul className="text-sm list-disc list-inside pl-2">
                       {bill.votingResults.house.records.slice(0,3).map((vote: VoteRecord, idx: number) => (
-                        <li key={`house-vote-${idx}`}>
-                           <Link href={`/politicians/${vote.politicianId}`} className="text-primary hover:underline">{vote.politicianName}</Link>: {vote.vote}
+                        <li key={`house-vote-${idx}`} className="group flex justify-between items-center">
+                           <span><Link href={`/politicians/${vote.politicianId}`} className="text-primary hover:underline">{vote.politicianName}</Link>: {vote.vote}</span>
+                           <EditFieldButton fieldPath={`votingResults.house.records[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this vote record"/>
                         </li>
                       ))}
                       {bill.votingResults.house.records.length > 3 && <li className="text-muted-foreground">...and more</li>}
@@ -270,16 +300,20 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                   </div>
                 )}
                  {bill.votingResults.senate && (
-                  <div>
-                    <h3 className="font-semibold text-md mb-1 flex items-center">Senate Vote ({format(new Date(bill.votingResults.senate.date), 'MM/dd/yyyy')}):
-                      <Badge variant={bill.votingResults.senate.passed ? "default" : "destructive"} className={`ml-2 ${bill.votingResults.senate.passed ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-                        {bill.votingResults.senate.passed ? 'Passed' : 'Failed'}
-                      </Badge>
-                    </h3>
+                  <div className="group">
+                     <div className="flex justify-between items-start">
+                        <h3 className="font-semibold text-md mb-1 flex items-center">Senate Vote ({format(new Date(bill.votingResults.senate.date), 'MM/dd/yyyy')}):
+                          <Badge variant={bill.votingResults.senate.passed ? "default" : "destructive"} className={`ml-2 ${bill.votingResults.senate.passed ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                            {bill.votingResults.senate.passed ? 'Passed' : 'Failed'}
+                          </Badge>
+                        </h3>
+                        <EditFieldButton fieldPath="votingResults.senate" onClick={openSuggestEditModal} tooltip="Edit Senate voting results"/>
+                      </div>
                      <ul className="text-sm list-disc list-inside pl-2">
                       {bill.votingResults.senate.records.slice(0,3).map((vote: VoteRecord, idx: number) => (
-                        <li key={`senate-vote-${idx}`}>
-                           <Link href={`/politicians/${vote.politicianId}`} className="text-primary hover:underline">{vote.politicianName}</Link>: {vote.vote}
+                        <li key={`senate-vote-${idx}`} className="group flex justify-between items-center">
+                           <span><Link href={`/politicians/${vote.politicianId}`} className="text-primary hover:underline">{vote.politicianName}</Link>: {vote.vote}</span>
+                           <EditFieldButton fieldPath={`votingResults.senate.records[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this vote record"/>
                         </li>
                       ))}
                       {bill.votingResults.senate.records.length > 3 && <li className="text-muted-foreground">...and more</li>}
@@ -342,7 +376,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
             </Card>
           )}
 
-          {/* Revision History Card - Assuming bill.revisionHistory is available */}
           {bill.revisionHistory && bill.revisionHistory.length > 0 && (
             <Card>
               <CardHeader>
@@ -376,51 +409,57 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
 
         <div className="lg:col-span-1 space-y-6">
            <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between group">
               <CardTitle className="font-headline text-xl flex items-center gap-2"><Info className="text-primary"/> Legislative Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              {bill.billType && <div><span className="font-semibold">Type:</span> {bill.billType}</div>}
-              {bill.responsibleMinistry && <div><span className="font-semibold">Responsible Ministry:</span> {bill.responsibleMinistry}</div>}
-              {bill.houseOfIntroduction && <div><span className="font-semibold">Introduced In:</span> {bill.houseOfIntroduction}</div>}
-              {bill.parliamentarySession && <div><span className="font-semibold">Session:</span> {bill.parliamentarySession}</div>}
+              {bill.billType && <div className="group flex justify-between"><span><span className="font-semibold">Type:</span> {bill.billType}</span> <EditFieldButton fieldPath="billType" onClick={openSuggestEditModal}/></div>}
+              {bill.responsibleMinistry && <div className="group flex justify-between"><span><span className="font-semibold">Responsible Ministry:</span> {bill.responsibleMinistry}</span> <EditFieldButton fieldPath="responsibleMinistry" onClick={openSuggestEditModal}/></div>}
+              {bill.houseOfIntroduction && <div className="group flex justify-between"><span><span className="font-semibold">Introduced In:</span> {bill.houseOfIntroduction}</span> <EditFieldButton fieldPath="houseOfIntroduction" onClick={openSuggestEditModal}/></div>}
+              {bill.parliamentarySession && <div className="group flex justify-between"><span><span className="font-semibold">Session:</span> {bill.parliamentarySession}</span> <EditFieldButton fieldPath="parliamentarySession" onClick={openSuggestEditModal}/></div>}
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="font-headline text-xl flex items-center gap-2"><Clock className="text-primary"/> Key Dates</CardTitle>
+              <EditFieldButton fieldPath="keyDates" onClick={openSuggestEditModal} tooltip="Edit all key dates"/>
             </CardHeader>
             <CardContent className="space-y-1.5 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1"><ShieldCheck className="inline-block h-4 w-4 mr-1 text-primary/70" /> Status:
+              <div className="group flex justify-between items-center"><span className="flex items-center gap-1"><ShieldCheck className="inline-block h-4 w-4 mr-1 text-primary/70" /> Status:
                  <Badge variant={bill.status === 'Became Law' ? 'default' : 'secondary'}
                         className={`ml-1 ${bill.status === 'Became Law' ? 'bg-green-500 text-white' : ''}`}>
                     {bill.status}
-                </Badge>
+                </Badge></span> <EditFieldButton fieldPath="status" onClick={openSuggestEditModal}/>
               </div>
-              {bill.introducedDate && <div className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Introduced: {format(new Date(bill.introducedDate), 'MMMM dd, yyyy')}</div>}
-              {bill.keyDates?.committeeReferral && <div className="flex items-center gap-1"><GitBranch className="inline-block h-4 w-4 mr-1 text-primary/70" /> Committee Referral: {format(new Date(bill.keyDates.committeeReferral), 'MMMM dd, yyyy')}</div>}
-              {bill.keyDates?.passedLowerHouse && <div className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Lower House: {format(new Date(bill.keyDates.passedLowerHouse), 'MMMM dd, yyyy')}</div>}
-              {bill.keyDates?.passedUpperHouse && <div className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Upper House: {format(new Date(bill.keyDates.passedUpperHouse), 'MMMM dd, yyyy')}</div>}
-              {bill.keyDates?.assent && <div className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Assented: {format(new Date(bill.keyDates.assent), 'MMMM dd, yyyy')}</div>}
-              {bill.keyDates?.effectiveDate && <div className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Effective: {format(new Date(bill.keyDates.effectiveDate), 'MMMM dd, yyyy')}</div>}
-              {bill.lastActionDate && <div className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Last Action: {format(new Date(bill.lastActionDate), 'MMMM dd, yyyy')}</div>}
-              {bill.lastActionDescription && <p className="text-xs mt-1 pl-5">{bill.lastActionDescription}</p>}
+              {bill.introducedDate && <div className="group flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Introduced: {format(new Date(bill.introducedDate), 'MMMM dd, yyyy')}</span> <EditFieldButton fieldPath="introducedDate" onClick={openSuggestEditModal}/></div>}
+              {bill.keyDates?.committeeReferral && <div className="group flex justify-between items-center"><span className="flex items-center gap-1"><GitBranch className="inline-block h-4 w-4 mr-1 text-primary/70" /> Committee Referral: {format(new Date(bill.keyDates.committeeReferral), 'MMMM dd, yyyy')}</span> <EditFieldButton fieldPath="keyDates.committeeReferral" onClick={openSuggestEditModal}/></div>}
+              {bill.keyDates?.firstReading && <div className="group flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> First Reading: {format(new Date(bill.keyDates.firstReading), 'MMMM dd, yyyy')}</span> <EditFieldButton fieldPath="keyDates.firstReading" onClick={openSuggestEditModal}/></div>}
+              {bill.keyDates?.secondReading && <div className="group flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Second Reading: {format(new Date(bill.keyDates.secondReading), 'MMMM dd, yyyy')}</span> <EditFieldButton fieldPath="keyDates.secondReading" onClick={openSuggestEditModal}/></div>}
+              {bill.keyDates?.thirdReading && <div className="group flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Third Reading: {format(new Date(bill.keyDates.thirdReading), 'MMMM dd, yyyy')}</span> <EditFieldButton fieldPath="keyDates.thirdReading" onClick={openSuggestEditModal}/></div>}
+              {bill.keyDates?.passedLowerHouse && <div className="group flex justify-between items-center"><span className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Lower House: {format(new Date(bill.keyDates.passedLowerHouse), 'MMMM dd, yyyy')}</span> <EditFieldButton fieldPath="keyDates.passedLowerHouse" onClick={openSuggestEditModal}/></div>}
+              {bill.keyDates?.passedUpperHouse && <div className="group flex justify-between items-center"><span className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Upper House: {format(new Date(bill.keyDates.passedUpperHouse), 'MMMM dd, yyyy')}</span> <EditFieldButton fieldPath="keyDates.passedUpperHouse" onClick={openSuggestEditModal}/></div>}
+              {bill.keyDates?.assent && <div className="group flex justify-between items-center"><span className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Assented: {format(new Date(bill.keyDates.assent), 'MMMM dd, yyyy')}</span> <EditFieldButton fieldPath="keyDates.assent" onClick={openSuggestEditModal}/></div>}
+              {bill.keyDates?.effectiveDate && <div className="group flex justify-between items-center"><span className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Effective: {format(new Date(bill.keyDates.effectiveDate), 'MMMM dd, yyyy')}</span> <EditFieldButton fieldPath="keyDates.effectiveDate" onClick={openSuggestEditModal}/></div>}
+              {bill.lastActionDate && <div className="group flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Last Action: {format(new Date(bill.lastActionDate), 'MMMM dd, yyyy')}</span> <EditFieldButton fieldPath="lastActionDate" onClick={openSuggestEditModal}/></div>}
+              {bill.lastActionDescription && <p className="text-xs mt-1 pl-5 group flex justify-between"><span>{bill.lastActionDescription}</span> <EditFieldButton fieldPath="lastActionDescription" onClick={openSuggestEditModal}/></p>}
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="font-headline text-xl flex items-center gap-2"><Users className="text-primary"/> Sponsors</CardTitle>
+              <EditFieldButton fieldPath="sponsors" onClick={openSuggestEditModal} tooltip="Edit sponsors (JSON)"/>
             </CardHeader>
             <CardContent>
               <ul className="space-y-1">
-                {bill.sponsors.map(sponsor => (
-                  <li key={sponsor.id} className="text-sm">
+                {bill.sponsors.map((sponsor, idx) => (
+                  <li key={sponsor.id} className="text-sm group flex justify-between items-center">
                     <Link href={`/politicians/${sponsor.id}`} className="text-primary hover:underline">
                       {sponsor.name}
                     </Link>
-                    <span className="text-muted-foreground text-xs"> ({sponsor.type})</span>
+                    <span className="text-muted-foreground text-xs">({sponsor.type})</span>
+                    <EditFieldButton fieldPath={`sponsors[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this sponsor"/>
                   </li>
                 ))}
               </ul>
@@ -429,27 +468,25 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
 
           {bill.committees && bill.committees.length > 0 && (
              <Card>
-                <CardHeader>
-                <CardTitle className="font-headline text-xl flex items-center gap-2"><Landmark className="text-primary"/> Committees</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="font-headline text-xl flex items-center gap-2"><Landmark className="text-primary"/> Committees</CardTitle>
+                  <EditFieldButton fieldPath="committees" onClick={openSuggestEditModal} tooltip="Edit committees (JSON array of names)"/>
                 </CardHeader>
                 <CardContent>
                 <ul className="space-y-1">
                     {bill.committees.map((committeeName, idx) => {
-                      const committeeSlug = toSlug(committeeName);
-                      const committee = getCommitteeByName(committeeName); // Assuming this function exists now
+                      const committee = getCommitteeByName(committeeName);
                       return (
-                        <li key={idx} className="text-sm text-foreground/80">
-                           {committee && committee.slug ? (
-                            <Link href={`/committees/${committee.slug}`} className="text-primary hover:underline">
-                                {committeeName}
-                            </Link>
-                           ) : committee && committee.id ? (
-                             <Link href={`/committees/${committee.id}`} className="text-primary hover:underline">
+                        <li key={idx} className="text-sm text-foreground/80 group flex justify-between items-center">
+                           {committee && committee.id ? ( // Use id for linking if available
+                            <Link href={`/committees/${committee.slug || committee.id}`} className="text-primary hover:underline">
                                 {committeeName}
                             </Link>
                            ) : (
                              <span>{committeeName}</span>
                            )}
+                           {/* For simple array of strings, edit is on the whole array or individual item if form supports it */}
+                           {/* <EditFieldButton fieldPath={`committees[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this committee name"/> */}
                         </li>
                       );
                     })}
@@ -460,8 +497,9 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
 
           {bill.impact && (
              <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="font-headline text-xl flex items-center gap-2"><Layers className="text-primary"/> Impact</CardTitle>
+                  <EditFieldButton fieldPath="impact" onClick={openSuggestEditModal} tooltip="Edit impact statement"/>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-foreground/80 whitespace-pre-line">{bill.impact}</p>
@@ -471,8 +509,9 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
 
           {bill.tags && bill.tags.length > 0 && (
              <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="font-headline text-xl flex items-center gap-2"><Tag className="text-primary"/> Tags</CardTitle>
+                  <EditFieldButton fieldPath="tags" onClick={openSuggestEditModal} tooltip="Edit tags (JSON array of strings)"/>
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-2">
                     {bill.tags.map((tag) => (
@@ -496,4 +535,3 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
     </div>
   );
 }
-
