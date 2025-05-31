@@ -1,4 +1,5 @@
 
+
 export type ContactInfo = {
   email?: string;
   phone?: string; // Personal/General Phone
@@ -198,6 +199,8 @@ export type NewsArticleLink = {
   taggedPoliticianIds?: string[];
   taggedPromiseIds?: string[];
   taggedBillIds?: string[];
+  taggedControversyIds?: string[]; // New
+  taggedElectionIds?: string[]; // New
 };
 
 export interface Party {
@@ -300,7 +303,7 @@ export interface Bill {
     house?: { date: string; records: VoteRecord[]; passed: boolean };
     senate?: { date: string; records: VoteRecord[]; passed: boolean };
   };
-  timelineEvents: BillTimelineEvent[]; // Replaces amendmentHistory
+  timelineEvents: BillTimelineEvent[];
   status: BillStatus;
   introducedDate: string;
   lastActionDate?: string;
@@ -356,7 +359,7 @@ export interface ControversyEvidenceLink {
   url: string;
   description?: string;
   dateAdded?: string; // ISO Date string
-  type?: 'document' | 'image' | 'video' | 'article' | 'official_report' | 'other'; // New
+  type?: 'document' | 'image' | 'video' | 'article' | 'official_report' | 'other';
 }
 
 export interface ControversyOfficialResponse {
@@ -468,4 +471,92 @@ export interface PromiseItem {
   // userFollowersCount?: number;
 }
 
-    
+// --- Election Hub Types ---
+export type ElectionType =
+  | 'General'
+  | 'Provincial'
+  | 'Local Body'
+  | 'National Assembly'
+  | 'By-Election'
+  | 'Referendum'
+  | 'Other';
+
+export type ElectionStatus =
+  | 'Scheduled'
+  | 'Upcoming'
+  | 'Ongoing' // Voting period
+  | 'Counting'
+  | 'Concluded' // Results declared
+  | 'Postponed'
+  | 'Cancelled';
+
+export interface Election {
+  id: string;
+  slug: string;
+  name: string; // e.g., "General Election 2024", "Provincial Election - Bagmati, 2023"
+  electionType: ElectionType;
+  date: string; // Main election day (ISO date string)
+  description?: string; // Overview of the election
+  country?: string; // e.g., "Nepal" (useful if app expands)
+  province?: string; // If provincial election
+  districts?: string[]; // If local/district level, can be multiple
+  constituencyIds?: string[]; // Links to specific constituencies if applicable
+  status: ElectionStatus;
+  voterTurnoutPercentage?: number;
+  totalRegisteredVoters?: number;
+  totalVotesCast?: number;
+  pollingStationsCount?: number;
+  tags?: string[]; // e.g., ["parliamentary", "presidential"]
+  dataAiHint?: string; // For a representative image
+}
+
+export type ElectionCandidateStatus =
+  | 'Nominated'
+  | 'Withdrawn'
+  | 'Disqualified'
+  | 'Contesting'
+  | 'Elected'
+  | 'Defeated';
+
+export interface ElectionCandidate {
+  id: string; // Could be composite: `electionId_politicianId_constituencyId`
+  electionId: string;
+  politicianId: string; // Link to Politician profile
+  politicianName?: string; // Denormalized
+  partyId?: string; // Link to Party profile
+  partyName?: string; // Denormalized
+  partySymbolUrl?: string; // Denormalized
+  constituencyId?: string; // Link to Constituency profile, if applicable
+  constituencyName?: string; // Denormalized
+  votesReceived?: number;
+  votePercentage?: number;
+  isWinner?: boolean;
+  rank?: number; // Rank in terms of votes received for that seat/election
+  manifestoUrl?: string; // Link to individual candidate manifesto for this election
+  campaignWebsite?: string;
+  campaignFundingReportUrl?: string; // If disclosed
+  status: ElectionCandidateStatus; // e.g., Nominated, Withdrawn, Elected, Defeated
+  ballotNumber?: string | number;
+}
+
+// Future: ConstituencyElectionResult might be useful for detailed views per constituency
+// export interface ConstituencyElectionResult {
+//   electionId: string;
+//   constituencyId: string;
+//   constituencyName: string;
+//   totalRegisteredVoters: number;
+//   totalVotesCast: number;
+//   validVotes: number;
+//   invalidVotes: number;
+//   voterTurnoutPercentage: number;
+//   candidates: Array<{
+//     politicianId: string;
+//     politicianName: string;
+//     partyId?: string;
+//     partyName?: string;
+//     votes: number;
+//     isWinner: boolean;
+//   }>;
+//   winnerPoliticianId?: string; // Could be null in certain PR systems or if no clear winner immediately
+//   winnerPartyId?: string;
+// }

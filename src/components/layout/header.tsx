@@ -4,19 +4,20 @@
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Search, UserCircle, ShieldCheck, Home } from 'lucide-react'; // Added Home icon for consistency if needed
+import { Menu, Search, UserCircle, ShieldCheck, Home, VoteIcon } from 'lucide-react'; // Added VoteIcon
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/gov';
 import { useState, useEffect } from 'react';
 
 const navLinks = [
-  { href: '/', label: 'Home' }, // Added Home link
+  { href: '/', label: 'Home' },
   { href: '/politicians', label: 'Politicians' },
   { href: '/parties', label: 'Parties' },
   { href: '/bills', label: 'Bills' },
   { href: '/promises', label: 'Promises' },
   { href: '/controversies', label: 'Controversies' },
+  { href: '/elections', label: 'Elections' }, // New Elections link
   { href: '/feed', label: 'My Feed' },
 ];
 
@@ -51,7 +52,7 @@ export function AppHeader() {
               href={link.href}
               className={cn(
                 'transition-colors hover:text-primary',
-                (link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)) 
+                (pathname === '/' && link.href === '/') || (link.href !== '/' && pathname.startsWith(link.href))
                   ? 'text-primary' 
                   : 'text-foreground/70'
               )}
@@ -102,7 +103,7 @@ export function AppHeader() {
                       href={link.href}
                       className={cn(
                         'text-lg transition-colors hover:text-primary',
-                        (link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)) 
+                         (pathname === '/' && link.href === '/') || (link.href !== '/' && pathname.startsWith(link.href))
                           ? 'text-primary font-semibold' 
                           : 'text-foreground/80'
                       )}
