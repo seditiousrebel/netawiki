@@ -4,19 +4,19 @@
 import { getControversyById } from '@/lib/mock-data';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
-// import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth'; // No longer needed for this button
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Users, CalendarDays, FileText, ExternalLink, ShieldAlert, AlertTriangle, MessageSquare, Building, Tag, ListChecks, Scale, Briefcase, Milestone, Newspaper, BookOpen, Star, UserPlus, CheckCircle, History, Download, Trash2 } from 'lucide-react'; // Added Download, Trash2
+import { Edit, Users, CalendarDays, FileText, ExternalLink, ShieldAlert, AlertTriangle, MessageSquare, Building, Tag, ListChecks, Scale, Briefcase, Milestone, Newspaper, BookOpen, Star, UserPlus, CheckCircle, History, Download, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import type { Controversy, InvolvedEntity, ControversyUpdate, ControversyEvidenceLink, ControversyOfficialResponse, ControversyMediaCoverage, ControversyLegalProceeding } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { TimelineDisplay, formatControversyUpdatesForTimeline } from '@/components/common/timeline-display';
 import React, { useState, useEffect } from 'react';
-import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
+import { exportElementAsPDF } from '@/lib/utils';
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { SuggestEditForm } from '@/components/common/suggest-edit-form';
+import { entitySchemas } from '@/lib/schemas'; // Added import
 import { format } from 'date-fns';
 
 const LOCAL_STORAGE_FOLLOWED_CONTROVERSIES_KEY = 'govtrackr_followed_controversies';
@@ -27,7 +27,7 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
   const { toast } = useToast();
   const currentUser = getCurrentUser();
   const router = useRouter();
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const [isFollowingControversy, setIsFollowingControversy] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
@@ -35,7 +35,7 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
 
   const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
   const [suggestionFieldName, setSuggestionFieldName] = useState('');
-  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
+  // suggestionOldValue is not needed here, SuggestEditForm derives it
 
   useEffect(() => {
     if (controversy) {
@@ -64,27 +64,35 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
     );
   }
 
-  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+  const handleSuggestEditClick = (fieldName: string) => { // Removed oldValue param
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
     }
     setSuggestionFieldName(fieldName);
-    setSuggestionOldValue(oldValue);
+    // setSuggestionOldValue(oldValue); // No longer needed
     setIsSuggestEditModalOpen(true);
   };
 
-  const handleControversySuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+  const handleControversySuggestionSubmit = (suggestion: {
+    fieldPath: string; // fieldPath is passed from SuggestEditForm
+    suggestedValue: any;
+    oldValue: any;
+    reason: string;
+    evidenceUrl: string;
+  }) => {
     console.log("Controversy Edit Suggestion:", {
       entityType: "Controversy",
       entityName: controversy?.title,
-      fieldName: suggestionFieldName,
-      oldValue: suggestionOldValue,
-      ...suggestion,
+      fieldPath: suggestion.fieldPath, // Use the fieldPath from the suggestion object
+      oldValue: suggestion.oldValue,
+      suggestedValue: suggestion.suggestedValue,
+      reason: suggestion.reason,
+      evidenceUrl: suggestion.evidenceUrl,
     });
     toast({
       title: "Suggestion Submitted",
-      description: `Edit suggestion for ${suggestionFieldName} on controversy '${controversy?.title}' submitted for review.`,
+      description: `Edit suggestion for ${suggestion.fieldPath} on controversy '${controversy?.title}' submitted for review.`,
       duration: 5000,
     });
     setIsSuggestEditModalOpen(false);
@@ -184,7 +192,7 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
         }
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSuggestEditClick('Description', controversy.description || '')} >
+            <Button variant="outline" onClick={() => handleSuggestEditClick('description')} >
               <Edit className="mr-2 h-4 w-4" /> Suggest Edit
             </Button>
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
@@ -198,16 +206,18 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
           </div>
         }
       />
-
-      <SuggestEditForm
-        isOpen={isSuggestEditModalOpen}
-        onOpenChange={setIsSuggestEditModalOpen}
-        entityType="Controversy"
-        entityName={controversy?.title || ''}
-        fieldName={suggestionFieldName}
-        oldValue={suggestionOldValue}
-        onSubmit={handleControversySuggestionSubmit}
-      />
+      
+      {controversy && entitySchemas.Controversy && (
+        <SuggestEditForm
+          isOpen={isSuggestEditModalOpen}
+          onOpenChange={setIsSuggestEditModalOpen}
+          entitySchema={entitySchemas.Controversy}
+          currentEntityData={controversy}
+          fieldPath={suggestionFieldName}
+          entityDisplayName={controversy.title}
+          onSubmit={handleControversySuggestionSubmit}
+        />
+      )}
 
       <div id="controversy-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
@@ -304,7 +314,6 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
             </CardContent>
           </Card>
 
-          {/* Revision History Card - Assuming controversy.revisionHistory is available */}
           {controversy.revisionHistory && controversy.revisionHistory.length > 0 && (
             <Card>
               <CardHeader>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
@@ -82,6 +83,14 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
   const [evidenceUrl, setEvidenceUrl] = useState('');
 
   const getFieldSchemaByPath = useCallback((entitySchemaFields: FormFieldSchema[], path: string): FormFieldSchema | null => {
+    if (typeof path !== 'string') {
+      console.warn('getFieldSchemaByPath called with non-string path:', path);
+      return null;
+    }
+    if (!entitySchemaFields) { // Guard against undefined entitySchemaFields
+      console.warn('getFieldSchemaByPath called with undefined entitySchemaFields.');
+      return null;
+    }
     const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.');
     let currentSchema: FormFieldSchema[] | FormFieldSchema | undefined = entitySchemaFields;
     let resolvedSchema: FormFieldSchema | null = null;
@@ -109,10 +118,6 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
             if (typeof resolvedSchema.arrayItemSchema === 'object') {
               currentSchema = resolvedSchema.arrayItemSchema as FormFieldSchema;
             } else { // Array of simple types
-              // This case means path is like 'simpleArray[0]' and this is the last part.
-              // If path continues, e.g. 'simpleArray[0].nonExistentProp', it's an error.
-              // For now, we'll let it be handled by the next iteration which will likely fail to find a sub-schema.
-              // Or, more correctly, the schema for 'simpleArray[0]' is just its type.
               currentSchema = { name: keys[i+1], label: `Item ${parseInt(keys[i+1],10)+1}`, type: resolvedSchema.arrayItemSchema as FieldType };
             }
           } else { // Next key is a property name inside an array item (which must be an object)
@@ -123,7 +128,7 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
             }
           }
         } else {
-          return null; // Cannot go deeper
+          // This was the last key segment
         }
       }
     }
@@ -138,27 +143,39 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
 
 
   useEffect(() => {
+    if (!isOpen) return; // Don't run effect if modal is closed
+
+    if (!currentEntityData) {
+        console.warn("SuggestEditForm: currentEntityData is undefined. Cannot initialize form.");
+        return;
+    }
+    if (!entitySchema) {
+        console.warn("SuggestEditForm: entitySchema is undefined. Cannot initialize form.");
+        return;
+    }
+    if (typeof fieldPath !== 'string' ) {
+        console.warn("SuggestEditForm: fieldPath is not a string. Cannot initialize form. Received:", fieldPath);
+        return;
+    }
+
+
     const initialOldValue = getValueByPath(currentEntityData, fieldPath);
     setOldValue(deepClone(initialOldValue));
-    setSuggestedValue(deepClone(initialOldValue)); // Initialize suggestedValue with a copy of oldValue
+    setSuggestedValue(deepClone(initialOldValue));
 
     const schemaForField = getFieldSchemaByPath(entitySchema, fieldPath);
     setTargetSchema(schemaForField);
 
-    // Reset reason and evidence for new field edit
     setReason('');
     setEvidenceUrl('');
 
   }, [isOpen, fieldPath, currentEntityData, entitySchema, getFieldSchemaByPath]);
 
   const handleValueChange = (path: string, value: any) => {
-    // If the target field is complex (object/array), suggestedValue itself is that complex part.
-    // If simple, suggestedValue is the value.
     if (targetSchema && (targetSchema.type === 'object' || targetSchema.type === 'array')) {
-      // Path here is relative to the 'suggestedValue' object (which is the item being edited)
       setSuggestedValue((prevData: any) => {
         const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.');
-        let currentLevel = { ...prevData }; // prevData is the object/array being edited
+        let currentLevel = { ...prevData }; 
         let dataRef = currentLevel;
 
         for (let i = 0; i < keys.length - 1; i++) {
@@ -177,7 +194,6 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
         return currentLevel;
       });
     } else {
-      // For simple fields, path is not used, value is set directly.
       setSuggestedValue(value);
     }
   };
@@ -187,21 +203,16 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
     onSubmit({
       fieldPath,
       suggestedValue,
-      oldValue, // Send the initial old value
+      oldValue, 
       reason,
       evidenceUrl,
     });
-    // onOpenChange(false); // Let the parent component decide to close
   };
 
   const handleCancel = () => {
     onOpenChange(false);
-    // Values will be reset by useEffect when isOpen changes or other props change.
   };
 
-  // Simplified renderField for single field or a structure if targetSchema is object/array
-  // This is a placeholder. A more robust recursive renderer like in SuggestNewEntryForm
-  // might be needed if we are editing complex objects/arrays directly.
   const renderFieldInput = (schema: FormFieldSchema, value: any, pathPrefix: string = "") => {
     const currentFullPath = pathPrefix ? `${pathPrefix}.${schema.name}` : schema.name;
 
@@ -217,9 +228,6 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
     }
 
     if (schema.type === 'array' && schema.arrayItemSchema) {
-      const items = Array.isArray(value) ? value : [];
-      // For now, let's make array editing a JSON textarea to simplify, per instruction fallback.
-      // A full array UI would involve add/remove buttons and rendering each item.
       return (
          <div key={currentFullPath} className="grid grid-cols-1 items-start gap-2">
           <Label htmlFor={currentFullPath} className="pt-2">
@@ -227,12 +235,11 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
           </Label>
            <Textarea
             id={currentFullPath}
-            value={JSON.stringify(value, null, 2) || ''}
+            value={value !== undefined ? JSON.stringify(value, null, 2) : ''}
             onChange={(e) => {
               try {
                 handleValueChange(schema.name, JSON.parse(e.target.value));
               } catch (err) {
-                // handle JSON parse error, maybe set an error state
                 console.error("Invalid JSON for array:", err);
               }
             }}
@@ -245,15 +252,13 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
       );
     }
 
-
-    // Standard field rendering
     switch (schema.type) {
       case 'textarea':
         return (
           <Textarea
             id={currentFullPath}
             value={value || ''}
-            onChange={(e) => handleValueChange(pathPrefix ? schema.name : "", e.target.value)} // if pathPrefix, means it's a subfield of suggestedValue object
+            onChange={(e) => handleValueChange(pathPrefix ? schema.name : "", e.target.value)}
             className="col-span-1 min-h-[100px]"
             placeholder={schema.placeholder || `Enter ${schema.label.toLowerCase()}`}
             required={schema.required}
@@ -267,7 +272,7 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
               checked={!!value}
               onCheckedChange={(checked) => handleValueChange(pathPrefix ? schema.name : "", checked)}
             />
-            <Label htmlFor={currentFullPath} className="mb-0">Is Active</Label>
+            <Label htmlFor={currentFullPath} className="mb-0">{schema.label}</Label> {/* Changed for boolean label */}
           </div>
         );
       case 'number':
@@ -282,7 +287,7 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
             required={schema.required}
           />
         );
-      default: // text, email, url, date
+      default: 
         return (
           <Input
             id={currentFullPath}
@@ -299,10 +304,8 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
 
   const renderFormContent = () => {
     if (!targetSchema) {
-      return <p>Field schema not found for path: {fieldPath}. Please check configuration.</p>;
+      return <p className="text-red-500 p-4">Configuration error: Field schema not found for path "{fieldPath}". Please check the setup.</p>;
     }
-    // If targetSchema is for a complex type (object/array), suggestedValue will hold that structure.
-    // The input fields for its sub-properties will update parts of suggestedValue.
     if (targetSchema.type === 'object' && targetSchema.objectSchema) {
          return targetSchema.objectSchema.map(subField => (
             <div key={subField.name} className="grid grid-cols-4 items-start gap-4">
@@ -315,7 +318,6 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
             </div>
          ));
     }
-    // For simple types or arrays (currently handled as JSON textarea by renderFieldInput)
     return (
         <div className="grid grid-cols-4 items-start gap-4">
             <Label htmlFor="suggestedValue" className="text-right pt-2">
@@ -346,7 +348,7 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
                 Current Value
                 </Label>
                 <div className="col-span-3">
-                {typeof oldValue === 'object' ? (
+                {typeof oldValue === 'object' && oldValue !== null ? (
                     <Textarea id="oldValueDisplay" value={JSON.stringify(oldValue, null, 2)} disabled className="min-h-[80px] text-xs font-mono bg-background" />
                 ) : (
                     <Textarea id="oldValueDisplay" value={String(oldValue ?? '')} disabled className="min-h-[60px] bg-background" />
@@ -354,9 +356,6 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
                 </div>
             </div>
 
-            {/* Dynamic input area for suggestedValue */}
-            {/* This part needs to use targetSchema to render the correct input type */}
-            {/* For complex objects, this might involve recursive rendering */}
             {renderFormContent()}
 
             <div className="grid grid-cols-4 items-start gap-4 pt-4 border-t">
@@ -400,3 +399,4 @@ export const SuggestEditForm: React.FC<SuggestEditFormProps> = ({
 };
 
 export default SuggestEditForm;
+
