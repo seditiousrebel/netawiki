@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect, useRef } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { SuggestEditForm } from '@/components/common/suggest-edit-form';
+import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm';
 import { entitySchemas } from '@/lib/schemas'; // Added
 import { useNotificationStore } from "@/lib/notifications";
 import ScoreBarChart from '@/components/charts/ScoreBarChart';
@@ -98,6 +99,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
+  const [isSuggestEntityEditModalOpen, setIsSuggestEntityEditModalOpen] = useState(false);
   // Updated state for the edit form
   const [editingFieldPath, setEditingFieldPath] = useState('');
   // No need for suggestionOldValue in state, it's derived in the form
@@ -108,6 +110,15 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   const [formattedDateOfDeath, setFormattedDateOfDeath] = useState<string | null>(null);
   const { addNotification } = useNotificationStore();
   const notificationTriggered = useRef(false);
+
+  const openSuggestEntityEditModal = () => {
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+      return;
+    }
+    if (!politician) return;
+    setIsSuggestEntityEditModalOpen(true);
+  };
 
   useEffect(() => {
     if (politician && !notificationTriggered.current) {
@@ -180,6 +191,31 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
       duration: 5000,
     });
     setIsSuggestEditModalOpen(false);
+  };
+
+  const handleEntityEditSuggestionSubmit = (submission: {
+    formData: Record<string, any>;
+    reason: string;
+    evidenceUrl: string;
+  }) => {
+    if (!politician) return; // Should not happen if modal is open, but good practice
+
+    console.log("Full entity edit suggestion submitted:", {
+      entityType: "Politician", // Hardcoded for now, or could be passed if form is more generic
+      entityId: politician.id,
+      suggestedData: submission.formData,
+      reason: submission.reason,
+      evidenceUrl: submission.evidenceUrl,
+      submittedAt: new Date().toISOString(),
+      status: "PendingEntityUpdate" // A more specific status
+    });
+
+    toast({
+      title: "Changes Suggested",
+      description: `Your proposed changes for ${politician.name} have been submitted for review. Thank you!`,
+      duration: 5000,
+    });
+    setIsSuggestEntityEditModalOpen(false);
   };
 
   const handleFollowToggle = () => {
@@ -347,7 +383,10 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
               <Edit className="mr-2 h-4 w-4" /> Edit First Party Role
             </Button> */}
             <Button variant="outline" onClick={() => openSuggestEditModal('contactInfo')}>
-              <Edit className="mr-2 h-4 w-4" /> Edit Contact Info Block
+              <Edit className="mr-2 h-4 w-4" /> Edit Contact Info Block (Field)
+            </Button>
+            <Button variant="outline" onClick={openSuggestEntityEditModal}>
+              <Edit className="mr-2 h-4 w-4" /> Propose Changes to Profile
             </Button>
             <Button variant="outline" onClick={handleExportPdfWrapper} disabled={isGeneratingPdf}>
               <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export to PDF'}
@@ -370,6 +409,17 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
           currentEntityData={politician}
           entityDisplayName={politician.name}
           onSubmit={handleSuggestionSubmit}
+        />
+      )}
+
+      {politician && isSuggestEntityEditModalOpen && entitySchemas.Politician && (
+        <SuggestEntityEditForm
+          isOpen={isSuggestEntityEditModalOpen}
+          onOpenChange={setIsSuggestEntityEditModalOpen}
+          entityType="Politician"
+          entitySchema={entitySchemas.Politician} // Make sure entitySchemas.Politician is available
+          currentEntityData={politician}
+          onSubmit={handleEntityEditSuggestionSubmit}
         />
       )}
 
