@@ -188,19 +188,30 @@ export type ElectionPerformanceRecord = {
   notes?: string; // e.g., "Formed coalition government", "Significant gains in X region"
 };
 
+export type NewsArticleCategory = "Legislative" | "Elections" | "Economy" | "Foreign Policy" | "Social Issues" | "Environment" | "Fact Check" | "Opinion" | "Local News" | "Other";
+
 export type NewsArticleLink = {
   id: string;
+  slug?: string; // For internally hosted articles
   title: string;
-  url: string;
-  sourceName: string;
+  url?: string; // External URL if aggregated, or permalink if internal
+  sourceName: string; // "GovTrackr Internal" or external source name
   publicationDate: string; // ISO Date string
   summary?: string;
+  fullContent?: string; // Markdown or HTML for internal articles
+  authorName?: string; // Denormalized for display
+  authorId?: string; // For future Author Profile linking
+  category?: NewsArticleCategory;
+  topics?: string[]; // More specific tags, e.g., ["healthcare reform", "budget debate"]
+  isFactCheck?: boolean;
+  isAggregated?: boolean; // True if this is primarily a link to an external source
+  dataAiHint?: string; // For a representative image on list views
   taggedPartyIds?: string[];
   taggedPoliticianIds?: string[];
   taggedPromiseIds?: string[];
   taggedBillIds?: string[];
-  taggedControversyIds?: string[]; // New
-  taggedElectionIds?: string[]; // New
+  taggedControversyIds?: string[];
+  taggedElectionIds?: string[];
 };
 
 export interface Party {

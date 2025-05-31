@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Search, UserCircle, ShieldCheck, Home, VoteIcon } from 'lucide-react'; // Added VoteIcon
+import { Menu, Search, UserCircle, ShieldCheck, Home, VoteIcon, NewspaperIcon } from 'lucide-react'; // Added NewspaperIcon
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/gov';
@@ -17,7 +17,8 @@ const navLinks = [
   { href: '/bills', label: 'Bills' },
   { href: '/promises', label: 'Promises' },
   { href: '/controversies', label: 'Controversies' },
-  { href: '/elections', label: 'Elections' }, // New Elections link
+  { href: '/elections', label: 'Elections' },
+  { href: '/news', label: 'News' }, // New News link
   { href: '/feed', label: 'My Feed' },
 ];
 

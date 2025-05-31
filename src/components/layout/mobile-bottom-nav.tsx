@@ -2,25 +2,25 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, Users, Flag, FileText, ShieldAlert, VoteIcon } from 'lucide-react'; // Added VoteIcon
+import { Home, Users, Flag, FileText, ShieldAlert, VoteIcon, NewspaperIcon } from 'lucide-react'; // Added NewspaperIcon
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
+// Adjusted items for better fit, keeping it to 5-6 crucial ones for mobile bottom nav.
+// Controversies (Alerts) might be better in a "More" menu or integrated elsewhere if space is tight.
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/politicians', label: 'People', icon: Users }, // Shortened label
-  { href: '/parties', label: 'Parties', icon: Flag },
+  { href: '/politicians', label: 'People', icon: Users },
   { href: '/bills', label: 'Bills', icon: FileText },
-  { href: '/elections', label: 'Votes', icon: VoteIcon }, // New Elections Item, shortened label
-  // { href: '/controversies', label: 'Alerts', icon: ShieldAlert }, // Can be re-added if space allows
+  { href: '/elections', label: 'Votes', icon: VoteIcon },
+  { href: '/news', label: 'News', icon: NewspaperIcon },
+  // { href: '/parties', label: 'Parties', icon: Flag }, // Example: Could be moved to a secondary nav if too crowded
 ];
 
 export function MobileBottomNav() {
   const pathname = usePathname();
 
-  // Dynamically calculate width based on the number of items to ensure they fit
-  // Max 5 items recommended for bottom nav. If more, consider a "More" tab or scrollable.
-  const itemWidthClass = `w-1/${Math.min(navItems.length, 5)}`;
+  const itemWidthClass = `w-1/${navItems.length}`;
 
 
   return (
@@ -33,7 +33,7 @@ export function MobileBottomNav() {
               key={item.label}
               href={item.href}
               className={cn(
-                'flex flex-col items-center justify-center p-2 rounded-md transition-colors h-full', // ensure h-full for consistent click area
+                'flex flex-col items-center justify-center p-2 rounded-md transition-colors h-full',
                 itemWidthClass, 
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               )}
