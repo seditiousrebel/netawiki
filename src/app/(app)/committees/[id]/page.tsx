@@ -247,7 +247,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                         {billRef.billName} {billRef.billNumber && `(${billRef.billNumber})`}
                       </Link>
                       <p className="text-xs text-muted-foreground">Referred: {format(new Date(billRef.referralDate), 'MMMM dd, yyyy')}</p>
-                      {billRef.status && <p className="text-xs">Committee Status: <Badge variant="outline" className="text-xs">{billRef.status}</Badge></p>}
+                      {billRef.status && <div className="text-xs">Committee Status: <Badge variant="outline" className="text-xs">{billRef.status}</Badge></div>}
                     </div>
                   );
                 })}
@@ -353,7 +353,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                       <div className="flex justify-between items-center mb-1">
                         <span className="font-semibold text-md">{event.event}</span>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(event.date).toLocaleDateString()} by {event.author}
+                          {format(new Date(event.date), 'MM/dd/yyyy')} by {event.author}
                         </span>
                       </div>
                       {event.details && <p className="text-sm text-foreground/80 mb-1">{event.details}</p>}
