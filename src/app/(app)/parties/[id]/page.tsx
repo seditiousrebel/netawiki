@@ -7,11 +7,11 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
-import type { PromiseItem, LeadershipEvent } from '@/types/gov';
+import type { PromiseItem, LeadershipEvent, Party } from '@/types/gov';
 import { TimelineDisplay } from '@/components/common/timeline-display';
 
 interface TimelineItem {
@@ -19,6 +19,8 @@ interface TimelineItem {
   title: string;
   description?: string;
 }
+
+const LOCAL_STORAGE_FOLLOWED_PARTIES_KEY = 'govtrackr_followed_parties';
 
 function formatLeadershipHistoryForTimeline(events: LeadershipEvent[] = []): TimelineItem[] {
   return events.map(event => {
@@ -50,6 +52,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   const [formattedFoundedDate, setFormattedFoundedDate] = useState<string | null>(null);
   const [formattedDissolvedDate, setFormattedDissolvedDate] = useState<string | null>(null);
   const [leadershipTimelineItems, setLeadershipTimelineItems] = useState<TimelineItem[]>([]);
+  const [isFollowingParty, setIsFollowingParty] = useState(false);
 
 
   useEffect(() => {
@@ -62,7 +65,20 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
     if (party?.leadershipHistory) {
       setLeadershipTimelineItems(formatLeadershipHistoryForTimeline(party.leadershipHistory));
     }
-  }, [party?.foundedDate, party?.dissolvedDate, party?.leadershipHistory]);
+    if (party) {
+      try {
+        const followedPartiesStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_PARTIES_KEY);
+        if (followedPartiesStr) {
+          const followedPartyIds: string[] = JSON.parse(followedPartiesStr);
+          if (followedPartyIds.includes(party.id)) {
+            setIsFollowingParty(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error reading followed parties from localStorage:", error);
+      }
+    }
+  }, [party]);
 
   if (!party) {
     return <p>Party not found.</p>;
@@ -78,6 +94,43 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
       duration: 6000,
     });
   };
+
+  const handleFollowPartyToggle = () => {
+    if (!party) return;
+    const newFollowingState = !isFollowingParty;
+    setIsFollowingParty(newFollowingState);
+
+    try {
+      const followedPartiesStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_PARTIES_KEY);
+      let followedPartyIds: string[] = followedPartiesStr ? JSON.parse(followedPartiesStr) : [];
+
+      if (newFollowingState) {
+        if (!followedPartyIds.includes(party.id)) {
+          followedPartyIds.push(party.id);
+        }
+      } else {
+        followedPartyIds = followedPartyIds.filter(id => id !== party.id);
+      }
+      localStorage.setItem(LOCAL_STORAGE_FOLLOWED_PARTIES_KEY, JSON.stringify(followedPartyIds));
+    } catch (error) {
+      console.error("Error updating followed parties in localStorage:", error);
+      toast({
+        title: "Could not update follow status",
+        description: "There was an issue saving your follow preference. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      setIsFollowingParty(!newFollowingState); // Revert state
+      return;
+    }
+
+    toast({
+      title: newFollowingState ? `Following ${party.name}` : `Unfollowed ${party.name}`,
+      description: newFollowingState ? "You'll receive updates for this party (demo)." : "You will no longer receive updates (demo).",
+      duration: 3000,
+    });
+  };
+
 
   return (
     <div>
@@ -400,8 +453,13 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             </Card>
           )}
 
-          <Button className="w-full mt-4 bg-accent hover:bg-accent/90 text-accent-foreground">
-            <Landmark className="mr-2 h-4 w-4" /> Follow {party.name}
+          <Button 
+            onClick={handleFollowPartyToggle} 
+            className="w-full mt-4"
+            variant={isFollowingParty ? "outline" : "default"}
+          >
+            {isFollowingParty ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+            {isFollowingParty ? `Following ${party.name}` : `Follow ${party.name}`}
           </Button>
         </div>
       </div>

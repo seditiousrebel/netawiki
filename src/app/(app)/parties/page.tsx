@@ -18,6 +18,7 @@ export default function PartiesPage() {
   const [foundedYearEnd, setFoundedYearEnd] = useState('');
   const [selectedNationalStatus, setSelectedNationalStatus] = useState('all');
   const [selectedActiveStatus, setSelectedActiveStatus] = useState('all');
+  const [sortOption, setSortOption] = useState('default');
   const [filteredParties, setFilteredParties] = useState<Party[]>(mockParties);
 
   const allIdeologies = useMemo(() => {
@@ -36,7 +37,7 @@ export default function PartiesPage() {
       updatedParties = updatedParties.filter(party =>
         party.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (party.abbreviation && party.abbreviation.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (party.nepaliName && party.nepaliName.includes(searchTerm)) // Direct include for Nepali name
+        (party.nepaliName && party.nepaliName.includes(searchTerm)) 
       );
     }
 
@@ -76,8 +77,35 @@ export default function PartiesPage() {
       updatedParties = updatedParties.filter(party => party.isActive === isActive);
     }
 
+    // Apply sorting
+    switch (sortOption) {
+      case 'name_asc':
+        updatedParties.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'name_desc':
+        updatedParties.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case 'founded_newest':
+        updatedParties.sort((a, b) => {
+          const dateA = a.foundedDate ? new Date(a.foundedDate).getTime() : 0;
+          const dateB = b.foundedDate ? new Date(b.foundedDate).getTime() : 0;
+          return dateB - dateA; // Sort descending for newest first
+        });
+        break;
+      case 'founded_oldest':
+         updatedParties.sort((a, b) => {
+          const dateA = a.foundedDate ? new Date(a.foundedDate).getTime() : Number.MAX_SAFE_INTEGER;
+          const dateB = b.foundedDate ? new Date(b.foundedDate).getTime() : Number.MAX_SAFE_INTEGER;
+          return dateA - dateB; // Sort ascending for oldest first
+        });
+        break;
+      default:
+        // No explicit sorting, or maintain original order if 'default'
+        break;
+    }
+
     setFilteredParties(updatedParties);
-  }, [searchTerm, selectedIdeology, foundedYearStart, foundedYearEnd, selectedNationalStatus, selectedActiveStatus]);
+  }, [searchTerm, selectedIdeology, foundedYearStart, foundedYearEnd, selectedNationalStatus, selectedActiveStatus, sortOption]);
 
 
   return (
@@ -88,8 +116,8 @@ export default function PartiesPage() {
       />
 
       <div className="mb-8 p-6 bg-card rounded-lg shadow">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 items-end">
-          <div className="sm:col-span-2 md:col-span-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3 gap-4 items-end">
+          <div className="col-span-full xl:col-span-1">
             <Label htmlFor="search-party">Search Party</Label>
             <Input
               id="search-party"
@@ -98,67 +126,84 @@ export default function PartiesPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div>
-            <Label htmlFor="filter-ideology">Ideology</Label>
-            <Select value={selectedIdeology} onValueChange={(value) => setSelectedIdeology(value === 'all' ? '' : value)}>
-              <SelectTrigger id="filter-ideology">
-                <SelectValue placeholder="Filter by ideology" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Ideologies</SelectItem>
-                {allIdeologies.map(ideo => (
-                  <SelectItem key={ideo} value={ideo}>{ideo}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="xl:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 items-end">
             <div>
-              <Label htmlFor="filter-year-start">Founded From</Label>
-              <Input
-                id="filter-year-start"
-                type="number"
-                placeholder="Year"
-                value={foundedYearStart}
-                onChange={(e) => setFoundedYearStart(e.target.value)}
-              />
+                <Label htmlFor="filter-ideology">Ideology</Label>
+                <Select value={selectedIdeology} onValueChange={(value) => setSelectedIdeology(value === 'all' ? '' : value)}>
+                <SelectTrigger id="filter-ideology">
+                    <SelectValue placeholder="Filter by ideology" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Ideologies</SelectItem>
+                    {allIdeologies.map(ideo => (
+                    <SelectItem key={ideo} value={ideo}>{ideo}</SelectItem>
+                    ))}
+                </SelectContent>
+                </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+                <div>
+                <Label htmlFor="filter-year-start">Founded From</Label>
+                <Input
+                    id="filter-year-start"
+                    type="number"
+                    placeholder="Year"
+                    value={foundedYearStart}
+                    onChange={(e) => setFoundedYearStart(e.target.value)}
+                />
+                </div>
+                <div>
+                <Label htmlFor="filter-year-end">Founded Until</Label>
+                <Input
+                    id="filter-year-end"
+                    type="number"
+                    placeholder="Year"
+                    value={foundedYearEnd}
+                    onChange={(e) => setFoundedYearEnd(e.target.value)}
+                />
+                </div>
             </div>
             <div>
-              <Label htmlFor="filter-year-end">Founded Until</Label>
-              <Input
-                id="filter-year-end"
-                type="number"
-                placeholder="Year"
-                value={foundedYearEnd}
-                onChange={(e) => setFoundedYearEnd(e.target.value)}
-              />
+                <Label htmlFor="filter-national-status">Party Status</Label>
+                <Select value={selectedNationalStatus} onValueChange={setSelectedNationalStatus}>
+                <SelectTrigger id="filter-national-status">
+                    <SelectValue placeholder="National/Regional" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="national">National</SelectItem>
+                    <SelectItem value="regional">Regional</SelectItem>
+                </SelectContent>
+                </Select>
             </div>
-          </div>
-          <div>
-            <Label htmlFor="filter-national-status">Party Status</Label>
-            <Select value={selectedNationalStatus} onValueChange={setSelectedNationalStatus}>
-              <SelectTrigger id="filter-national-status">
-                <SelectValue placeholder="National/Regional" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="national">National</SelectItem>
-                <SelectItem value="regional">Regional</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="filter-active-status">Activity</Label>
-            <Select value={selectedActiveStatus} onValueChange={setSelectedActiveStatus}>
-              <SelectTrigger id="filter-active-status">
-                <SelectValue placeholder="Active/Inactive" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
+            <div>
+                <Label htmlFor="filter-active-status">Activity</Label>
+                <Select value={selectedActiveStatus} onValueChange={setSelectedActiveStatus}>
+                <SelectTrigger id="filter-active-status">
+                    <SelectValue placeholder="Active/Inactive" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+                </Select>
+            </div>
+            <div>
+                <Label htmlFor="sort-parties">Sort By</Label>
+                <Select value={sortOption} onValueChange={setSortOption}>
+                <SelectTrigger id="sort-parties">
+                    <SelectValue placeholder="Sort order" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="default">Default</SelectItem>
+                    <SelectItem value="name_asc">Name (A-Z)</SelectItem>
+                    <SelectItem value="name_desc">Name (Z-A)</SelectItem>
+                    <SelectItem value="founded_newest">Founded (Newest First)</SelectItem>
+                    <SelectItem value="founded_oldest">Founded (Oldest First)</SelectItem>
+                </SelectContent>
+                </Select>
+            </div>
           </div>
         </div>
       </div>
