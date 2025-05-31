@@ -245,9 +245,9 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
               {constituency.code && <div className="group flex justify-between"><span><strong>Code:</strong> {constituency.code}</span> <EditFieldButton fieldPath="code" onClick={openSuggestEditModal}/></div>}
               <div className="group flex justify-between"><span><strong>District:</strong> {constituency.district}</span> <EditFieldButton fieldPath="district" onClick={openSuggestEditModal}/></div>
               <div className="group flex justify-between"><span><strong>Province:</strong> {constituency.province}</span> <EditFieldButton fieldPath="province" onClick={openSuggestEditModal}/></div>
-              {constituency.population && <div className="group flex justify-between"><span><strong>Population:</strong> {constituency.population.toLocaleString()}</span> <EditFieldButton fieldPath="population" onClick={openSuggestEditModal}/></div>}
-              {constituency.registeredVoters && <div className="group flex justify-between"><span><strong>Registered Voters:</strong> {constituency.registeredVoters.toLocaleString()}</span> <EditFieldButton fieldPath="registeredVoters" onClick={openSuggestEditModal}/></div>}
-              {constituency.areaSqKm && <div className="group flex justify-between"><span><strong>Area:</strong> {constituency.areaSqKm.toLocaleString()} sq. km</span> <EditFieldButton fieldPath="areaSqKm" onClick={openSuggestEditModal}/></div>}
+              {constituency.population && <div className="group flex justify-between"><span><strong>Population:</strong> {constituency.population.toLocaleString('en-US')}</span> <EditFieldButton fieldPath="population" onClick={openSuggestEditModal}/></div>}
+              {constituency.registeredVoters && <div className="group flex justify-between"><span><strong>Registered Voters:</strong> {constituency.registeredVoters.toLocaleString('en-US')}</span> <EditFieldButton fieldPath="registeredVoters" onClick={openSuggestEditModal}/></div>}
+              {constituency.areaSqKm && <div className="group flex justify-between"><span><strong>Area:</strong> {constituency.areaSqKm.toLocaleString('en-US')} sq. km</span> <EditFieldButton fieldPath="areaSqKm" onClick={openSuggestEditModal}/></div>}
             </CardContent>
           </Card>
           
