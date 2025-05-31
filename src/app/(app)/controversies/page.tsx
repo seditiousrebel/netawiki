@@ -13,6 +13,8 @@ import type { Controversy, InvolvedEntity } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { Input } from '@/components/ui/input';
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { entitySchemas } from '@/lib/schemas'; // Ensured import
+import type { EntityType } from '@/lib/data/suggestions'; // Ensured import
 import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -153,7 +155,8 @@ export default function ControversiesPage() {
       <SuggestNewEntryForm
         isOpen={isSuggestNewControversyModalOpen}
         onOpenChange={setIsSuggestNewControversyModalOpen}
-        entityType="Controversy"
+        entityType={'Controversy' as EntityType}
+        entitySchema={entitySchemas.Controversy} 
         onSubmit={handleSuggestNewControversySubmit}
       />
 

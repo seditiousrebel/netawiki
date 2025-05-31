@@ -13,14 +13,15 @@ import type {
   Election,
   NewsArticleLink,
   PromiseItem,
-  ContactInfo,
-  PoliticalJourneyEvent,
-  PartyAffiliation,
-  EducationEntry,
-  AssetDeclaration,
-  CriminalRecord,
-  CommitteeMembership,
-  LeadershipMember,
+  ContactInfo,     // Imported for Politician data structure
+  PartyAffiliation, // Imported for Politician data structure
+  PoliticalJourneyEvent, // Imported for Politician data structure
+  EducationEntry, // Imported for Politician data structure
+  AssetDeclaration, // Imported for Politician data structure
+  CriminalRecord, // Imported for Politician data structure
+  CommitteeMembership, // Imported for Politician data structure
+  StatementQuote, // Imported for Politician data structure
+  LeadershipMember, // Imported for Party data structure
   BillTimelineEvent, // For Bill.timelineEvents (if fully implemented)
   VoteRecord,      // For Bill.votingResults (if fully implemented)
   // Add other sub-types if they are directly used as `objectSchema` or `arrayItemSchema` objects
@@ -650,6 +651,49 @@ export const promiseSchema: FormFieldSchema[] = [
   // politicianId, partyId, sourceType etc. can be linked or have more complex UI later.
 ];
 
+// --- Controversy Schema ---
+export const involvedEntitySchema: FormFieldSchema[] = [
+  { name: 'type', label: 'Type', type: 'text', required: true, placeholder: 'politician, party, or organization' },
+  { name: 'id', label: 'Entity ID', type: 'text', required: true, placeholder: 'ID of the entity' },
+  { name: 'name', label: 'Entity Name', type: 'text', required: true },
+  { name: 'role', label: 'Role in Controversy (Optional)', type: 'text' },
+];
+
+export const controversySchema: FormFieldSchema[] = [
+  { name: 'title', label: 'Controversy Title', type: 'text', required: true },
+  { name: 'description', label: 'Description', type: 'textarea', required: true },
+  {
+    name: 'severityIndicator',
+    label: 'Severity Indicator',
+    type: 'text', // Ideally 'select' with options: 'Low', 'Medium', 'High', 'Critical'
+    required: true,
+    placeholder: 'Low, Medium, High, or Critical',
+  },
+  {
+    name: 'status',
+    label: 'Current Status',
+    type: 'text', // Ideally 'select' with options from ControversyStatus
+    required: true,
+    placeholder: 'e.g., Alleged, Under Investigation',
+  },
+  { name: 'period', label: 'Period (e.g., Mid-2023 or YYYY-MM-DD)', type: 'text', placeholder: 'General timeframe of the controversy' },
+  { name: 'dates.started', label: 'Date Started (Optional)', type: 'date'},
+  { name: 'dates.ended', label: 'Date Ended (Optional)', type: 'date'},
+  { name: 'tags', label: 'Tags (JSON Array)', type: 'textarea', placeholder: 'e.g., ["corruption", "ethics"]' },
+  {
+    name: 'involvedEntities',
+    label: 'Involved Entities',
+    type: 'array',
+    arrayItemSchema: { name: 'entity', label: 'Involved Entity', type: 'object', objectSchema: involvedEntitySchema } as FormFieldSchema,
+    required: false,
+  },
+  { name: 'summaryOutcome', label: 'Summary Outcome (Optional)', type: 'textarea', placeholder: 'Brief summary of the outcome if concluded.'},
+  { name: 'dataAiHint', label: 'AI Hint for Image (Optional)', type: 'text', placeholder: 'Keywords for image generation' },
+  // Complex arrays like updates, evidenceLinks, officialResponses, mediaCoverageLinks, legalProceedings
+  // are typically managed via the detail page after creation, not usually in the "new entry" form.
+  // If needed for suggestion, they'd be JSON textareas initially.
+];
+
 
 // --- Main Schemas Export ---
 
@@ -662,6 +706,7 @@ export const entitySchemas: Record<EntityType, FormFieldSchema[]> = {
   Election: electionSchema,
   News: newsSchema, // Mapped from NewsArticleLink
   Promise: promiseSchema, // Mapped from PromiseItem
+  Controversy: controversySchema, // Added Controversy schema
 };
 
 // Helper to get a specific schema
