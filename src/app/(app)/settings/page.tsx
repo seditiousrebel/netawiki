@@ -1,3 +1,4 @@
+
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,7 +50,7 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-muted-foreground">Manage politicians and parties you follow.</p>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
                 <Button variant="outline">Manage Followed Politicians</Button>
                 <Button variant="outline">Manage Followed Parties</Button>
             </div>
