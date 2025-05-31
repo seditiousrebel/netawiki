@@ -4,13 +4,14 @@
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Search, UserCircle, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Menu, Search, UserCircle, ShieldCheck, Home } from 'lucide-react'; // Added Home icon for consistency if needed
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import type { UserProfile } from '@/types/gov'; // Assuming UserProfile type might be used later
+import type { UserProfile } from '@/types/gov';
 import { useState, useEffect } from 'react';
 
 const navLinks = [
+  { href: '/', label: 'Home' }, // Added Home link
   { href: '/politicians', label: 'Politicians' },
   { href: '/parties', label: 'Parties' },
   { href: '/bills', label: 'Bills' },
@@ -50,7 +51,9 @@ export function AppHeader() {
               href={link.href}
               className={cn(
                 'transition-colors hover:text-primary',
-                pathname.startsWith(link.href) ? 'text-primary' : 'text-foreground/70'
+                (link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)) 
+                  ? 'text-primary' 
+                  : 'text-foreground/70'
               )}
             >
               {link.label}
@@ -99,7 +102,9 @@ export function AppHeader() {
                       href={link.href}
                       className={cn(
                         'text-lg transition-colors hover:text-primary',
-                        pathname.startsWith(link.href) ? 'text-primary font-semibold' : 'text-foreground/80'
+                        (link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)) 
+                          ? 'text-primary font-semibold' 
+                          : 'text-foreground/80'
                       )}
                     >
                       {link.label}
