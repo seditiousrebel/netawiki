@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect, useRef } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { SuggestEditForm } from '@/components/common/suggest-edit-form';
+import { entitySchemas } from '@/lib/schemas'; // Added
 import { useNotificationStore } from "@/lib/notifications";
 import ScoreBarChart from '@/components/charts/ScoreBarChart';
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
@@ -84,8 +85,11 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
-  const [suggestionFieldName, setSuggestionFieldName] = useState('');
-  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
+  // Updated state for the edit form
+  const [editingFieldPath, setEditingFieldPath] = useState('');
+  // No need for suggestionOldValue in state, it's derived in the form
+  // const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
+
 
   const [formattedDateOfBirth, setFormattedDateOfBirth] = useState<string | null>(null);
   const [formattedDateOfDeath, setFormattedDateOfDeath] = useState<string | null>(null);
@@ -135,28 +139,31 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     }
   }, [politician]);
 
-  const handleSuggestBioEdit = () => {
+  const openSuggestEditModal = (fieldPath: string) => {
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
     }
     if (!politician) return;
-    setSuggestionFieldName("Biography");
-    setSuggestionOldValue(politician.bio || '');
+    setEditingFieldPath(fieldPath);
     setIsSuggestEditModalOpen(true);
   };
 
-  const handleSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
+  const handleSuggestionSubmit = (suggestion: {
+    fieldPath: string;
+    suggestedValue: any;
+    oldValue: any;
+    reason: string;
+    evidenceUrl: string;
+  }) => {
     console.log("Suggestion submitted:", {
-      entityType: "Politician",
-      entityName: politician?.name,
-      fieldName: suggestionFieldName,
-      oldValue: suggestionOldValue,
+      entityType: "Politician", // This could be passed to SuggestEditForm or derived if needed
+      entityId: politician?.id,
       ...suggestion,
     });
     toast({
       title: "Suggestion Submitted",
-      description: `Suggestion for ${suggestionFieldName} on ${politician?.name} has been submitted. Thank you!`,
+      description: `Suggestion for '${suggestion.fieldPath}' on ${politician?.name} has been submitted. Thank you!`,
       duration: 5000,
     });
     setIsSuggestEditModalOpen(false);
@@ -303,8 +310,19 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
         }
         actions={(
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleSuggestBioEdit}>
+            {/* Example: Button to edit Biography */}
+            <Button variant="outline" onClick={() => openSuggestEditModal('bio')}>
               <Edit className="mr-2 h-4 w-4" /> Suggest Edit for Bio
+            </Button>
+             {/* Example: Button to edit Contact Email */}
+            <Button variant="outline" onClick={() => openSuggestEditModal('contactInfo.email')}>
+              <Edit className="mr-2 h-4 w-4" /> Suggest Edit for Email
+            </Button>
+            <Button variant="outline" onClick={() => openSuggestEditModal('aliases[0]')}>
+              <Edit className="mr-2 h-4 w-4" /> Edit First Alias
+            </Button>
+            <Button variant="outline" onClick={() => openSuggestEditModal('partyAffiliations[0].role')}>
+              <Edit className="mr-2 h-4 w-4" /> Edit First Party Role
             </Button>
             <Button variant="outline" onClick={handleExportPdfWrapper} disabled={isGeneratingPdf}>
               <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export to PDF'}
@@ -318,14 +336,14 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
         )}
       />
 
-      {politician && (
+      {politician && isSuggestEditModalOpen && entitySchemas.Politician && (
         <SuggestEditForm
           isOpen={isSuggestEditModalOpen}
           onOpenChange={setIsSuggestEditModalOpen}
-          entityType="Politician"
-          entityName={politician.name}
-          fieldName={suggestionFieldName}
-          oldValue={suggestionOldValue}
+          entitySchema={entitySchemas.Politician}
+          fieldPath={editingFieldPath}
+          currentEntityData={politician}
+          entityDisplayName={politician.name}
           onSubmit={handleSuggestionSubmit}
         />
       )}

@@ -15,8 +15,19 @@ import { Label } from '@/components/ui/label';
 import { ArrowRight, FileText, ExternalLink, SearchIcon, CheckSquare, ShieldQuestion } from 'lucide-react';
 import type { NewsArticleLink, NewsArticleCategory } from '@/types/gov';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button'; // Added
+import { PlusCircle } from 'lucide-react'; // Added
+import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form'; // Added
+import { entitySchemas } from '@/lib/schemas'; // Added
+import type { EntityType } from '@/lib/data/suggestions'; // Added
+import { getCurrentUser, isUserLoggedIn } from '@/lib/auth'; // Added
+import { useRouter } from 'next/navigation'; // Added
+import { useToast } from "@/hooks/use-toast"; // Added
 
 export default function NewsPage() {
+  const router = useRouter(); // Added
+  const { toast } = useToast(); // Added
+  const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false); // Added
   const [articles, setArticles] = useState<NewsArticleLink[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<NewsArticleLink[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -68,12 +79,44 @@ export default function NewsPage() {
     setFilteredArticles(tempArticles);
   }, [articles, searchTerm, selectedCategory, sortOption]);
 
+  const handleOpenSuggestModal = () => { // Added
+    if (isUserLoggedIn()) {
+      setIsSuggestModalOpen(true);
+    } else {
+      router.push('/auth/login');
+    }
+  };
+
+  const handleSuggestSubmit = (formData: any) => { // Added
+    console.log('New News Suggestion:', formData);
+    toast({
+      title: "Suggestion Submitted",
+      description: `Suggestion for new news article '${formData.title || 'N/A'}' submitted.`,
+    });
+    setIsSuggestModalOpen(false);
+  };
+
   return (
     <div>
       <PageHeader
         title="News & Articles"
         description="Stay updated with the latest political news, analyses, and fact-checks."
+        actions={ // Added actions prop
+          <Button variant="default" onClick={handleOpenSuggestModal}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Article
+          </Button>
+        }
       />
+
+      {isSuggestModalOpen && entitySchemas.News && ( // Added SuggestNewEntryForm
+        <SuggestNewEntryForm
+          isOpen={isSuggestModalOpen}
+          onOpenChange={setIsSuggestModalOpen}
+          entityType={'News' as EntityType}
+          entitySchema={entitySchemas.News}
+          onSubmit={handleSuggestSubmit}
+        />
+      )}
 
       <Card className="mb-8 p-6 shadow-md">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">

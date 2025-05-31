@@ -14,6 +14,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { entitySchemas } from '@/lib/schemas'; // Added
+import type { EntityType } from '@/lib/data/suggestions'; // Added
 import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
@@ -145,7 +147,8 @@ export default function PartiesPage() {
       <SuggestNewEntryForm
         isOpen={isSuggestNewPartyModalOpen}
         onOpenChange={setIsSuggestNewPartyModalOpen}
-        entityType="Party"
+        entityType={'Party' as EntityType} // Used EntityType
+        entitySchema={entitySchemas.Party} // Passed the schema
         onSubmit={handleSuggestNewPartySubmit}
       />
 
