@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,24 +8,34 @@ import { ArrowRight } from 'lucide-react';
 interface EntityCardProps {
   id: string;
   name: string;
-  imageUrl: string;
+  imageUrl?: string; // Made optional
   imageAiHint?: string;
   description?: string;
   viewLink: string;
-  category?: string; // e.g., Party Name for Politician, or "Party" for Party
+  category?: string;
 }
 
 export function EntityCard({ id, name, imageUrl, imageAiHint, description, viewLink, category }: EntityCardProps) {
+  // Determine the image source explicitly
+  const imageToDisplay = (typeof imageUrl === 'string' && imageUrl.trim() !== '')
+    ? imageUrl
+    : 'https://placehold.co/400x250.png?text=No+Image';
+
+  // Adjust data-ai-hint if a placeholder is being used
+  const effectiveAiHint = (typeof imageUrl === 'string' && imageUrl.trim() !== '')
+    ? (imageAiHint || "profile image")
+    : (imageAiHint || "placeholder image");
+
   return (
     <Card className="flex flex-col overflow-hidden h-full shadow-md hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="p-0">
         <Image
-          src={imageUrl}
+          src={imageToDisplay}
           alt={name}
           width={400}
           height={250}
           className="object-cover w-full h-48"
-          data-ai-hint={imageAiHint || "profile image"}
+          data-ai-hint={effectiveAiHint}
         />
       </CardHeader>
       <CardContent className="p-6 flex-grow">
