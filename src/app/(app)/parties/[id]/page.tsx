@@ -7,11 +7,39 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
-import type { PromiseItem } from '@/types/gov';
+import type { PromiseItem, LeadershipEvent } from '@/types/gov';
+import { TimelineDisplay } from '@/components/common/timeline-display';
+
+interface TimelineItem {
+  date: string;
+  title: string;
+  description?: string;
+}
+
+function formatLeadershipHistoryForTimeline(events: LeadershipEvent[] = []): TimelineItem[] {
+  return events.map(event => {
+    let description = `Term: ${new Date(event.startDate).toLocaleDateString()}`;
+    if (event.endDate && event.endDate !== 'Present') {
+      description += ` - ${new Date(event.endDate).toLocaleDateString()}`;
+    } else if (event.endDate === 'Present') {
+      description += ' - Present';
+    } else {
+       description += ' - Present'; // Assume present if endDate is missing
+    }
+    if (event.politicianId) {
+      // Link to politician if ID exists, not implemented here for brevity but would be in a real app
+    }
+    return {
+      date: event.startDate,
+      title: `${event.role}: ${event.name}`,
+      description: description,
+    };
+  }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
 
 
 export default function PartyProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
@@ -21,6 +49,8 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
 
   const [formattedFoundedDate, setFormattedFoundedDate] = useState<string | null>(null);
   const [formattedDissolvedDate, setFormattedDissolvedDate] = useState<string | null>(null);
+  const [leadershipTimelineItems, setLeadershipTimelineItems] = useState<TimelineItem[]>([]);
+
 
   useEffect(() => {
     if (party?.foundedDate) {
@@ -29,7 +59,10 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
     if (party?.dissolvedDate) {
       setFormattedDissolvedDate(new Date(party.dissolvedDate).toLocaleDateString());
     }
-  }, [party?.foundedDate, party?.dissolvedDate]);
+    if (party?.leadershipHistory) {
+      setLeadershipTimelineItems(formatLeadershipHistoryForTimeline(party.leadershipHistory));
+    }
+  }, [party?.foundedDate, party?.dissolvedDate, party?.leadershipHistory]);
 
   if (!party) {
     return <p>Party not found.</p>;
@@ -148,7 +181,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
 
           <Card>
             <CardHeader>
-              <CardTitle className="font-headline text-xl flex items-center gap-2"><Users className="text-primary"/> Leadership</CardTitle>
+              <CardTitle className="font-headline text-xl flex items-center gap-2"><Users className="text-primary"/> Current Leadership</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
@@ -262,6 +295,17 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                     {party.internationalAffiliations && party.internationalAffiliations.length > 0 && (
                         <p><span className="font-semibold">International Affiliations:</span> {party.internationalAffiliations.join(', ')}</p>
                     )}
+                </CardContent>
+            </Card>
+          )}
+          
+          {party.leadershipHistory && party.leadershipHistory.length > 0 && (
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-xl flex items-center gap-2"><History className="text-primary"/> Leadership History</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <TimelineDisplay items={leadershipTimelineItems} />
                 </CardContent>
             </Card>
           )}

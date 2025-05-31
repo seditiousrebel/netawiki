@@ -1,5 +1,18 @@
 
-import type { Party } from '@/types/gov';
+import type { Party, LeadershipEvent } from '@/types/gov';
+
+const bupLeadershipHistory: LeadershipEvent[] = [
+  { name: 'Arthur Founder', role: 'Founding Chair', startDate: '1990-07-04', endDate: '1998-06-30' },
+  { name: 'Eleanor Vanguard', role: 'Party Chair', startDate: '1998-07-01', endDate: 'Present' },
+  { name: 'Old Secretary', role: 'General Secretary', startDate: '1990-07-04', endDate: '2005-12-31'},
+  { name: 'John Smith', role: 'General Secretary', startDate: '2006-01-01', endDate: 'Present' }
+];
+
+const ragLeadershipHistory: LeadershipEvent[] = [
+  { name: 'Senator Oldguard', role: 'Founding Leader', startDate: '1985-02-15', endDate: '1995-01-01' },
+  { name: 'Marcus Standard', role: 'Party Leader', startDate: '1995-01-02', politicianId: 'p2', endDate: 'Present' },
+];
+
 
 export const mockParties: Party[] = [
   {
@@ -13,6 +26,7 @@ export const mockParties: Party[] = [
       { name: 'Alice Democratia', role: 'Policy Head', politicianId: 'p1' },
       { name: 'John Smith', role: 'General Secretary' }
     ],
+    leadershipHistory: bupLeadershipHistory,
     contactInfo: { 
       website: 'https://blueunity.example.com',
       email: 'info@blueunity.example.com',
@@ -51,6 +65,7 @@ export const mockParties: Party[] = [
       { name: 'Marcus Standard', role: 'Party Leader', politicianId: 'p2' },
       { name: 'Linda Fiscal', role: 'Chief Whip'}
     ],
+    leadershipHistory: ragLeadershipHistory,
     contactInfo: { 
       website: 'https://redalliance.example.com',
       email: 'contact@redalliance.example.com',
@@ -77,8 +92,8 @@ export const mockParties: Party[] = [
       { name: 'Business Council', description: 'Connecting with and supporting the business community.' },
       { name: 'Veterans Affairs Wing', keyLeaders: [{name: 'Colonel Strong', politicianId: 'p2' }]} // Assuming Col Strong is Bob R. for demo
     ],
-    isActive: true,
-    isNationalParty: true,
+    isActive: false, // For filter testing
+    isNationalParty: false, // For filter testing
     controversyIds: ['c2'],
   },
 ];

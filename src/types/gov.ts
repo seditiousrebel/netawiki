@@ -124,49 +124,58 @@ export type PartyWing = {
   description?: string;
 };
 
+export type LeadershipEvent = {
+  role: string;
+  name: string;
+  politicianId?: string;
+  startDate: string; // ISO Date
+  endDate?: string; // ISO Date or 'Present'
+};
+
 export interface Party {
   id: string;
   name: string;
   nepaliName?: string;
   abbreviation?: string;
   slug?: string;
-  leadership: LeadershipMember[];
+  leadership: LeadershipMember[]; // Current Leadership
+  leadershipHistory?: LeadershipEvent[]; // New: Historical Leadership
   contactInfo: ContactInfo;
   headquartersAddress?: string;
   logoUrl: string; // URL to image
   flagUrl?: string;
   electionSymbolUrl: string; // URL to image
   partyColorHex?: string;
-  history: string; // Renamed to aboutParty in requirements, but keeping history for now and will use `aboutParty` for the detailed rich text.
-  aboutParty?: string; // history, mission, structure - rich text
+  history: string; 
+  aboutParty?: string; 
   foundedDate?: string;
   dissolvedDate?: string;
   registrationNumber?: string;
   ideology?: string[];
   detailedIdeologyDescription?: string;
-  partyManifestoUrl?: string; // { latest?: string; historical?: string[]; };
-  parentPartyId?: string; // Link to another party ID
-  parentPartyName?: string; // Denormalized for display
-  splinterPartyIds?: string[]; // Links to other party IDs
-  splinterPartyNames?: string[]; // Denormalized for display
+  partyManifestoUrl?: string; 
+  parentPartyId?: string; 
+  parentPartyName?: string; 
+  splinterPartyIds?: string[]; 
+  splinterPartyNames?: string[]; 
   internationalAffiliations?: string[];
   wings?: PartyWing[];
   isActive?: boolean;
   isNationalParty?: boolean;
   dataAiHint?: string;
-  controversyIds?: string[]; // New: Link to controversies
+  controversyIds?: string[]; 
 }
 
 export interface PromiseItem {
   id: string;
-  politicianId?: string; // Link to Politician (can be optional if partyId is present)
-  partyId?: string; // Link to Party (new)
+  politicianId?: string; 
+  partyId?: string; 
   title: string;
   description: string;
   dueDate?: string;
   status: PromiseStatus;
   evidenceLinks: Array<{ url: string; description?: string }>;
-  category?: string; // e.g., "Economy", "Healthcare"
+  category?: string; 
   datePromised?: string;
   dateCompleted?: string;
 }
