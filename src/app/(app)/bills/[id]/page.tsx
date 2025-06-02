@@ -26,19 +26,6 @@ const LOCAL_STORAGE_FOLLOWED_BILLS_KEY = 'govtrackr_followed_bills';
 // Helper to generate slug from name
 const toSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
-// Helper component for edit buttons - REMOVED
-// const EditFieldButton: React.FC<{ fieldPath: string; onClick: (fieldPath: string) => void; className?: string; tooltip?: string }> = ({ fieldPath, onClick, className, tooltip }) => (
-//   <Button
-//     variant="ghost"
-//     size="icon"
-//     className={`ml-2 h-5 w-5 ${className ?? ''} opacity-50 group-hover:opacity-100 transition-opacity`}
-//     onClick={(e) => { e.stopPropagation(); onClick(fieldPath); }}
-//     title={tooltip || `Suggest edit for ${fieldPath.split('.').pop()?.replace(/\[\d+\]/, '')}`}
-//   >
-//     <Edit className="h-3 w-3 text-muted-foreground" />
-//   </Button>
-// );
-
 export default function BillDetailsPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
   const bill = getBillById(params.id);
@@ -54,8 +41,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
   const { addNotification } = useNotificationStore();
   const notificationTriggered = useRef(false);
 
-  // const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false); // Old form state - Removed
-  // const [editingFieldPath, setEditingFieldPath] = useState(''); // Old form state - Removed
   const [isSuggestEntityEditModalOpen, setIsSuggestEntityEditModalOpen] = useState(false); // New form state
 
   useEffect(() => {
@@ -90,36 +75,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
   if (!bill) {
     return <p>Bill not found.</p>;
   }
-
-  // const openSuggestEditModal = (fieldPath: string) => { // Old form handler - Removed
-  //   if (!isUserLoggedIn()) {
-  //     router.push('/auth/login');
-  //     return;
-  //   }
-  //   if (!bill) return;
-  //   setEditingFieldPath(fieldPath);
-  //   setIsSuggestEditModalOpen(true);
-  // };
-
-  // const handleSuggestionSubmit = (suggestion: { // Old form handler - Removed
-  //   fieldPath: string;
-  //   suggestedValue: any;
-  //   oldValue: any;
-  //   reason: string;
-  //   evidenceUrl: string;
-  // }) => {
-  //   console.log("Suggestion submitted for Bill:", {
-  //     entityType: "Bill",
-  //     entityId: bill?.id,
-  //     ...suggestion,
-  //   });
-  //   toast({
-  //     title: "Suggestion Submitted",
-  //     description: `Suggestion for ${suggestion.fieldPath} on bill '${bill?.title}' has been submitted. Thank you!`,
-  //     duration: 5000,
-  //   });
-  //   setIsSuggestEditModalOpen(false);
-  // };
 
   const openSuggestBillEditModal = () => { // New form handler
     if (!isUserLoggedIn()) {
@@ -225,20 +180,27 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
       <PageHeader
         title={
           <span className="flex items-center">
-            {bill.title} {/* <EditFieldButton fieldPath="title" onClick={openSuggestEditModal} /> */}
-            {bill.billNumber && <span className="ml-1 flex items-center">({bill.billNumber} {/* <EditFieldButton fieldPath="billNumber" onClick={openSuggestEditModal}/> */})</span>}
+            {bill.title}
+            {bill.billNumber && <span className="ml-1 flex items-center">({bill.billNumber})</span>}
           </span>
         }
         description={
             <div className="flex flex-wrap gap-2 items-center mt-1">
                 <Badge variant={bill.status === 'Became Law' ? 'default' : 'secondary'} className={`${bill.status === 'Became Law' ? 'bg-green-500 text-white' : ''}`}>
-                    {bill.status} {/* <EditFieldButton fieldPath="status" onClick={openSuggestEditModal} className="text-white group-hover:text-primary-foreground"/> */}
+                    {bill.status}
                 </Badge>
-                {bill.billType && <Badge variant="outline">{bill.billType} {/* <EditFieldButton fieldPath="billType" onClick={openSuggestEditModal}/> */}</Badge>}
+                {bill.billType && <Badge variant="outline">{bill.billType}</Badge>}
             </div>
         }
         actions={
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleFollowBillToggle}
+            >
+              {isFollowingBill ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+              {isFollowingBill ? 'Following' : 'Follow'}
+            </Button>
             <Button variant="outline" onClick={openSuggestBillEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Bill
             </Button>
@@ -254,19 +216,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
         }
       />
 
-      {/* {bill && isSuggestEditModalOpen && entitySchemas.Bill && ( // Old form instance - Removed
-        <SuggestEditForm
-          isOpen={isSuggestEditModalOpen}
-          onOpenChange={setIsSuggestEditModalOpen}
-          entitySchema={entitySchemas.Bill}
-          fieldPath={editingFieldPath}
-          currentEntityData={bill}
-          entityDisplayName={bill.title}
-          onSubmit={handleSuggestionSubmit}
-        />
-      )} */}
-
-      {bill && isSuggestEntityEditModalOpen && entitySchemas.Bill && ( // New form instance
+      {bill && isSuggestEntityEditModalOpen && entitySchemas.Bill && (
         <SuggestEntityEditForm
           isOpen={isSuggestEntityEditModalOpen}
           onOpenChange={setIsSuggestEntityEditModalOpen}
@@ -282,7 +232,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="font-headline text-xl flex items-center gap-2"><FileText className="text-primary"/> Summary & Purpose</CardTitle>
-              {/* <EditFieldButton fieldPath="summary" onClick={openSuggestEditModal} tooltip="Edit summary"/> */}
             </CardHeader>
             <CardContent>
               <p className="text-foreground/80 whitespace-pre-line">{bill.summary}</p>
@@ -290,7 +239,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                 <div className="mt-4 pt-4 border-t">
                   <div className="flex justify-between items-start">
                     <h3 className="font-semibold text-md mb-1">Purpose:</h3>
-                    {/* <EditFieldButton fieldPath="purpose" onClick={openSuggestEditModal} tooltip="Edit purpose"/> */}
                   </div>
                   <p className="text-sm text-muted-foreground italic">{bill.purpose}</p>
                 </div>
@@ -302,7 +250,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                       Read Full Text <ExternalLink className="ml-1 h-3 w-3" />
                     </Button>
                  </a>
-                 {/* <EditFieldButton fieldPath="fullTextUrl" onClick={openSuggestEditModal} tooltip="Edit full text URL"/> */}
                  </div>
               )}
             </CardContent>
@@ -312,10 +259,8 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><ListCollapse className="text-primary"/> Bill Journey</CardTitle>
-                {/* <EditFieldButton fieldPath="timelineEvents" onClick={openSuggestEditModal} tooltip="Edit timeline events (JSON)"/> */}
               </CardHeader>
               <CardContent>
-                {/* TODO: Add edit buttons for individual timeline items if possible */}
                 <TimelineDisplay items={timelineItems} />
               </CardContent>
             </Card>
@@ -325,7 +270,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl">Voting Results</CardTitle>
-                {/* <EditFieldButton fieldPath="votingResults" onClick={openSuggestEditModal} tooltip="Edit voting results (JSON)"/> */}
               </CardHeader>
               <CardContent className="space-y-4">
                 {bill.votingResults.house && (
@@ -336,13 +280,11 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                           {bill.votingResults.house.passed ? 'Passed' : 'Failed'}
                         </Badge>
                       </h3>
-                      {/* <EditFieldButton fieldPath="votingResults.house" onClick={openSuggestEditModal} tooltip="Edit House voting results"/> */}
                     </div>
                     <ul className="text-sm list-disc list-inside pl-2">
                       {bill.votingResults.house.records.slice(0,3).map((vote: VoteRecord, idx: number) => (
                         <li key={`house-vote-${idx}`} className="flex justify-between items-center">
                            <span><Link href={`/politicians/${vote.politicianId}`} className="text-primary hover:underline">{vote.politicianName}</Link>: {vote.vote}</span>
-                           {/* <EditFieldButton fieldPath={`votingResults.house.records[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this vote record"/> */}
                         </li>
                       ))}
                       {bill.votingResults.house.records.length > 3 && <li className="text-muted-foreground">...and more</li>}
@@ -357,19 +299,38 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                             {bill.votingResults.senate.passed ? 'Passed' : 'Failed'}
                           </Badge>
                         </h3>
-                        {/* <EditFieldButton fieldPath="votingResults.senate" onClick={openSuggestEditModal} tooltip="Edit Senate voting results"/> */}
                       </div>
                      <ul className="text-sm list-disc list-inside pl-2">
                       {bill.votingResults.senate.records.slice(0,3).map((vote: VoteRecord, idx: number) => (
                         <li key={`senate-vote-${idx}`} className="flex justify-between items-center">
                            <span><Link href={`/politicians/${vote.politicianId}`} className="text-primary hover:underline">{vote.politicianName}</Link>: {vote.vote}</span>
-                           {/* <EditFieldButton fieldPath={`votingResults.senate.records[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this vote record"/> */}
                         </li>
                       ))}
                       {bill.votingResults.senate.records.length > 3 && <li className="text-muted-foreground">...and more</li>}
                     </ul>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {relatedNews && relatedNews.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2"><Newspaper className="text-primary"/> Related News</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {relatedNews.map((news: NewsArticleLink, idx: number) => (
+                    <li key={idx} className="text-sm border-b pb-2 last:border-b-0">
+                      <a href={news.url || `/news/${news.slug || news.id}`} target={news.url && news.isAggregated ? "_blank" : "_self"} rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
+                        {news.title}
+                      </a>
+                      <p className="text-xs text-muted-foreground">{news.sourceName} - {format(new Date(news.publicationDate), 'MM/dd/yyyy')}</p>
+                      {news.summary && <p className="text-xs text-foreground/80 mt-1">{news.summary}</p>}
+                    </li>
+                  ))}
+                </ul>
               </CardContent>
             </Card>
           )}
@@ -404,27 +365,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
               </Button>
             </CardContent>
           </Card>
-
-          {relatedNews && relatedNews.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-headline text-xl flex items-center gap-2"><Newspaper className="text-primary"/> Related News</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {relatedNews.map((news: NewsArticleLink, idx: number) => (
-                    <li key={idx} className="text-sm border-b pb-2 last:border-b-0">
-                      <a href={news.url || `/news/${news.slug || news.id}`} target={news.url && news.isAggregated ? "_blank" : "_self"} rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
-                        {news.title}
-                      </a>
-                      <p className="text-xs text-muted-foreground">{news.sourceName} - {format(new Date(news.publicationDate), 'MM/dd/yyyy')}</p>
-                      {news.summary && <p className="text-xs text-foreground/80 mt-1">{news.summary}</p>}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
 
           {bill.revisionHistory && bill.revisionHistory.length > 0 && (
             <Card>
@@ -463,43 +403,41 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
               <CardTitle className="font-headline text-xl flex items-center gap-2"><Info className="text-primary"/> Legislative Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              {bill.billType && <div className="flex justify-between"><span><span className="font-semibold">Type:</span> {bill.billType}</span> {/* <EditFieldButton fieldPath="billType" onClick={openSuggestEditModal}/> */}</div>}
-              {bill.responsibleMinistry && <div className="flex justify-between"><span><span className="font-semibold">Responsible Ministry:</span> {bill.responsibleMinistry}</span> {/* <EditFieldButton fieldPath="responsibleMinistry" onClick={openSuggestEditModal}/> */}</div>}
-              {bill.houseOfIntroduction && <div className="flex justify-between"><span><span className="font-semibold">Introduced In:</span> {bill.houseOfIntroduction}</span> {/* <EditFieldButton fieldPath="houseOfIntroduction" onClick={openSuggestEditModal}/> */}</div>}
-              {bill.parliamentarySession && <div className="flex justify-between"><span><span className="font-semibold">Session:</span> {bill.parliamentarySession}</span> {/* <EditFieldButton fieldPath="parliamentarySession" onClick={openSuggestEditModal}/> */}</div>}
+              {bill.billType && <div className="flex justify-between"><span><span className="font-semibold">Type:</span> {bill.billType}</span> </div>}
+              {bill.responsibleMinistry && <div className="flex justify-between"><span><span className="font-semibold">Responsible Ministry:</span> {bill.responsibleMinistry}</span> </div>}
+              {bill.houseOfIntroduction && <div className="flex justify-between"><span><span className="font-semibold">Introduced In:</span> {bill.houseOfIntroduction}</span> </div>}
+              {bill.parliamentarySession && <div className="flex justify-between"><span><span className="font-semibold">Session:</span> {bill.parliamentarySession}</span> </div>}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="font-headline text-xl flex items-center gap-2"><Clock className="text-primary"/> Key Dates</CardTitle>
-              {/* <EditFieldButton fieldPath="keyDates" onClick={openSuggestEditModal} tooltip="Edit all key dates"/> */}
             </CardHeader>
             <CardContent className="space-y-1.5 text-sm text-muted-foreground">
               <div className="flex justify-between items-center"><span className="flex items-center gap-1"><ShieldCheck className="inline-block h-4 w-4 mr-1 text-primary/70" /> Status:
                  <Badge variant={bill.status === 'Became Law' ? 'default' : 'secondary'}
                         className={`ml-1 ${bill.status === 'Became Law' ? 'bg-green-500 text-white' : ''}`}>
                     {bill.status}
-                </Badge></span> {/* <EditFieldButton fieldPath="status" onClick={openSuggestEditModal}/> */}
+                </Badge></span>
               </div>
-              {bill.introducedDate && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Introduced: {format(new Date(bill.introducedDate), 'MMMM dd, yyyy')}</span> {/* <EditFieldButton fieldPath="introducedDate" onClick={openSuggestEditModal}/> */}</div>}
-              {bill.keyDates?.committeeReferral && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><GitBranch className="inline-block h-4 w-4 mr-1 text-primary/70" /> Committee Referral: {format(new Date(bill.keyDates.committeeReferral), 'MMMM dd, yyyy')}</span> {/* <EditFieldButton fieldPath="keyDates.committeeReferral" onClick={openSuggestEditModal}/> */}</div>}
-              {bill.keyDates?.firstReading && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> First Reading: {format(new Date(bill.keyDates.firstReading), 'MMMM dd, yyyy')}</span> {/* <EditFieldButton fieldPath="keyDates.firstReading" onClick={openSuggestEditModal}/> */}</div>}
-              {bill.keyDates?.secondReading && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Second Reading: {format(new Date(bill.keyDates.secondReading), 'MMMM dd, yyyy')}</span> {/* <EditFieldButton fieldPath="keyDates.secondReading" onClick={openSuggestEditModal}/> */}</div>}
-              {bill.keyDates?.thirdReading && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Third Reading: {format(new Date(bill.keyDates.thirdReading), 'MMMM dd, yyyy')}</span> {/* <EditFieldButton fieldPath="keyDates.thirdReading" onClick={openSuggestEditModal}/> */}</div>}
-              {bill.keyDates?.passedLowerHouse && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Lower House: {format(new Date(bill.keyDates.passedLowerHouse), 'MMMM dd, yyyy')}</span> {/* <EditFieldButton fieldPath="keyDates.passedLowerHouse" onClick={openSuggestEditModal}/> */}</div>}
-              {bill.keyDates?.passedUpperHouse && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Upper House: {format(new Date(bill.keyDates.passedUpperHouse), 'MMMM dd, yyyy')}</span> {/* <EditFieldButton fieldPath="keyDates.passedUpperHouse" onClick={openSuggestEditModal}/> */}</div>}
-              {bill.keyDates?.assent && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Assented: {format(new Date(bill.keyDates.assent), 'MMMM dd, yyyy')}</span> {/* <EditFieldButton fieldPath="keyDates.assent" onClick={openSuggestEditModal}/> */}</div>}
-              {bill.keyDates?.effectiveDate && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Effective: {format(new Date(bill.keyDates.effectiveDate), 'MMMM dd, yyyy')}</span> {/* <EditFieldButton fieldPath="keyDates.effectiveDate" onClick={openSuggestEditModal}/> */}</div>}
-              {bill.lastActionDate && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Last Action: {format(new Date(bill.lastActionDate), 'MMMM dd, yyyy')}</span> {/* <EditFieldButton fieldPath="lastActionDate" onClick={openSuggestEditModal}/> */}</div>}
-              {bill.lastActionDescription && <p className="text-xs mt-1 pl-5 flex justify-between"><span>{bill.lastActionDescription}</span> {/* <EditFieldButton fieldPath="lastActionDescription" onClick={openSuggestEditModal}/> */}</p>}
+              {bill.introducedDate && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Introduced: {format(new Date(bill.introducedDate), 'MMMM dd, yyyy')}</span> </div>}
+              {bill.keyDates?.committeeReferral && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><GitBranch className="inline-block h-4 w-4 mr-1 text-primary/70" /> Committee Referral: {format(new Date(bill.keyDates.committeeReferral), 'MMMM dd, yyyy')}</span> </div>}
+              {bill.keyDates?.firstReading && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> First Reading: {format(new Date(bill.keyDates.firstReading), 'MMMM dd, yyyy')}</span> </div>}
+              {bill.keyDates?.secondReading && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Second Reading: {format(new Date(bill.keyDates.secondReading), 'MMMM dd, yyyy')}</span> </div>}
+              {bill.keyDates?.thirdReading && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Third Reading: {format(new Date(bill.keyDates.thirdReading), 'MMMM dd, yyyy')}</span> </div>}
+              {bill.keyDates?.passedLowerHouse && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Lower House: {format(new Date(bill.keyDates.passedLowerHouse), 'MMMM dd, yyyy')}</span> </div>}
+              {bill.keyDates?.passedUpperHouse && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Passed Upper House: {format(new Date(bill.keyDates.passedUpperHouse), 'MMMM dd, yyyy')}</span> </div>}
+              {bill.keyDates?.assent && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Assented: {format(new Date(bill.keyDates.assent), 'MMMM dd, yyyy')}</span> </div>}
+              {bill.keyDates?.effectiveDate && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CheckSquare className="inline-block h-4 w-4 mr-1 text-green-600" /> Effective: {format(new Date(bill.keyDates.effectiveDate), 'MMMM dd, yyyy')}</span> </div>}
+              {bill.lastActionDate && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Last Action: {format(new Date(bill.lastActionDate), 'MMMM dd, yyyy')}</span> </div>}
+              {bill.lastActionDescription && <p className="text-xs mt-1 pl-5 flex justify-between"><span>{bill.lastActionDescription}</span> </p>}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="font-headline text-xl flex items-center gap-2"><Users className="text-primary"/> Sponsors</CardTitle>
-              {/* <EditFieldButton fieldPath="sponsors" onClick={openSuggestEditModal} tooltip="Edit sponsors (JSON)"/> */}
             </CardHeader>
             <CardContent>
               <ul className="space-y-1">
@@ -509,7 +447,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                       {sponsor.name}
                     </Link>
                     <span className="text-muted-foreground text-xs">({sponsor.type})</span>
-                    {/* <EditFieldButton fieldPath={`sponsors[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this sponsor"/> */}
                   </li>
                 ))}
               </ul>
@@ -520,7 +457,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
              <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="font-headline text-xl flex items-center gap-2"><Landmark className="text-primary"/> Committees</CardTitle>
-                  {/* <EditFieldButton fieldPath="committees" onClick={openSuggestEditModal} tooltip="Edit committees (JSON array of names)"/> */}
                 </CardHeader>
                 <CardContent>
                 <ul className="space-y-1">
@@ -528,15 +464,13 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                       const committee = getCommitteeByName(committeeName);
                       return (
                         <li key={idx} className="text-sm text-foreground/80 flex justify-between items-center">
-                           {committee && committee.id ? ( // Use id for linking if available
+                           {committee && committee.id ? (
                             <Link href={`/committees/${committee.slug || committee.id}`} className="text-primary hover:underline">
                                 {committeeName}
                             </Link>
                            ) : (
                              <span>{committeeName}</span>
                            )}
-                           {/* For simple array of strings, edit is on the whole array or individual item if form supports it */}
-                           {/* <EditFieldButton fieldPath={`committees[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this committee name"/> */}
                         </li>
                       );
                     })}
@@ -549,7 +483,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
              <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="font-headline text-xl flex items-center gap-2"><Layers className="text-primary"/> Impact</CardTitle>
-                  {/* <EditFieldButton fieldPath="impact" onClick={openSuggestEditModal} tooltip="Edit impact statement"/> */}
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-foreground/80 whitespace-pre-line">{bill.impact}</p>
@@ -561,7 +494,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
              <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="font-headline text-xl flex items-center gap-2"><Tag className="text-primary"/> Tags</CardTitle>
-                  {/* <EditFieldButton fieldPath="tags" onClick={openSuggestEditModal} tooltip="Edit tags (JSON array of strings)"/> */}
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-2">
                     {bill.tags.map((tag) => (
@@ -572,14 +504,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                 </CardContent>
             </Card>
           )}
-          <Button
-            onClick={handleFollowBillToggle}
-            className="w-full"
-            variant={isFollowingBill ? "outline" : "default"}
-          >
-            {isFollowingBill ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-            {isFollowingBill ? `Following Bill` : `Follow Bill`}
-          </Button>
         </div>
       </div>
     </div>

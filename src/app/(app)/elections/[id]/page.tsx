@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -50,9 +49,6 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  // const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false); // Old form state - Removed
-  // const [suggestionFieldName, setSuggestionFieldName] = useState(''); // Old form state - Removed
-  // const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>(''); // Old form state - Removed
   const [isElectionSuggestEntityEditModalOpen, setIsElectionSuggestEntityEditModalOpen] = useState(false); // New form state
 
   useEffect(() => {
@@ -82,32 +78,6 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
       </div>
     );
   }
-
-  // const handleSuggestEditClick = (fieldName: string, oldValue: any) => { // Old form handler - Removed
-  //   if (!isUserLoggedIn()) {
-  //     router.push('/auth/login');
-  //     return;
-  //   }
-  //   setSuggestionFieldName(fieldName);
-  //   setSuggestionOldValue(oldValue);
-  //   setIsSuggestEditModalOpen(true);
-  // };
-
-  // const handleElectionSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => { // Old form handler - Removed
-  //   console.log("Election Edit Suggestion:", {
-  //     entityType: "Election",
-  //     entityName: election?.name,
-  //     fieldName: suggestionFieldName,
-  //     oldValue: suggestionOldValue,
-  //     ...suggestion,
-  //   });
-  //   toast({
-  //     title: "Suggestion Submitted",
-  //     description: `Edit suggestion for ${suggestionFieldName} on election '${election?.name}' submitted for review.`,
-  //     duration: 5000,
-  //   });
-  //   setIsSuggestEditModalOpen(false);
-  // };
 
   const openSuggestElectionEditModal = () => { // New form handler
     if (!isUserLoggedIn()) {
@@ -224,6 +194,13 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
         }
         actions={
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleFollowElectionToggle}
+            >
+              {isFollowingElection ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+              {isFollowingElection ? 'Following' : 'Follow'}
+            </Button>
             <Button variant="outline" onClick={openSuggestElectionEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Election
             </Button>
@@ -239,17 +216,7 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
         }
       />
 
-      {/* <SuggestEditForm // Old form instance - Removed
-        isOpen={isSuggestEditModalOpen}
-        onOpenChange={setIsSuggestEditModalOpen}
-        entityType="Election"
-        entityName={election?.name || ''}
-        fieldName={suggestionFieldName}
-        oldValue={suggestionOldValue}
-        onSubmit={handleElectionSuggestionSubmit}
-      /> */}
-
-      {election && isElectionSuggestEntityEditModalOpen && entitySchemas.Election && ( // New form instance
+      {election && isElectionSuggestEntityEditModalOpen && entitySchemas.Election && (
         <SuggestEntityEditForm
           isOpen={isElectionSuggestEntityEditModalOpen}
           onOpenChange={setIsElectionSuggestEntityEditModalOpen}
@@ -464,14 +431,6 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
               <p className="text-muted-foreground text-sm">(Detailed voter turnout analysis will be displayed here in future updates.)</p>
             </CardContent>
           </Card>
-           <Button
-            onClick={handleFollowElectionToggle}
-            className="w-full"
-            variant={isFollowingElection ? "outline" : "default"}
-          >
-            {isFollowingElection ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-            {isFollowingElection ? `Following Election` : `Follow Election`}
-          </Button>
         </div>
       </div>
     </div>
@@ -480,3 +439,5 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
 
 
     
+
+[end of src/app/(app)/elections/[id]/page.tsx]

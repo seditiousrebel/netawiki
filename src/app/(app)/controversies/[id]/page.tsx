@@ -1,4 +1,3 @@
-
 "use client";
 
 import { getControversyById } from '@/lib/mock-data';
@@ -35,10 +34,7 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  // const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false); // Old form state - Removed
-  // const [suggestionFieldName, setSuggestionFieldName] = useState(''); // Old form state - Removed
   const [isControversySuggestEntityEditModalOpen, setIsControversySuggestEntityEditModalOpen] = useState(false); // New form state
-  // suggestionOldValue is not needed here, SuggestEditForm derives it
 
   useEffect(() => {
     if (controversy) {
@@ -66,40 +62,6 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
       </div>
     );
   }
-
-  // const handleSuggestEditClick = (fieldName: string) => { // Old form handler - Removed
-  //   if (!isUserLoggedIn()) {
-  //     router.push('/auth/login');
-  //     return;
-  //   }
-  //   setSuggestionFieldName(fieldName);
-  //   // setSuggestionOldValue(oldValue); // No longer needed
-  //   setIsSuggestEditModalOpen(true);
-  // };
-
-  // const handleControversySuggestionSubmit = (suggestion: { // Old form handler - Removed
-  //   fieldPath: string;
-  //   suggestedValue: any;
-  //   oldValue: any;
-  //   reason: string;
-  //   evidenceUrl: string;
-  // }) => {
-  //   console.log("Controversy Edit Suggestion:", {
-  //     entityType: "Controversy",
-  //     entityName: controversy?.title,
-  //     fieldPath: suggestion.fieldPath,
-  //     oldValue: suggestion.oldValue,
-  //     suggestedValue: suggestion.suggestedValue,
-  //     reason: suggestion.reason,
-  //     evidenceUrl: suggestion.evidenceUrl,
-  //   });
-  //   toast({
-  //     title: "Suggestion Submitted",
-  //     description: `Edit suggestion for ${suggestion.fieldPath} on controversy '${controversy?.title}' submitted for review.`,
-  //     duration: 5000,
-  //   });
-  //   setIsSuggestEditModalOpen(false);
-  // };
 
   const openSuggestControversyEditModal = () => { // New form handler
     if (!isUserLoggedIn()) {
@@ -229,6 +191,13 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
         }
         actions={
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleFollowToggle}
+            >
+              {isFollowingControversy ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+              {isFollowingControversy ? 'Following' : 'Follow'}
+            </Button>
             <Button variant="outline" onClick={openSuggestControversyEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Controversy
             </Button>
@@ -244,19 +213,7 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
         }
       />
       
-      {/* {controversy && entitySchemas.Controversy && ( // Old form instance - Removed
-        <SuggestEditForm
-          isOpen={isSuggestEditModalOpen}
-          onOpenChange={setIsSuggestEditModalOpen}
-          entitySchema={entitySchemas.Controversy}
-          currentEntityData={controversy}
-          fieldPath={suggestionFieldName}
-          entityDisplayName={controversy.title}
-          onSubmit={handleControversySuggestionSubmit}
-        />
-      )} */}
-
-      {controversy && isControversySuggestEntityEditModalOpen && entitySchemas.Controversy && ( // New form instance
+      {controversy && isControversySuggestEntityEditModalOpen && entitySchemas.Controversy && (
         <SuggestEntityEditForm
           isOpen={isControversySuggestEntityEditModalOpen}
           onOpenChange={setIsControversySuggestEntityEditModalOpen}
@@ -476,17 +433,11 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
               </CardContent>
             </Card>
           )}
-          <Button
-            onClick={handleFollowToggle}
-            className="w-full"
-            variant={isFollowingControversy ? "outline" : "default"}
-          >
-            {isFollowingControversy ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-            {isFollowingControversy ? `Following Controversy` : `Follow Controversy`}
-          </Button>
         </div>
       </div>
     </div>
   );
 }
     
+
+[end of src/app/(app)/controversies/[id]/page.tsx]
