@@ -92,20 +92,25 @@ export function AppHeader() {
         </Link>
 
         <nav className="hidden lg:flex items-center space-x-1 text-sm font-medium">
-          {mainNavLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                'transition-colors hover:text-primary px-2.5 py-1.5 rounded-md text-sm',
-                (pathname === '/' && link.href === '/feed') || (link.href !== '/' && pathname.startsWith(link.href))
-                  ? 'text-primary bg-primary/10 font-semibold'
-                  : 'text-foreground/70'
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {mainNavLinks.map((link) => {
+            if (link.href === '/feed' && !user) {
+              return null; // Don't render "My Feed" if user is not logged in
+            }
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  'transition-colors hover:text-primary px-2.5 py-1.5 rounded-md text-sm',
+                  (pathname === '/' && link.href === '/feed') || (link.href !== '/' && pathname.startsWith(link.href))
+                    ? 'text-primary bg-primary/10 font-semibold'
+                    : 'text-foreground/70'
+                )}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-2">
