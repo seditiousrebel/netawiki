@@ -1,14 +1,15 @@
+"use client"; 
 
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { UserCog, Bell, Palette, Bookmark as BookmarkIcon, X } from 'lucide-react'; // Added BookmarkIcon, X
-import { useState, useEffect } from 'react'; // Added useState, useEffect
-import Link from 'next/link'; // Added Link
-import { getAllNewsArticles } from '@/lib/mock-data'; // Added article data source
-import type { NewsArticleLink } from '@/types/gov'; // Added type
-import { useToast } from "@/hooks/use-toast"; // Added useToast
-import { format } from 'date-fns'; // Added date-fns
+import { UserCog, Bell, Palette, Bookmark as BookmarkIcon, X } from 'lucide-react'; 
+import { useState, useEffect } from 'react'; 
+import Link from 'next/link'; 
+import { getAllNewsArticles } from '@/lib/mock-data'; 
+import type { NewsArticleLink } from '@/types/gov'; 
+import { useToast } from "@/hooks/use-toast"; 
+import { format } from 'date-fns'; 
 
 const LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY = 'govtrackr_bookmarked_articles';
 
