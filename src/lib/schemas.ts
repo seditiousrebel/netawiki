@@ -1,5 +1,5 @@
 // src/lib/schemas.ts
-import type { FormFieldSchema, FieldType } from '@/components/common/suggest-new-entry-form';
+import type { FormFieldSchema, FieldType } from '@/types/form-schema'; // Updated import
 import type { EntityType } from '@/lib/data/suggestions'; // For the main Record key type
 // Import all necessary entity types and sub-types from gov.ts
 // Not all of these will be used directly in schemas if we are selective,

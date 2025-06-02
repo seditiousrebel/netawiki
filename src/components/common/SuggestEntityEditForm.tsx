@@ -11,9 +11,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox'; // Added for boolean type
+import { Checkbox } from '@/components/ui/checkbox';
+import type { FormFieldSchema, FieldType } from '@/types/form-schema';
+import { DynamicFormRenderer } from './form-parts/DynamicFormRenderer'; // Import the new renderer
 
-// Helper function to deep clone (basic version)
+// Helper function to deep clone (basic version) - This one is fine.
 const deepClone = (obj: any) => {
   if (obj === null || typeof obj !== 'object') {
     return obj;
@@ -30,319 +32,341 @@ const deepClone = (obj: any) => {
   return cloned;
 };
 
-// Define FieldType and FormFieldSchema interfaces
-export type FieldType =
-  | 'text'
-  | 'textarea'
-  | 'number'
-  | 'boolean'
-  | 'date'
-  | 'url'
-  | 'email';
-
-export interface FormFieldSchema {
-  name: string;
-  label: string;
-  type: FieldType | 'object' | 'array'; // Allow 'object' and 'array' as types
-  required?: boolean;
-  placeholder?: string;
-  options?: string[]; // For select/radio group type fields (not implemented yet)
-  objectSchema?: FormFieldSchema[]; // For nested objects
-  arrayItemSchema?: FormFieldSchema | FieldType; // Schema for array items
-}
+// Removed local FieldType and FormFieldSchema definitions
 
 export interface SuggestEntityEditFormProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   entityType: string;
   entitySchema: FormFieldSchema[];
-  currentEntityData: Record<string, any>; // Added
-  onSubmit: (submission: { formData: Record<string, any>; reason: string; evidenceUrl: string }) => void;
+  currentEntityData: Record<string, any>; 
+  fieldPath?: string; // Optional: path to a specific field to edit
+  entityDisplayName?: string; // Optional: For display in title
+  onSubmit: (submission: {
+    formData?: Record<string, any>; // For full entity
+    fieldPath?: string;             // For single field
+    suggestedValue?: any;           // For single field
+    oldValue?: any;                 // For single field
+    reason: string;
+    evidenceUrl: string;
+  }) => void;
 }
+
+// Helper function to safely get a value by path (copied from suggest-edit-form.tsx for robustness)
+export const getValueByPath = (obj: Record<string, any>, path: string): any => {
+  if (!path) return undefined;
+  const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.');
+  let current = obj;
+  for (const key of keys) {
+    if (current === null || typeof current !== 'object') return undefined;
+    if (Array.isArray(current) && /^\d+$/.test(key)) {
+      current = current[parseInt(key, 10)];
+    } else {
+      current = current[key];
+    }
+    if (current === undefined) return undefined;
+  }
+  return current;
+};
+
+// Helper function to get field schema by path (copied and adapted from suggest-edit-form.tsx)
+export const getFieldSchemaByPath = (entitySchemaFields: FormFieldSchema[], path: string): FormFieldSchema | null => {
+  if (typeof path !== 'string') {
+    console.warn('getFieldSchemaByPath called with non-string path:', path);
+    return null;
+  }
+  if (!entitySchemaFields) {
+    console.warn('getFieldSchemaByPath called with undefined entitySchemaFields.');
+    return null;
+  }
+  const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.');
+  let currentSchema: FormFieldSchema[] | FormFieldSchema | undefined = entitySchemaFields;
+  let resolvedSchema: FormFieldSchema | null = null;
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    if (!currentSchema) return null;
+
+    if (Array.isArray(currentSchema)) {
+      resolvedSchema = currentSchema.find(f => f.name === key) || null;
+    } else { 
+      resolvedSchema = currentSchema; 
+    }
+
+    if (!resolvedSchema) return null;
+
+    if (i < keys.length - 1) { 
+      const nextKeyIsArrayIndex = /^\d+$/.test(keys[i + 1]);
+      if (resolvedSchema.type === 'object' && resolvedSchema.objectSchema && !nextKeyIsArrayIndex) {
+        currentSchema = resolvedSchema.objectSchema;
+      } else if (resolvedSchema.type === 'array' && resolvedSchema.arrayItemSchema) {
+        if (nextKeyIsArrayIndex) {
+          if (typeof resolvedSchema.arrayItemSchema === 'object') {
+            currentSchema = resolvedSchema.arrayItemSchema as FormFieldSchema;
+          } else { 
+            currentSchema = { name: keys[i+1], label: `Item ${parseInt(keys[i+1],10)+1}`, type: resolvedSchema.arrayItemSchema as FieldType };
+          }
+        } else { 
+          if (typeof resolvedSchema.arrayItemSchema === 'object' && (resolvedSchema.arrayItemSchema as FormFieldSchema).objectSchema) {
+            currentSchema = (resolvedSchema.arrayItemSchema as FormFieldSchema).objectSchema;
+          } else {
+            return null; 
+          }
+        }
+      } else {
+        // This was the last key segment
+      }
+    }
+  }
+  const lastKey = keys[keys.length -1];
+  if (resolvedSchema && resolvedSchema.type === 'array' && /^\d+$/.test(lastKey) && typeof resolvedSchema.arrayItemSchema !== 'object') {
+      return { name: lastKey, label: `Item ${parseInt(lastKey,10)+1}`, type: resolvedSchema.arrayItemSchema as FieldType };
+  }
+  return resolvedSchema;
+};
+
 
 export const SuggestEntityEditForm: React.FC<SuggestEntityEditFormProps> = ({
   isOpen,
   onOpenChange,
   entityType,
   entitySchema,
-  currentEntityData, // Added
+  currentEntityData,
   onSubmit,
+  fieldPath, // New prop
+  entityDisplayName, // New prop
 }) => {
-  const [formData, setFormData] = useState<Record<string, any>>(currentEntityData || {});
+  const [formData, setFormData] = useState<Record<string, any>>({});
   const [reason, setReason] = useState('');
   const [evidenceUrl, setEvidenceUrl] = useState('');
+  const [oldValue, setOldValue] = useState<any>(null); // For single field edit
+  const [targetSchema, setTargetSchema] = useState<FormFieldSchema | null>(null); // For single field edit
 
-  // Helper to get value from formData using a path string
-  const getValueByPath = (obj: Record<string, any>, path: string): any => {
-    if (!path) return obj; // If path is empty, return the object itself (useful for root of a sub-schema)
-    // Normalize array access (e.g., arr[0]) to dot notation (e.g., arr.0)
-    const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.');
-    let current = obj;
-    for (const key of keys) {
-      if (current === null || typeof current !== 'object') return undefined;
-      if (Array.isArray(current) && /^\d+$/.test(key)) {
-        current = current[parseInt(key, 10)];
-      } else {
-        current = current[key];
-      }
-      if (current === undefined) return undefined;
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (!currentEntityData) {
+      console.warn("SuggestEntityEditForm: currentEntityData is undefined.");
+      return;
     }
-    return current;
-  };
+    if (!entitySchema) {
+      console.warn("SuggestEntityEditForm: entitySchema is undefined.");
+      return;
+    }
+
+    if (fieldPath) {
+      const schema = getFieldSchemaByPath(entitySchema, fieldPath);
+      setTargetSchema(schema);
+      const currentFieldValue = getValueByPath(currentEntityData, fieldPath);
+      setOldValue(deepClone(currentFieldValue));
+      // Initialize formData with only the specific field's value for editing
+      const initialFieldValue = deepClone(currentFieldValue);
+      setFormData(initialFieldValue);
+    } else {
+      // Full entity edit mode
+      setFormData(deepClone(currentEntityData) || {});
+      setTargetSchema(null); // Ensure targetSchema is cleared for full entity mode
+      setOldValue(null); // Ensure oldValue is cleared
+    }
+    setReason('');
+    setEvidenceUrl('');
+  }, [isOpen, fieldPath, currentEntityData, entitySchema]);
+
 
   const handleInputChange = (path: string, value: any) => {
-    setFormData((prevData) => {
-      const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.'); // Normalize array access to dot notation
-      let currentLevel = { ...prevData };
-      let dataRef = currentLevel;
+    if (fieldPath && targetSchema) {
+      // Single field edit mode
+      if (targetSchema.type === 'object' || targetSchema.type === 'array') {
+        // formData is an object or array; path is relative to it.
+        // Example: fieldPath = "contact", targetSchema.type = "object"
+        // formData = { email: "...", phone: "..." }
+        // A change to email input calls handleInputChange("email", "new@example.com")
+        // path = "email"
+        setFormData((prevData: any) => {
+          const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.');
+          // prevData is the current state of the single field (e.g., the contact object)
+          let currentLevel = deepClone(prevData); 
+          // Ensure currentLevel is an object if it's not, and keys exist
+          if (typeof currentLevel !== 'object' && keys.length > 0) {
+             // This case should ideally be prevented by correct initialization of formData
+             // For example, if editing an optional object field that is currently null.
+             currentLevel = /^\d+$/.test(keys[0]) ? [] : {};
+          }
+          let dataRef = currentLevel;
 
-      for (let i = 0; i < keys.length - 1; i++) {
-        const key = keys[i];
-        const nextKey = keys[i + 1];
-        const isNextKeyArrayIndex = /^\d+$/.test(nextKey);
+          for (let i = 0; i < keys.length - 1; i++) {
+            const key = keys[i];
+            const nextKey = keys[i + 1];
+            const isNextKeyArrayIndex = /^\d+$/.test(nextKey);
 
-        if (!dataRef[key] || typeof dataRef[key] !== 'object') {
-          dataRef[key] = isNextKeyArrayIndex ? [] : {};
-        } else {
-          // Important: create a shallow copy of the nested object/array to avoid direct state mutation
-          dataRef[key] = Array.isArray(dataRef[key]) ? [...dataRef[key]] : { ...dataRef[key] };
-        }
-        dataRef = dataRef[key];
+            if (!dataRef[key] || typeof dataRef[key] !== 'object') {
+              dataRef[key] = isNextKeyArrayIndex ? [] : {};
+            } else {
+              dataRef[key] = Array.isArray(dataRef[key]) ? [...dataRef[key]] : { ...dataRef[key] };
+            }
+            dataRef = dataRef[key];
+          }
+          dataRef[keys[keys.length - 1]] = value;
+          return currentLevel;
+        });
+      } else {
+        // formData is a simple value (e.g. string, number, boolean)
+        // path from renderFormField for a simple type will be fieldSchema.name
+        // So, we just update formData to the new value.
+        setFormData(value);
       }
+    } else {
+      // Full entity edit mode: path is relative to the root entity object
+      setFormData((prevData:any) => {
+        const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.');
+        let currentLevel = { ...prevData };
+        let dataRef = currentLevel;
 
-      const lastKey = keys[keys.length - 1];
-      dataRef[lastKey] = value;
-      return currentLevel;
-    });
+        for (let i = 0; i < keys.length - 1; i++) {
+          const key = keys[i];
+          const nextKey = keys[i + 1];
+          const isNextKeyArrayIndex = /^\d+$/.test(nextKey);
+
+          if (!dataRef[key] || typeof dataRef[key] !== 'object') {
+            dataRef[key] = isNextKeyArrayIndex ? [] : {};
+          } else {
+            dataRef[key] = Array.isArray(dataRef[key]) ? [...dataRef[key]] : { ...dataRef[key] };
+          }
+          dataRef = dataRef[key];
+        }
+
+        const lastKey = keys[keys.length - 1];
+        dataRef[lastKey] = value;
+        return currentLevel;
+      });
+    }
   };
 
 
   const handleSubmit = () => {
-    const suggestionData = {
-      ...formData, // Spread the dynamic form data
-      reason,
-      evidenceUrl,
-      submittedAt: new Date().toISOString(),
-      status: 'PendingUpdate', // Changed status
-    };
-    onSubmit({ formData, reason, evidenceUrl }); // Updated onSubmit call
-    // Don't reset to empty, reset to currentEntityData if available, or empty if not (though currentEntityData should always be there for an edit)
-    setFormData(currentEntityData ? deepClone(currentEntityData) : {});
+    if (fieldPath) {
+      onSubmit({
+        fieldPath,
+        suggestedValue: formData, // formData now holds the value of the single field
+        oldValue,
+        reason,
+        evidenceUrl,
+      });
+    } else {
+      onSubmit({ formData, reason, evidenceUrl });
+    }
+    // Reset form state
+    if (fieldPath && currentEntityData) {
+        const currentFieldValue = getValueByPath(currentEntityData, fieldPath);
+        setFormData(deepClone(currentFieldValue));
+    } else if (currentEntityData) {
+        setFormData(deepClone(currentEntityData));
+    } else {
+        setFormData({});
+    }
     setReason('');
     setEvidenceUrl('');
   };
 
   const handleCancel = () => {
     onOpenChange(false);
-    setFormData(currentEntityData ? deepClone(currentEntityData) : {});
+    // Reset form state based on mode
+    if (fieldPath && currentEntityData) {
+        const currentFieldValue = getValueByPath(currentEntityData, fieldPath);
+        setOldValue(deepClone(currentFieldValue));
+        setFormData(deepClone(currentFieldValue));
+    } else if (currentEntityData) {
+        setFormData(deepClone(currentEntityData) || {});
+    } else {
+        setFormData({});
+    }
     setReason('');
     setEvidenceUrl('');
   };
 
-  // Placeholder for the recursive rendering function
-  const renderFormField = (fieldSchema: FormFieldSchema, basePath: string, dataForPath: any) => {
-    const { name, label, type, required, placeholder, objectSchema, arrayItemSchema } = fieldSchema;
-    // Construct the full path for the current field. If basePath is empty (root level), don't prepend a dot.
-    const fullPath = basePath ? `${basePath}.${name}` : name;
-
-    // Get the current value for this field using the full path from the top-level formData
-    // This was a slight misunderstanding in previous step: getValueByPath should always work from root formData or the specific object slice.
-    // dataForPath IS the specific slice. So we access `name` directly on it.
-    // const currentValue = getValueByPath(formData, fullPath); // Option 1: always use root formData
-    const currentValue = dataForPath && typeof dataForPath === 'object' ? dataForPath[name] : undefined; // Option 2: use the passed dataForPath slice
-
-
-    switch (type) {
-      case 'text':
-      case 'url':
-      case 'email':
-      case 'date':
-      case 'number':
-        return (
-          <div key={fullPath} className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor={fullPath} className="text-right">
-              {label}{required && '*'}
-            </Label>
-            <Input
-              id={fullPath}
-              type={type === 'number' ? 'number' : (type === 'date' ? 'date' : 'text')}
-              value={currentValue || ''}
-              onChange={(e) => handleInputChange(fullPath, e.target.value)}
-              className="col-span-3"
-              placeholder={placeholder || `Enter ${label.toLowerCase()}`}
-              required={required}
-            />
-          </div>
-        );
-      case 'textarea':
-        return (
-          <div key={fullPath} className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor={fullPath} className="text-right pt-2">
-              {label}{required && '*'}
-            </Label>
-            <Textarea
-              id={fullPath}
-              value={currentValue || ''}
-              onChange={(e) => handleInputChange(fullPath, e.target.value)}
-              className="col-span-3 min-h-[100px]"
-              placeholder={placeholder || `Enter ${label.toLowerCase()}`}
-              required={required}
-            />
-          </div>
-        );
-      case 'boolean':
-        return (
-          <div key={fullPath} className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor={fullPath} className="text-right col-span-3">
-              {label}{required && '*'}
-            </Label>
-            <Checkbox
-              id={fullPath}
-              checked={!!currentValue}
-              onCheckedChange={(checked) => handleInputChange(fullPath, checked)}
-              className="col-span-1 justify-self-start"
-            />
-          </div>
-        );
-      case 'object':
-        if (!objectSchema) {
-          return <p key={fullPath}>Error: objectSchema not defined for {name}</p>;
-        }
-        return (
-          <div key={fullPath} className="space-y-4 p-4 border rounded-md">
-            <h3 className="font-semibold text-lg">{label}</h3>
-            {/* Pass `currentValue` as the `dataForPath` for sub-fields. This is the object slice. */}
-            {objectSchema.map(subField => renderFormField(subField, fullPath, currentValue || {}))}
-          </div>
-        );
-      case 'array':
-        if (!arrayItemSchema) {
-          return <p key={fullPath}>Error: arrayItemSchema not defined for {name}</p>;
-        }
-        // `currentValue` here is the array itself
-        const items = Array.isArray(currentValue) ? currentValue : [];
-        return (
-          <div key={fullPath} className="space-y-4 p-4 border rounded-md">
-            <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-lg">{label}</h3>
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                        // Path for the new item in the array
-                        const newItemPath = `${fullPath}[${items.length}]`;
-                        if (typeof arrayItemSchema === 'object' && arrayItemSchema.objectSchema) {
-                            // Initialize new object based on its schema
-                            const newObj = arrayItemSchema.objectSchema.reduce((acc, sf) => {
-                                // @ts-ignore - initialize with undefined or default based on schema
-                                acc[sf.name] = undefined;
-                                return acc;
-                            }, {} as Record<string, any>);
-                            handleInputChange(newItemPath, newObj);
-                        } else {
-                             // For simple types or arrayItemSchema as FieldType
-                            handleInputChange(newItemPath, ''); // Initialize with empty string or undefined
-                        }
-                    }}
-                >
-                    Add {typeof arrayItemSchema === 'object' ? arrayItemSchema.label || 'Item' : 'Item'}
-                </Button>
-            </div>
-            {items.map((item: any, index: number) => {
-              // Path for the current item within the array
-              const itemPath = `${fullPath}[${index}]`;
-              return (
-                <div key={itemPath} className="p-3 border rounded bg-slate-50 dark:bg-slate-800 relative">
-                  {typeof arrayItemSchema === 'object' ? (
-                     arrayItemSchema.objectSchema ?
-                        // For array of objects, 'item' is the object. Pass it as `dataForPath`.
-                        // The `basePath` for sub-fields is `itemPath`.
-                        arrayItemSchema.objectSchema.map(subField => renderFormField(subField, itemPath, item))
-                        : <p>Error: objectSchema missing in arrayItemSchema for {arrayItemSchema.label}</p>
-                  ) : (
-                    // Array of simple types. `item` is the value.
-                    <div className="grid grid-cols-4 items-center gap-2">
-                        <Input
-                            id={itemPath} // ID for the input field itself
-                            type={arrayItemSchema as FieldType === 'number' ? 'number' : 'text'}
-                            value={item || ''}
-                            onChange={(e) => handleInputChange(itemPath, e.target.value)}
-                            className="col-span-3"
-                            placeholder={`Enter value`}
-                        />
-                        <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => {
-                                const newItems = [...items];
-                                newItems.splice(index, 1);
-                                // Update the whole array at its path (`fullPath`)
-                                handleInputChange(fullPath, newItems);
-                            }}
-                            className="col-span-1"
-                        >
-                            Remove
-                        </Button>
-                    </div>
-                  )}
-                   {/* Common Remove button for array of objects items */}
-                   {typeof arrayItemSchema === 'object' && (
-                     <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => {
-                            const newItems = [...items];
-                            newItems.splice(index, 1);
-                            handleInputChange(fullPath, newItems); // Update the whole array
-                        }}
-                        className="mt-2" // Placed consistently for object array items
-                    >
-                        Remove {arrayItemSchema.label || 'Item'}
-                    </Button>
-                   )}
-                </div>
-              );
-            })}
-             {items.length === 0 && <p className="text-sm text-muted-foreground">No items yet. Click "Add" to create one.</p>}
-          </div>
-        );
-      default:
-        // Fallback for unsupported field types
-        const fieldIdForDefault = fullPath; // Use fullPath for id
-        return (
-          <div key={fieldIdForDefault} className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor={fieldIdForDefault} className="text-right">
-              {label}
-            </Label>
-            <Input
-              id={fieldIdForDefault}
-              value={currentValue || ''} // Display current value if any
-              onChange={(e) => handleInputChange(fullPath, e.target.value)} // Allow editing, though type is unknown
-              className="col-span-3"
-              placeholder={`Unsupported field type: ${String(type)}`}
-              disabled
-            />
-          </div>
-        );
-    }
-  };
+  // Local renderFormField removed, will use DynamicFormRenderer
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Suggest Edits for {entityType}</DialogTitle>
+          <DialogTitle>
+            {fieldPath && targetSchema
+              ? `Suggest Edit: ${entityDisplayName || entityType} - ${targetSchema.label}`
+              : `Suggest Edits for ${entityType}`}
+          </DialogTitle>
           <DialogDescription>
-            Propose changes to the details of this {entityType.toLowerCase()}. Your suggestions will be reviewed.
+            {fieldPath && targetSchema
+              ? `Propose a change for the field "${targetSchema.label}". Your suggestion will be reviewed.`
+              : `Propose changes to the details of this ${entityType.toLowerCase()}. Your suggestions will be reviewed.`}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          {/* Dynamic form fields will be rendered here */}
-          {/* Initial call: basePath is empty, dataForPath is the root formData object */}
-          {entitySchema.map((field) => renderFormField(field, '', formData))}
+          {fieldPath && targetSchema ? (
+            <>
+              {/* Display Current Value for single field edit */}
+              <div className="grid grid-cols-4 items-start gap-4 p-2 rounded-md bg-muted/20">
+                <Label htmlFor="oldValueDisplay" className="text-right pt-2 text-sm text-muted-foreground">
+                  Current Value
+                </Label>
+                <div className="col-span-3">
+                  {typeof oldValue === 'object' && oldValue !== null ? (
+                    <Textarea id="oldValueDisplay" value={JSON.stringify(oldValue, null, 2)} disabled className="min-h-[60px] text-xs font-mono bg-background/70" />
+                  ) : (
+                    <Textarea id="oldValueDisplay" value={String(oldValue ?? '')} disabled className="min-h-[40px] bg-background/70" />
+                  )}
+                </div>
+              </div>
+              {/* Render only the specific field.
+                  - Pass targetSchema as the schema.
+                  - Pass '' as basePath because formData is the value of this field.
+                  - Pass formData itself as dataForPath.
+                  However, renderFormField expects dataForPath to be an object where it can lookup fieldSchema.name.
+                  So, if formData is the direct value (e.g. string), we need to wrap it or handle it.
+                  If targetSchema.type is 'object' or 'array', formData itself is the object/array.
+                  If targetSchema.type is a simple type, formData is the value.
+                  The `renderFormField` needs to be called such that `currentValue` is correctly derived.
+                  If targetSchema is {name: "fieldName", label: "Field Name", type: "text"},
+                  and formData is "current text value" (simple type),
+                  the call is renderFormField(targetSchema, '', "current text value").
+                  Inside renderFormField: fieldSchema=targetSchema, basePath='', dataForPath="current text value".
+                  currentValue logic: fieldPath is active, basePath is '', name is "fieldName", targetSchema.name is "fieldName".
+                  So, currentValue = dataForPath = "current text value". This is correct.
+                  Input onChange calls handleInputChange("fieldName", newValue).
+                  In handleInputChange: targetSchema.type is 'text', so setFormData(newValue). Correct.
+
+                  If targetSchema is {name: "address", type: "object", objectSchema: [...]},
+                  and formData is { street: "...", city: "..." } (object type),
+                  the call is DynamicFormRenderer with fieldSchema=targetSchema, basePath='', dataForPath=formData, isSingleFieldRoot=true.
+                  Inside DynamicFormRenderer for "address" schema:
+                    currentValue = dataForPath = { street: "...", city: "..." }. Correct.
+                  This "address" field will then recursively call DynamicFormRenderer for "street".
+                  e.g. DynamicFormRenderer with fieldSchema=streetSchema, basePath="address", dataForPath=currentValue (the address object), isSingleFieldRoot=false.
+                  Inside DynamicFormRenderer for "street":
+                    currentValue = dataForPath[streetSchema.name] = addressObject["street"]. Correct.
+                  Input onChange calls handleInputChange("address.street", newValue). This path is correct.
+              */}
+              <DynamicFormRenderer
+                fieldSchema={targetSchema}
+                basePath=""
+                dataForPath={formData}
+                onInputChange={handleInputChange}
+                isSingleFieldRoot={true} 
+              />
+            </>
+          ) : (
+            // Full entity edit: render all fields from entitySchema
+            entitySchema.map((field) => (
+              <DynamicFormRenderer
+                key={field.name}
+                fieldSchema={field}
+                basePath=""
+                dataForPath={formData}
+                onInputChange={handleInputChange}
+                // isSingleFieldRoot is false by default
+              />
+            ))
+          )}
 
           {/* Fixed fields for reason and evidence */}
           <div className="grid grid-cols-4 items-start gap-4 pt-4 border-t mt-4">
