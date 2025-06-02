@@ -9,13 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { TimelineDisplay, formatPromiseStatusUpdatesForTimeline } from '@/components/common/timeline-display';
-import { Edit, Users2, User, ClipboardList, AlertTriangle, Info, FileText, CalendarClock, CalendarCheck2, Percent, Landmark, Link2, ExternalLink, History, CheckCircle, RefreshCw, XCircle, Star, UserPlus, Newspaper, Tag, Download, Trash2 } from 'lucide-react'; // Added Download, Trash2
+import { Edit, Users2, User, ClipboardList, AlertTriangle, Info, FileText, CalendarClock, CalendarCheck2, Percent, Landmark, Link2, ExternalLink, History, CheckCircle, RefreshCw, XCircle, Star, UserPlus, Newspaper, Tag, Trash2 } from 'lucide-react'; // Removed Download
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import type { PromiseItem, PromiseStatus, PromiseEvidenceLink, PromiseStatusUpdate, NewsArticleLink } from '@/types/gov';
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
+// import { exportElementAsPDF } from '@/lib/utils'; // Removed PDF export
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 // import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
@@ -54,7 +54,7 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
   const { toast } = useToast();
   const currentUser = getCurrentUser();
   const router = useRouter();
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
+  // const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // Removed For PDF export
 
   const [isFollowingPromise, setIsFollowingPromise] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
@@ -228,11 +228,7 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
   const { icon: statusIcon, badgeClass } = getStatusVisuals(promise.status);
   const timelineItems = promise.statusUpdateHistory ? formatPromiseStatusUpdatesForTimeline(promise.statusUpdateHistory) : [];
 
-  async function handleExportPdf() {
-    if (!promise) return;
-    const fileName = `promise-${promise.title.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
-    await exportElementAsPDF('promise-details-export-area', fileName, setIsGeneratingPdf);
-  }
+  // Removed handleExportPdf function
 
   const handleDeletePromise = () => {
     if (!promise) return;
@@ -250,9 +246,7 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
             <Button variant="outline" onClick={openSuggestPromiseEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Promise
             </Button>
-            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
-              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Promise Details'}
-            </Button>
+            {/* Export button removed */}
             {canAccess(currentUser.role, ADMIN_ROLES) && (
               <Button variant="destructive" onClick={handleDeletePromise}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete Promise

@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { ArrowRight, FileText, ExternalLink, SearchIcon, CheckSquare, ShieldQuestion } from 'lucide-react';
+import { ArrowRight, FileText, ExternalLink, SearchIcon, CheckSquare, ShieldQuestion, Bookmark, BookmarkCheck } from 'lucide-react'; // Added Bookmark, BookmarkCheck
 import type { NewsArticleLink, NewsArticleCategory } from '@/types/gov';
 import { format } from 'date-fns';
 // Removed duplicate import: import { Button } from '@/components/ui/button'; 
@@ -24,18 +24,30 @@ import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation'; 
 import { useToast } from "@/hooks/use-toast"; 
 
+const LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY = 'govtrackr_bookmarked_articles';
+
 export default function NewsPage() {
   const router = useRouter(); 
   const { toast } = useToast(); 
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false); 
   const [articles, setArticles] = useState<NewsArticleLink[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<NewsArticleLink[]>([]);
+  const [bookmarkedArticleIds, setBookmarkedArticleIds] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<NewsArticleCategory | ''>('');
   const [sortOption, setSortOption] = useState('date_desc');
 
   useEffect(() => {
     setArticles(getAllNewsArticles());
+    try {
+      const bookmarkedArticlesStr = localStorage.getItem(LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY);
+      if (bookmarkedArticlesStr) {
+        setBookmarkedArticleIds(JSON.parse(bookmarkedArticlesStr));
+      }
+    } catch (error) {
+      console.error("Error reading bookmarked articles from localStorage:", error);
+      // Optionally, clear corrupted data or show a toast
+    }
   }, []);
 
   const allCategories = useMemo(() => {
@@ -94,6 +106,35 @@ export default function NewsPage() {
       description: `Suggestion for new news article '${formData.title || 'N/A'}' submitted.`,
     });
     setIsSuggestModalOpen(false);
+  };
+
+  const handleBookmarkToggle = (articleId: string, articleTitle: string) => {
+    const newBookmarkedIds = bookmarkedArticleIds.includes(articleId)
+      ? bookmarkedArticleIds.filter(id => id !== articleId)
+      : [...bookmarkedArticleIds, articleId];
+    
+    setBookmarkedArticleIds(newBookmarkedIds);
+
+    try {
+      localStorage.setItem(LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY, JSON.stringify(newBookmarkedIds));
+      toast({
+        title: bookmarkedArticleIds.includes(articleId) ? `Bookmark Removed` : `Article Bookmarked`,
+        description: bookmarkedArticleIds.includes(articleId) 
+          ? `"${articleTitle.substring(0,30)}..." removed from bookmarks.`
+          : `"${articleTitle.substring(0,30)}..." added to bookmarks.`,
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error updating bookmarked articles in localStorage:", error);
+      toast({
+        title: "Could not update bookmark",
+        description: "There was an issue saving your bookmark preference. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      // Revert state if localStorage fails
+      setBookmarkedArticleIds(bookmarkedArticleIds);
+    }
   };
 
   return (
@@ -207,15 +248,27 @@ export default function NewsPage() {
                     </div>
                   )}
                 </CardContent>
-                {!article.isAggregated && (
-                  <CardFooter className="pt-0">
+                <CardFooter className="pt-0 flex justify-between items-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleBookmarkToggle(article.id, article.title)}
+                    aria-label={bookmarkedArticleIds.includes(article.id) ? 'Remove bookmark' : 'Add bookmark'}
+                  >
+                    {bookmarkedArticleIds.includes(article.id) ? (
+                      <BookmarkCheck className="h-5 w-5 text-primary" />
+                    ) : (
+                      <Bookmark className="h-5 w-5 text-muted-foreground" />
+                    )}
+                  </Button>
+                  {!article.isAggregated && (
                     <Link href={`/news/${article.slug || article.id}`} className="ml-auto">
                       <Button variant="outline" size="sm">
                         Read More <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     </Link>
-                  </CardFooter>
-                )}
+                  )}
+                </CardFooter>
               </div>
             </Card>
           ))}

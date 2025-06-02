@@ -9,10 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ExternalLink, CalendarDays, UserCircle, Tag, Link as LinkIcon, CheckSquare, ShieldQuestion, Newspaper, ArrowLeft, Users, Flag, FileText, ListChecks, VoteIcon, ShieldAlert, Bookmark, BookmarkCheck, Star, History, Download, Trash2, Edit } from 'lucide-react'; // Added Download, Trash2, Edit
+import { ExternalLink, CalendarDays, UserCircle, Tag, Link as LinkIcon, CheckSquare, ShieldQuestion, Newspaper, ArrowLeft, Users, Flag, FileText, ListChecks, VoteIcon, ShieldAlert, Bookmark, BookmarkCheck, Star, History, Trash2, Edit } from 'lucide-react'; // Removed Download
 import { format } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
-import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
+// import { exportElementAsPDF } from '@/lib/utils'; // Removed PDF export
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 // import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
@@ -28,7 +28,7 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
   const { toast } = useToast();
   const currentUser = getCurrentUser();
   const router = useRouter();
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
+  // const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // Removed for PDF export
 
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
@@ -247,11 +247,7 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
     ) : <p className="text-sm text-muted-foreground">No specific entities tagged.</p>;
   };
 
-  async function handleExportPdf() {
-    if (!article) return;
-    const fileName = `article-${(article.slug || article.id).toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`;
-    await exportElementAsPDF('news-article-export-area', fileName, setIsGeneratingPdf);
-  }
+  // Removed handleExportPdf function
 
   const handleDeleteArticle = () => {
     if (!article) return;
@@ -288,9 +284,7 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
                     <Edit className="mr-2 h-4 w-4" /> Propose Changes to Article
                  </Button>
             )}
-            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
-              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Article'}
-            </Button>
+            {/* Export Article button removed */}
             {canAccess(currentUser.role, ADMIN_ROLES) && (
               <Button variant="destructive" onClick={handleDeleteArticle}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete Article

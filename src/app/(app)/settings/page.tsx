@@ -2,9 +2,66 @@
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { UserCog, Bell, Palette } from 'lucide-react';
+import { UserCog, Bell, Palette, Bookmark as BookmarkIcon, X } from 'lucide-react'; // Added BookmarkIcon, X
+import { useState, useEffect } from 'react'; // Added useState, useEffect
+import Link from 'next/link'; // Added Link
+import { getAllNewsArticles } from '@/lib/mock-data'; // Added article data source
+import type { NewsArticleLink } from '@/types/gov'; // Added type
+import { useToast } from "@/hooks/use-toast"; // Added useToast
+import { format } from 'date-fns'; // Added date-fns
+
+const LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY = 'govtrackr_bookmarked_articles';
 
 export default function SettingsPage() {
+  const [bookmarkedArticles, setBookmarkedArticles] = useState<NewsArticleLink[]>([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const allArticles = getAllNewsArticles();
+    try {
+      const bookmarkedArticlesStr = localStorage.getItem(LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY);
+      if (bookmarkedArticlesStr) {
+        const bookmarkedIds: string[] = JSON.parse(bookmarkedArticlesStr);
+        const filteredArticles = allArticles.filter(article => bookmarkedIds.includes(article.id));
+        setBookmarkedArticles(filteredArticles);
+      }
+    } catch (error) {
+      console.error("Error reading or parsing bookmarked articles from localStorage:", error);
+      toast({
+        title: "Error loading bookmarks",
+        description: "Could not load your bookmarked articles. They may be corrupted.",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
+
+  const handleRemoveBookmark = (articleId: string, articleTitle: string) => {
+    const newBookmarkedArticles = bookmarkedArticles.filter(article => article.id !== articleId);
+    setBookmarkedArticles(newBookmarkedArticles);
+
+    const newBookmarkedIds = newBookmarkedArticles.map(article => article.id);
+    try {
+      localStorage.setItem(LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY, JSON.stringify(newBookmarkedIds));
+      toast({
+        title: "Bookmark Removed",
+        description: `"${articleTitle.substring(0, 30)}..." removed from your bookmarks.`,
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error updating bookmarked articles in localStorage:", error);
+      toast({
+        title: "Could not remove bookmark",
+        description: "There was an issue updating your bookmarks. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      // Revert state if localStorage fails - re-add the article to the list
+      // This requires fetching all articles again or keeping a copy of the original list before filtering
+      // For simplicity here, we'll just log, but a real app might need more robust error handling.
+       console.error("Failed to save updated bookmarks to localStorage. UI might be out of sync.");
+    }
+  };
+
   return (
     <div>
       <PageHeader
@@ -54,6 +111,44 @@ export default function SettingsPage() {
                 <Button variant="outline">Manage Followed Politicians</Button>
                 <Button variant="outline">Manage Followed Parties</Button>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2 lg:col-span-3">
+          <CardHeader>
+            <CardTitle className="font-headline flex items-center gap-2">
+              <BookmarkIcon className="text-primary h-5 w-5" /> Bookmarked Articles
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-muted-foreground">Manage your bookmarked news articles.</p>
+            {bookmarkedArticles.length === 0 ? (
+              <p className="text-sm text-muted-foreground">You haven&apos;t bookmarked any articles yet.</p>
+            ) : (
+              <ul className="space-y-4">
+                {bookmarkedArticles.map(article => (
+                  <li key={article.id} className="flex justify-between items-center p-3 border rounded-md bg-secondary/30 hover:bg-secondary/50 transition-colors">
+                    <div>
+                      <Link href={`/news/${article.slug || article.id}`} className="text-primary hover:underline font-semibold">
+                        {article.title}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">
+                        {article.sourceName} &bull; {format(new Date(article.publicationDate), 'MMMM dd, yyyy')}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveBookmark(article.id, article.title)}
+                      aria-label="Remove bookmark"
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
       </div>
