@@ -6,36 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Loader2, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
-import {
-  getPoliticianById,
-  getPartyById,
-  getPromiseById,
-  getBillById,
-  getBillsBySponsor,
-  getNewsArticleByIdOrSlug, // Assuming this exists or will be created
-  mockPoliticians, // Fallback if specific getters fail or for direct use
-  mockParties,
-  mockPromises,
-  mockBills,
-  mockNewsArticles
-} from '@/lib/mock-data';
-import type { Politician, Party, PromiseItem, Bill, NewsArticleLink, StatementQuote, PartyStance, ElectionPerformanceRecord, PromiseStatusUpdate, BillTimelineEvent } from '@/types/gov';
+// Removed direct imports from mock-data as activities are now self-contained or resolved by mock-activity
+import { getFollowedItems, FollowableEntityType } from '@/lib/user';
+import { getMockActivities, ActivityItem } from '@/lib/mock-activity';
 
-// localStorage keys
-const LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY = 'govtrackr_followed_politicians';
-const LOCAL_STORAGE_FOLLOWED_PARTIES_KEY = 'govtrackr_followed_parties';
-const LOCAL_STORAGE_FOLLOWED_PROMISES_KEY = 'govtrackr_followed_promises';
-const LOCAL_STORAGE_FOLLOWED_BILLS_KEY = 'govtrackr_followed_bills';
-const LOCAL_STORAGE_BOOKMARKED_NEWS_KEY = 'govtrackr_bookmarked_news';
+// localStorage keys removed
 
-interface FeedItem {
-  type: string;
+interface FeedItem { // This structure is kept as the target for mapping
+  type: FollowableEntityType | string; // Use FollowableEntityType or string for custom types
   date: string;
   text: string;
   link?: string;
   title?: string;
   source?: string;
-  actorName?: string; // Politician name, Party name
+  actorName?: string; // Politician name, Party name, or ActivityItem.actorName
 }
 
 export default function FeedPage() {
@@ -43,155 +27,37 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Placeholder for getNewsArticleByIdOrSlug if not in mock-data
-  const getNewsArticleFallback = (idOrSlug: string): NewsArticleLink | undefined => {
-    return mockNewsArticles.find(news => news.id === idOrSlug || news.slug === idOrSlug);
-  };
-
-  const actualGetNewsArticleByIdOrSlug = typeof getNewsArticleByIdOrSlug === 'function' ? getNewsArticleByIdOrSlug : getNewsArticleFallback;
-
+  // Fallback function for news articles removed as it's not used with mock-activity
 
   useEffect(() => {
     setLoading(true);
-    const generatedUpdates: FeedItem[] = [];
+    const allActivities = getMockActivities();
+    const followedEntityKeys = new Set<string>(); // Stores keys like "politician:id1", "party:id2"
 
-    // Helper to safely parse localStorage
-    const getArrayFromLocalStorage = (key: string): string[] => {
-      try {
-        const item = localStorage.getItem(key);
-        if (item) {
-          const parsed = JSON.parse(item);
-          return Array.isArray(parsed) ? parsed : [];
-        }
-      } catch (error) {
-        console.error(`Error parsing localStorage key "${key}":`, error);
-      }
-      return [];
-    };
+    const relevantEntityTypes: FollowableEntityType[] = ['politician', 'party', 'promise', 'bill', 'news'];
 
-    const followedPoliticianIds = getArrayFromLocalStorage(LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY);
-    const followedPartyIds = getArrayFromLocalStorage(LOCAL_STORAGE_FOLLOWED_PARTIES_KEY);
-    const followedPromiseIds = getArrayFromLocalStorage(LOCAL_STORAGE_FOLLOWED_PROMISES_KEY);
-    const followedBillIds = getArrayFromLocalStorage(LOCAL_STORAGE_FOLLOWED_BILLS_KEY);
-    const bookmarkedNewsIds = getArrayFromLocalStorage(LOCAL_STORAGE_BOOKMARKED_NEWS_KEY);
-
-    // Process Politicians
-    followedPoliticianIds.forEach(id => {
-      const politician = getPoliticianById(id);
-      if (politician) {
-        const sponsoredBills = getBillsBySponsor(id);
-        sponsoredBills.forEach(bill => {
-          generatedUpdates.push({
-            type: 'NewBillSponsorship',
-            date: bill.introducedDate || new Date().toISOString(),
-            actorName: politician.name,
-            title: bill.title,
-            link: `/bills/${bill.id}`,
-            text: `${politician.name} sponsored a new bill: ${bill.title}`,
-          });
-        });
-
-        if (politician.statementsAndQuotes && politician.statementsAndQuotes.length > 0) {
-          const recentStatement = [...politician.statementsAndQuotes].sort((a,b) => new Date(b.dateOfStatement).getTime() - new Date(a.dateOfStatement).getTime())[0];
-          if(recentStatement) {
-            generatedUpdates.push({
-              type: 'NewStatement',
-              date: recentStatement.dateOfStatement,
-              actorName: politician.name,
-              title: `Statement by ${politician.name}`,
-              text: `${politician.name} made a statement: "${recentStatement.quoteText.substring(0, 100)}..."`,
-              // link: could link to politician page section if available, e.g. /politicians/${politician.id}#statements
-            });
-          }
-        }
-      }
+    relevantEntityTypes.forEach(type => {
+      const ids = getFollowedItems(type);
+      ids.forEach(id => followedEntityKeys.add(`${type}:${id}`));
     });
 
-    // Process Parties
-    followedPartyIds.forEach(id => {
-      const party = getPartyById(id);
-      if (party) {
-        if (party.stancesOnIssues && party.stancesOnIssues.length > 0) {
-           const recentStance = [...party.stancesOnIssues].sort((a,b) => new Date(b.dateOfStance || 0).getTime() - new Date(a.dateOfStance || 0).getTime())[0];
-           if(recentStance) {
-            generatedUpdates.push({
-              type: 'PartyStanceUpdate',
-              date: recentStance.dateOfStance || new Date().toISOString(),
-              actorName: party.name,
-              title: `Stance on ${recentStance.issueTitle}`,
-              text: `${party.name} updated its stance on ${recentStance.issueTitle} to ${recentStance.stance}`,
-              link: `/parties/${party.id}`, // Could add #stances if such an anchor exists
-            });
-           }
-        }
-        if (party.electionHistory && party.electionHistory.length > 0) {
-          const recentElection = [...party.electionHistory].sort((a,b) => parseInt(b.electionYear) - parseInt(a.electionYear))[0];
-          if(recentElection) {
-            generatedUpdates.push({
-              type: 'PartyElectionResult',
-              date: `${recentElection.electionYear}-01-01`, // Approximate date
-              actorName: party.name,
-              title: `Election Result ${recentElection.electionYear} for ${party.name}`,
-              text: `${party.name} election result from ${recentElection.electionYear}: Won ${recentElection.seatsWon} seat(s).`,
-              link: `/parties/${party.id}`, // Could add #election-history
-            });
-          }
-        }
-      }
+    const userFeedActivities = allActivities.filter(activity => {
+      return followedEntityKeys.has(`${activity.entityType}:${activity.entityId}`);
     });
 
-    // Process Promises
-    followedPromiseIds.forEach(id => {
-      const promise = getPromiseById(id); // Assuming getPromiseById is available
-      if (promise && promise.statusUpdateHistory && promise.statusUpdateHistory.length > 0) {
-        const recentUpdate = [...promise.statusUpdateHistory].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-        if(recentUpdate) {
-          generatedUpdates.push({
-            type: 'PromiseStatusUpdate',
-            date: recentUpdate.date,
-            title: promise.title,
-            link: `/promises#${promise.id}`,
-            text: `Status of promise "${promise.title}" updated to ${recentUpdate.status}`,
-          });
-        }
-      }
-    });
-
-    // Process Bills
-    followedBillIds.forEach(id => {
-      const bill = getBillById(id); // Assuming getBillById is available
-      if (bill && bill.timelineEvents && bill.timelineEvents.length > 0) {
-        const recentEvent = [...bill.timelineEvents].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-        if(recentEvent) {
-          generatedUpdates.push({
-            type: 'BillTimelineUpdate',
-            date: recentEvent.date,
-            title: bill.title,
-            link: `/bills/${bill.id}`,
-            text: `Update on bill "${bill.title}": ${recentEvent.event}`,
-          });
-        }
-      }
-    });
-
-    // Process Bookmarked News
-    bookmarkedNewsIds.forEach(id => {
-      const news = actualGetNewsArticleByIdOrSlug(id);
-      if (news) {
-        generatedUpdates.push({
-          type: 'BookmarkedNewsUpdate',
-          date: news.publicationDate,
-          title: news.title,
-          source: news.sourceName,
-          link: news.url || (news.slug ? `/news/${news.slug}` : undefined),
-          text: `From your bookmarks: "${news.title}" by ${news.sourceName}`,
-        });
-      }
-    });
+    const mappedFeedItems: FeedItem[] = userFeedActivities.map(activity => ({
+      type: activity.entityType, // Retains the specific entity type
+      date: activity.timestamp,
+      title: activity.title, // Uses the title from ActivityItem
+      text: activity.description, // Uses description from ActivityItem
+      link: activity.link,
+      actorName: activity.entityName || activity.actorName, // Uses entityName or actorName from ActivityItem
+      source: activity.entityType === 'news' ? activity.actorName : undefined, // If news, actorName is the source
+    }));
 
     // Sort all updates by date
-    generatedUpdates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    setFeedItems(generatedUpdates);
+    mappedFeedItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    setFeedItems(mappedFeedItems);
     setLoading(false);
 
   }, [refreshTrigger]);
