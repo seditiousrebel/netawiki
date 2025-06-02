@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from 'next/image';
@@ -6,31 +7,28 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone, DollarSign, VoteIcon, BookOpen, BarChart3, Newspaper, TrendingUp, Star, Download, Trash2 } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone, DollarSign, VoteIcon, BookOpen, BarChart3, Newspaper, TrendingUp, Star, Trash2 } from 'lucide-react'; // Removed Download
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from 'react';
 import type { PromiseItem, LeadershipEvent, Party, PartyAlliance, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection, HistoricalManifesto, ElectionPerformanceRecord, NewsArticleLink, Controversy } from '@/types/gov';
 import { TimelineDisplay } from '@/components/common/timeline-display';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { exportElementAsPDF } from '@/lib/utils';
+// import { exportElementAsPDF } from '@/lib/utils'; // Removed import
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-// import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
-import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; // Added
-import FollowButton from '@/components/common/FollowButton'; // Added FollowButton
+import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm';
+import FollowButton from '@/components/common/FollowButton';
 import { entitySchemas } from '@/lib/schemas';
 import type { EntityType } from '@/lib/data/suggestions';
 import { format } from 'date-fns';
-import ElectionPerformanceChart from '@/components/charts/ElectionPerformanceChart'; // Import the new chart
+import ElectionPerformanceChart from '@/components/charts/ElectionPerformanceChart';
 
 interface TimelineItem {
   date: string;
   title: string;
   description?: string;
 }
-
-// const LOCAL_STORAGE_FOLLOWED_PARTIES_KEY = 'govtrackr_followed_parties'; // Removed
 
 function formatLeadershipHistoryForTimeline(events: LeadershipEvent[] = []): TimelineItem[] {
   return events.map(event => {
@@ -71,15 +69,14 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   const { toast } = useToast();
   const currentUser = getCurrentUser();
   const router = useRouter();
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  // const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // Removed
 
-  const [isPartySuggestEntityEditModalOpen, setIsPartySuggestEntityEditModalOpen] = useState(false); // New form state
+  const [isPartySuggestEntityEditModalOpen, setIsPartySuggestEntityEditModalOpen] = useState(false);
 
   const [formattedFoundedDate, setFormattedFoundedDate] = useState<string | null>(null);
   const [formattedDissolvedDate, setFormattedDissolvedDate] = useState<string | null>(null);
   const [leadershipTimelineItems, setLeadershipTimelineItems] = useState<TimelineItem[]>([]);
   const [splitMergerTimelineItems, setSplitMergerTimelineItems] = useState<TimelineItem[]>([]);
-  // const [isFollowingParty, setIsFollowingParty] = useState(false); // Removed
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
@@ -100,7 +97,6 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
      if (party?.splitMergerHistory) {
       setSplitMergerTimelineItems(formatSplitMergerHistoryForTimeline(party.splitMergerHistory));
     }
-    // Removed logic for setting isFollowingParty from localStorage
   }, [party]);
 
   if (!party) {
@@ -123,7 +119,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   const relatedControversies = getControversiesByPartyId(party.id);
   const relatedNews = getNewsByPartyId(party.id);
 
-  const openSuggestPartyEditModal = () => { // New form handler
+  const openSuggestPartyEditModal = () => {
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
@@ -132,7 +128,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
     setIsPartySuggestEntityEditModalOpen(true);
   };
 
-  const handlePartyEntityEditSuggestionSubmit = (submission: { // New form handler
+  const handlePartyEntityEditSuggestionSubmit = (submission: {
     formData: Record<string, any>;
     reason: string;
     evidenceUrl: string;
@@ -157,8 +153,6 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
     setIsPartySuggestEntityEditModalOpen(false);
   };
 
-  // const handleFollowPartyToggle = () => { ... }; // Removed this function
-
   const handleRatingSubmit = () => {
     if (currentRating === 0) {
       toast({
@@ -177,11 +171,12 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
     });
   };
 
-  async function handleExportPdf() {
-    if (!party) return;
-    const fileName = `party-${party.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
-    await exportElementAsPDF('party-details-export-area', fileName, setIsGeneratingPdf);
-  }
+  // async function handleExportPdf() { // Removed
+  //   if (!party) return;
+  //   const fileName = `party-${party.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
+  //   // await exportElementAsPDF('party-details-export-area', fileName, setIsGeneratingPdf); // Removed call
+  //   alert("PDF Export functionality is currently disabled."); // Placeholder
+  // }
 
   const handleDeleteParty = () => {
     if (!party) return;
@@ -214,20 +209,20 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
         }
         actions={(
           <div className="flex gap-2">
-            {party && ( // Ensure party data is available
+            {party && (
               <FollowButton
                 entityId={party.id}
                 entityType="party"
                 entityName={party.name}
-                className="whitespace-nowrap" // Optional: for consistent styling
+                className="whitespace-nowrap"
               />
             )}
             <Button variant="outline" onClick={openSuggestPartyEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Party
             </Button>
-            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
+            {/* <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}> // Removed button
               <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Party Details'}
-            </Button>
+            </Button> */}
             {canAccess(currentUser.role, ADMIN_ROLES) && (
               <Button variant="destructive" onClick={handleDeleteParty}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete Party
@@ -603,7 +598,6 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             </Card>
           )}
 
-          {/* Election Performance Charts */}
           {party.electionHistory && party.electionHistory.length >= 2 && (
             <>
               <ElectionPerformanceChart 
@@ -884,5 +878,3 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
     </div>
   );
 }
-
-[end of src/app/(app)/parties/[id]/page.tsx]
