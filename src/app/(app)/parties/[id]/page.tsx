@@ -18,6 +18,7 @@ import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/au
 import { useRouter } from 'next/navigation';
 // import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
 import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; // Added
+import FollowButton from '@/components/common/FollowButton'; // Added FollowButton
 import { entitySchemas } from '@/lib/schemas';
 import type { EntityType } from '@/lib/data/suggestions';
 import { format } from 'date-fns';
@@ -28,7 +29,7 @@ interface TimelineItem {
   description?: string;
 }
 
-const LOCAL_STORAGE_FOLLOWED_PARTIES_KEY = 'govtrackr_followed_parties';
+// const LOCAL_STORAGE_FOLLOWED_PARTIES_KEY = 'govtrackr_followed_parties'; // Removed
 
 function formatLeadershipHistoryForTimeline(events: LeadershipEvent[] = []): TimelineItem[] {
   return events.map(event => {
@@ -77,7 +78,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   const [formattedDissolvedDate, setFormattedDissolvedDate] = useState<string | null>(null);
   const [leadershipTimelineItems, setLeadershipTimelineItems] = useState<TimelineItem[]>([]);
   const [splitMergerTimelineItems, setSplitMergerTimelineItems] = useState<TimelineItem[]>([]);
-  const [isFollowingParty, setIsFollowingParty] = useState(false);
+  // const [isFollowingParty, setIsFollowingParty] = useState(false); // Removed
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
@@ -98,19 +99,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
      if (party?.splitMergerHistory) {
       setSplitMergerTimelineItems(formatSplitMergerHistoryForTimeline(party.splitMergerHistory));
     }
-    if (party) {
-      try {
-        const followedPartiesStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_PARTIES_KEY);
-        if (followedPartiesStr) {
-          const followedPartyIds: string[] = JSON.parse(followedPartiesStr);
-          if (followedPartyIds.includes(party.id)) {
-            setIsFollowingParty(true);
-          }
-        }
-      } catch (error) {
-        console.error("Error reading followed parties from localStorage:", error);
-      }
-    }
+    // Removed logic for setting isFollowingParty from localStorage
   }, [party]);
 
   if (!party) {
@@ -156,41 +145,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
     setIsPartySuggestEntityEditModalOpen(false);
   };
 
-  const handleFollowPartyToggle = () => {
-    if (!party) return;
-    const newFollowingState = !isFollowingParty;
-    setIsFollowingParty(newFollowingState);
-
-    try {
-      const followedPartiesStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_PARTIES_KEY);
-      let followedPartyIds: string[] = followedPartiesStr ? JSON.parse(followedPartiesStr) : [];
-
-      if (newFollowingState) {
-        if (!followedPartyIds.includes(party.id)) {
-          followedPartyIds.push(party.id);
-        }
-      } else {
-        followedPartyIds = followedPartyIds.filter(id => id !== party.id);
-      }
-      localStorage.setItem(LOCAL_STORAGE_FOLLOWED_PARTIES_KEY, JSON.stringify(followedPartyIds));
-    } catch (error) {
-      console.error("Error updating followed parties in localStorage:", error);
-      toast({
-        title: "Could not update follow status",
-        description: "There was an issue saving your follow preference. Please try again.",
-        variant: "destructive",
-        duration: 3000,
-      });
-      setIsFollowingParty(!newFollowingState); // Revert state
-      return;
-    }
-
-    toast({
-      title: newFollowingState ? `Following ${party.name}` : `Unfollowed ${party.name}`,
-      description: newFollowingState ? "You'll receive updates for this party (demo)." : "You will no longer receive updates (demo).",
-      duration: 3000,
-    });
-  };
+  // const handleFollowPartyToggle = () => { ... }; // Removed this function
 
   const handleRatingSubmit = () => {
     if (currentRating === 0) {
@@ -247,13 +202,14 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
         }
         actions={(
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleFollowPartyToggle}
-            >
-              {isFollowingParty ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-              {isFollowingParty ? 'Following' : 'Follow'}
-            </Button>
+            {party && ( // Ensure party data is available
+              <FollowButton
+                entityId={party.id}
+                entityType="party"
+                entityName={party.name}
+                className="whitespace-nowrap" // Optional: for consistent styling
+              />
+            )}
             <Button variant="outline" onClick={openSuggestPartyEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Party
             </Button>

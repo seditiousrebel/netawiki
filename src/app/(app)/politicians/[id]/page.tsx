@@ -11,10 +11,11 @@ import { TimelineDisplay } from '@/components/common/timeline-display'; // Remov
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent, NewsArticleLink } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Keep useEffect if other effects use it
 import { Textarea } from '@/components/ui/textarea';
 // import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
 import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm';
+import FollowButton from '@/components/common/FollowButton'; // Added FollowButton import
 import { entitySchemas } from '@/lib/schemas'; // Added
 import { useNotificationStore } from "@/lib/notifications";
 import ScoreBarChart from '@/components/charts/ScoreBarChart';
@@ -35,8 +36,6 @@ interface TimelineItem {
   title: string;
   description?: string;
 }
-
-const LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY = 'govtrackr_followed_politicians';
 
 // Helper function to combine and sort career events - This local definition is correct
 function formatCombinedCareerTimeline(
@@ -78,7 +77,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   const router = useRouter();
   const politician = getPoliticianById(params.id);
   const { toast } = useToast();
-  const [isFollowing, setIsFollowing] = useState(false);
+  // const [isFollowing, setIsFollowing] = useState(false); // Removed isFollowing state
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [commentText, setCommentText] = useState("");
@@ -128,21 +127,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     }
   }, [politician?.dateOfBirth, politician?.dateOfDeath]);
 
-  useEffect(() => {
-    if (politician) {
-      try {
-        const followedPoliticiansStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY);
-        if (followedPoliticiansStr) {
-          const followedIds: string[] = JSON.parse(followedPoliticiansStr);
-          if (followedIds.includes(politician.id)) {
-            setIsFollowing(true);
-          }
-        }
-      } catch (error) {
-        console.error("Error reading followed politicians from localStorage:", error);
-      }
-    }
-  }, [politician]);
+  // Removed useEffect for isFollowing
 
   const handleEntityEditSuggestionSubmit = (submission: {
     formData: Record<string, any>;
@@ -169,41 +154,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     setIsSuggestEntityEditModalOpen(false);
   };
 
-  const handleFollowToggle = () => {
-    if (!politician) return;
-    const newFollowingState = !isFollowing;
-    setIsFollowing(newFollowingState);
-
-    try {
-      const followedPoliticiansStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY);
-      let followedIds: string[] = followedPoliticiansStr ? JSON.parse(followedPoliticiansStr) : [];
-
-      if (newFollowingState) {
-        if (!followedIds.includes(politician.id)) {
-          followedIds.push(politician.id);
-        }
-      } else {
-        followedIds = followedIds.filter(id => id !== politician.id);
-      }
-      localStorage.setItem(LOCAL_STORAGE_FOLLOWED_POLITICIANS_KEY, JSON.stringify(followedIds));
-    } catch (error) {
-      console.error("Error updating followed politicians in localStorage:", error);
-       toast({
-        title: "Could not update follow status",
-        description: "There was an issue saving your follow preference. Please try again.",
-        variant: "destructive",
-        duration: 3000,
-      });
-      setIsFollowing(!newFollowingState);
-      return;
-    }
-
-    toast({
-      title: newFollowingState ? `Following ${politician.name}` : `Unfollowed ${politician.name}`,
-      description: newFollowingState ? "You'll now receive updates in your feed (demo)." : "You will no longer receive updates (demo).",
-      duration: 3000,
-    });
-  };
+  // Removed handleFollowToggle function
 
   const handleRatingSubmit = () => {
     if (currentRating === 0) {
@@ -312,13 +263,14 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
         }
         actions={(
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleFollowToggle}
-            >
-              {isFollowing ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-              {isFollowing ? 'Following' : 'Follow'}
-            </Button>
+            {politician && ( // Ensure politician data is loaded
+              <FollowButton
+                entityId={politician.id}
+                entityType="politician"
+                entityName={politician.name}
+                className="whitespace-nowrap" // Added for consistent styling with other buttons if needed
+              />
+            )}
             <Button variant="outline" onClick={openSuggestEntityEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Profile
             </Button>
