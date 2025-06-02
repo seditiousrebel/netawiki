@@ -8,24 +8,22 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { CalendarDays, Users, VoteIcon, MapPin, BarChart3, UserCircle, Flag, ExternalLink, CheckCircle, Award, Newspaper, History, Star, UserPlus, Download, Trash2, Edit } from 'lucide-react'; // Added Download, Trash2, Edit
+import { CalendarDays, Users, VoteIcon, MapPin, BarChart3, UserCircle, Flag, ExternalLink, CheckCircle, Award, Newspaper, History, Star, UserPlus, Edit, Trash2 } from 'lucide-react';
 import type { Election, ElectionCandidate, ElectionStatus, Politician, Party, NewsArticleLink, ElectionTimelineEvent } from '@/types/gov';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { TimelineDisplay, formatElectionTimelineEventsForTimeline } from '@/components/common/timeline-display';
 import { useToast } from "@/hooks/use-toast";
-import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
+// Removed PDF export import
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-// import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
-import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; // Added
-import { entitySchemas } from '@/lib/schemas'; // Added
-import type { EntityType } from '@/lib/data/suggestions'; // Added
+import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; 
+import { entitySchemas } from '@/lib/schemas'; 
+import type { EntityType } from '@/lib/data/suggestions'; 
 
 const LOCAL_STORAGE_FOLLOWED_ELECTIONS_KEY = 'govtrackr_followed_elections';
 
 function getElectionStatusBadgeVariant(status: ElectionStatus) {
-  // Same as list page, can be refactored to a common util if needed
   switch (status) {
     case 'Concluded': return 'bg-green-500 text-white';
     case 'Ongoing': case 'Counting': return 'bg-blue-500 text-white';
@@ -44,13 +42,13 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
   const { toast } = useToast();
   const currentUser = getCurrentUser();
   const router = useRouter();
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // For PDF export
+  // Removed PDF export state
 
   const [isFollowingElection, setIsFollowingElection] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  const [isElectionSuggestEntityEditModalOpen, setIsElectionSuggestEntityEditModalOpen] = useState(false); // New form state
+  const [isElectionSuggestEntityEditModalOpen, setIsElectionSuggestEntityEditModalOpen] = useState(false); 
 
   useEffect(() => {
     if (election) {
@@ -80,7 +78,7 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
     );
   }
 
-  const openSuggestElectionEditModal = () => { // New form handler
+  const openSuggestElectionEditModal = () => { 
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
@@ -89,7 +87,7 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
     setIsElectionSuggestEntityEditModalOpen(true);
   };
 
-  const handleFullElectionEditSuggestionSubmit = (submission: { // New form handler
+  const handleFullElectionEditSuggestionSubmit = (submission: { 
     formData: Record<string, any>;
     reason: string;
     evidenceUrl: string;
@@ -166,11 +164,7 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
     });
   };
 
-  async function handleExportPdf() {
-    if (!election) return;
-    const fileName = `election-${election.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
-    await exportElementAsPDF('election-details-export-area', fileName, setIsGeneratingPdf);
-  }
+  // Removed handleExportPdf function
 
   const handleDeleteElection = () => {
     if (!election) return;
@@ -205,9 +199,7 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
             <Button variant="outline" onClick={openSuggestElectionEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Election
             </Button>
-            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
-              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Election Details'}
-            </Button>
+            {/* Export button removed */}
             {canAccess(currentUser.role, ADMIN_ROLES) && (
               <Button variant="destructive" onClick={handleDeleteElection}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete Election
@@ -311,7 +303,7 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
                         </div>
 
                       </CardHeader>
-                      <CardContent className="text-sm space-y-1.5 pt-0 pl-6 ml-[calc(48px+0.75rem)]"> {/* Indent content to align with name */}
+                      <CardContent className="text-sm space-y-1.5 pt-0 pl-6 ml-[calc(48px+0.75rem)]"> 
                         {party && (
                           <div className="flex items-center gap-1">
                             <Flag className="h-4 w-4 text-muted-foreground"/> Party: {' '}
@@ -371,7 +363,6 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
             </CardContent>
           </Card>
 
-          {/* Revision History Card - Assuming election.revisionHistory is available */}
           {election.revisionHistory && election.revisionHistory.length > 0 && (
             <Card>
               <CardHeader>
