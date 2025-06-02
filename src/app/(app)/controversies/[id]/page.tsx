@@ -1,3 +1,4 @@
+
 "use client";
 
 import { getControversyById } from '@/lib/mock-data';
@@ -5,19 +6,18 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Users, CalendarDays, FileText, ExternalLink, ShieldAlert, AlertTriangle, MessageSquare, Building, Tag, ListChecks, Scale, Briefcase, Milestone, Newspaper, BookOpen, Star, UserPlus, CheckCircle, History, Download, Trash2 } from 'lucide-react';
+import { Edit, Users, CalendarDays, FileText, ExternalLink, ShieldAlert, AlertTriangle, MessageSquare, Building, Tag, ListChecks, Scale, Briefcase, Milestone, Newspaper, BookOpen, Star, UserPlus, CheckCircle, History, Trash2 } from 'lucide-react'; // Removed Download
 import Link from 'next/link';
 import type { Controversy, InvolvedEntity, ControversyUpdate, ControversyEvidenceLink, ControversyOfficialResponse, ControversyMediaCoverage, ControversyLegalProceeding } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { TimelineDisplay, formatControversyUpdatesForTimeline } from '@/components/common/timeline-display';
 import React, { useState, useEffect } from 'react';
-import { exportElementAsPDF } from '@/lib/utils';
+// import { exportElementAsPDF } from '@/lib/utils'; // Removed PDF export import
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-// import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
-import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; // Added
-import { entitySchemas } from '@/lib/schemas'; // Added import
-import type { EntityType } from '@/lib/data/suggestions'; // Added
+import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; 
+import { entitySchemas } from '@/lib/schemas'; 
+import type { EntityType } from '@/lib/data/suggestions'; 
 import { format } from 'date-fns';
 
 const LOCAL_STORAGE_FOLLOWED_CONTROVERSIES_KEY = 'govtrackr_followed_controversies';
@@ -28,13 +28,13 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
   const { toast } = useToast();
   const currentUser = getCurrentUser();
   const router = useRouter();
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  // const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // Removed PDF generation state
 
   const [isFollowingControversy, setIsFollowingControversy] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  const [isControversySuggestEntityEditModalOpen, setIsControversySuggestEntityEditModalOpen] = useState(false); // New form state
+  const [isControversySuggestEntityEditModalOpen, setIsControversySuggestEntityEditModalOpen] = useState(false); 
 
   useEffect(() => {
     if (controversy) {
@@ -63,7 +63,7 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
     );
   }
 
-  const openSuggestControversyEditModal = () => { // New form handler
+  const openSuggestControversyEditModal = () => { 
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
@@ -72,7 +72,7 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
     setIsControversySuggestEntityEditModalOpen(true);
   };
 
-  const handleFullControversyEditSuggestionSubmit = (submission: { // New form handler
+  const handleFullControversyEditSuggestionSubmit = (submission: { 
     formData: Record<string, any>;
     reason: string;
     evidenceUrl: string;
@@ -160,11 +160,11 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
 
   const timelineItems = formatControversyUpdatesForTimeline(controversy.updates || []);
 
-  async function handleExportPdf() {
-    if (!controversy) return;
-    const fileName = `controversy-${controversy.title.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
-    await exportElementAsPDF('controversy-details-export-area', fileName, setIsGeneratingPdf);
-  }
+  // async function handleExportPdf() { // Removed
+  //   if (!controversy) return;
+  //   const fileName = `controversy-${controversy.title.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
+  //   await exportElementAsPDF('controversy-details-export-area', fileName, setIsGeneratingPdf);
+  // }
 
   const handleDeleteControversy = () => {
     if (!controversy) return;
@@ -201,9 +201,9 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
             <Button variant="outline" onClick={openSuggestControversyEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Controversy
             </Button>
-            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
+            {/* <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}> // Removed
               <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Controversy Details'}
-            </Button>
+            </Button> */}
             {canAccess(currentUser.role, ADMIN_ROLES) && (
               <Button variant="destructive" onClick={handleDeleteControversy}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete Controversy
@@ -439,5 +439,3 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
   );
 }
     
-
-[end of src/app/(app)/controversies/[id]/page.tsx]
