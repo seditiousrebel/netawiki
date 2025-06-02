@@ -171,8 +171,8 @@ export default function HomePage() {
               <p className="text-lg text-foreground/80 mb-6">
                 Our platform thrives on community contributions. Suggest edits, add information, and help us build the most comprehensive political tracker.
               </p>
-              <Button variant="default" size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                Get Involved
+              <Button asChild variant="default" size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                <Link href="/contribute">Get Involved</Link>
               </Button>
             </div>
             <div>

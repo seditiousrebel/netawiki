@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -23,20 +22,6 @@ import type { EntityType } from '@/lib/data/suggestions';
 
 const LOCAL_STORAGE_FOLLOWED_CONSTITUENCIES_KEY = 'govtrackr_followed_constituencies';
 
-// Helper component for edit buttons - REMOVED
-// const EditFieldButton: React.FC<{ fieldPath: string; onClick: (fieldPath: string) => void; className?: string; tooltip?: string }> = ({ fieldPath, onClick, className, tooltip }) => (
-//   <Button
-//     variant="ghost"
-//     size="icon"
-//     className={`ml-2 h-5 w-5 ${className ?? ''} opacity-50 group-hover:opacity-100 transition-opacity`}
-//     onClick={(e) => { e.stopPropagation(); onClick(fieldPath); }}
-//     title={tooltip || `Suggest edit for ${fieldPath.split('.').pop()?.replace(/\[\d+\]/, '')}`}
-//   >
-//     <Edit className="h-3 w-3 text-muted-foreground" />
-//   </Button>
-// );
-
-
 export default function ConstituencyDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
   const constituency = getConstituencyById(params.id);
@@ -50,8 +35,6 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  // const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false); // Old form state - Removed
-  // const [editingFieldPath, setEditingFieldPath] = useState(''); // Old form state - Removed
   const [isConstituencySuggestEntityEditModalOpen, setIsConstituencySuggestEntityEditModalOpen] = useState(false); // New form state
 
   useEffect(() => {
@@ -82,36 +65,6 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
     );
   }
   
-  // const openSuggestEditModal = (fieldPath: string) => { // Old form handler - Removed
-  //   if (!isUserLoggedIn()) {
-  //     router.push('/auth/login');
-  //     return;
-  //   }
-  //   if (!constituency) return;
-  //   setEditingFieldPath(fieldPath);
-  //   setIsSuggestEditModalOpen(true);
-  // };
-
-  // const handleSuggestionSubmit = (suggestion: { // Old form handler - Removed
-  //   fieldPath: string;
-  //   suggestedValue: any;
-  //   oldValue: any;
-  //   reason: string;
-  //   evidenceUrl: string;
-  // }) => {
-  //   console.log("Constituency Edit Suggestion:", {
-  //     entityType: "Constituency",
-  //     entityId: constituency?.id,
-  //     ...suggestion,
-  //   });
-  //   toast({
-  //     title: "Suggestion Submitted",
-  //     description: `Edit suggestion for ${suggestion.fieldPath} on constituency '${constituency?.name}' submitted for review.`,
-  //     duration: 5000,
-  //   });
-  //   setIsSuggestEditModalOpen(false);
-  // };
-
   const openSuggestConstituencyEditModal = () => { // New form handler
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
@@ -215,20 +168,27 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
       <PageHeader
         title={
           <span className="flex items-center">
-            {constituency.name} {/* <EditFieldButton fieldPath="name" onClick={openSuggestEditModal}/> */}
-            {constituency.code && <span className="ml-1 flex items-center">({constituency.code} {/* <EditFieldButton fieldPath="code" onClick={openSuggestEditModal}/> */})</span>}
+            {constituency.name} 
+            {constituency.code && <span className="ml-1 flex items-center">({constituency.code})</span>}
           </span>
         }
         description={
           <div className="flex flex-wrap gap-2 items-center mt-1 text-sm">
-            <Badge variant="secondary">{constituency.type} {/* <EditFieldButton fieldPath="type" onClick={openSuggestEditModal}/> */}</Badge>
+            <Badge variant="secondary">{constituency.type}</Badge>
             <span className="flex items-center gap-1 text-muted-foreground">
-              <MapPin className="h-4 w-4"/>{constituency.district} {/* <EditFieldButton fieldPath="district" onClick={openSuggestEditModal}/> */}, {constituency.province} {/* <EditFieldButton fieldPath="province" onClick={openSuggestEditModal}/> */}
+              <MapPin className="h-4 w-4"/>{constituency.district}, {constituency.province}
             </span>
           </div>
         }
         actions={
           <div className="flex gap-2">
+             <Button
+              variant="outline"
+              onClick={handleFollowToggle}
+            >
+              {isFollowingConstituency ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+              {isFollowingConstituency ? 'Following' : 'Follow'}
+            </Button>
             <Button variant="outline" onClick={openSuggestConstituencyEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Constituency
             </Button>
@@ -244,19 +204,7 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
         }
       />
 
-      {/* {constituency && isSuggestEditModalOpen && entitySchemas.Constituency && ( // Old form instance - Removed
-        <SuggestEditForm
-          isOpen={isSuggestEditModalOpen}
-          onOpenChange={setIsSuggestEditModalOpen}
-          entitySchema={entitySchemas.Constituency}
-          fieldPath={editingFieldPath}
-          currentEntityData={constituency}
-          entityDisplayName={constituency.name}
-          onSubmit={handleSuggestionSubmit}
-        />
-      )} */}
-
-      {constituency && isConstituencySuggestEntityEditModalOpen && entitySchemas.Constituency && ( // New form instance
+      {constituency && isConstituencySuggestEntityEditModalOpen && entitySchemas.Constituency && ( 
         <SuggestEntityEditForm
           isOpen={isConstituencySuggestEntityEditModalOpen}
           onOpenChange={setIsConstituencySuggestEntityEditModalOpen}
@@ -278,7 +226,6 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                     className="w-full object-cover"
                     data-ai-hint={constituency.dataAiHint || "map area"}
                 />
-                {/* <EditFieldButton fieldPath="dataAiHint" onClick={openSuggestEditModal} className="absolute top-2 right-2 bg-background/50 hover:bg-background/80" tooltip="Edit AI Hint"/> */}
                 <CardContent className="p-4 bg-muted/30">
                     <p className="text-sm text-muted-foreground">Note: This is a placeholder for an interactive map.</p>
                 </CardContent>
@@ -288,16 +235,15 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="font-headline text-xl flex items-center gap-2"><Info className="text-primary"/> Constituency Overview</CardTitle>
-              {/* <EditFieldButton fieldPath="slug" onClick={openSuggestEditModal} tooltip="Edit slug"/> */}
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-              <div className="flex justify-between"><span><strong>Type:</strong> {constituency.type}</span> {/* <EditFieldButton fieldPath="type" onClick={openSuggestEditModal}/> */}</div>
-              {constituency.code && <div className="flex justify-between"><span><strong>Code:</strong> {constituency.code}</span> {/* <EditFieldButton fieldPath="code" onClick={openSuggestEditModal}/> */}</div>}
-              <div className="flex justify-between"><span><strong>District:</strong> {constituency.district}</span> {/* <EditFieldButton fieldPath="district" onClick={openSuggestEditModal}/> */}</div>
-              <div className="flex justify-between"><span><strong>Province:</strong> {constituency.province}</span> {/* <EditFieldButton fieldPath="province" onClick={openSuggestEditModal}/> */}</div>
-              {constituency.population && <div className="flex justify-between"><span><strong>Population:</strong> {constituency.population.toLocaleString('en-US')}</span> {/* <EditFieldButton fieldPath="population" onClick={openSuggestEditModal}/> */}</div>}
-              {constituency.registeredVoters && <div className="flex justify-between"><span><strong>Registered Voters:</strong> {constituency.registeredVoters.toLocaleString('en-US')}</span> {/* <EditFieldButton fieldPath="registeredVoters" onClick={openSuggestEditModal}/> */}</div>}
-              {constituency.areaSqKm && <div className="flex justify-between"><span><strong>Area:</strong> {constituency.areaSqKm.toLocaleString('en-US')} sq. km</span> {/* <EditFieldButton fieldPath="areaSqKm" onClick={openSuggestEditModal}/> */}</div>}
+              <div className="flex justify-between"><span><strong>Type:</strong> {constituency.type}</span> </div>
+              {constituency.code && <div className="flex justify-between"><span><strong>Code:</strong> {constituency.code}</span> </div>}
+              <div className="flex justify-between"><span><strong>District:</strong> {constituency.district}</span> </div>
+              <div className="flex justify-between"><span><strong>Province:</strong> {constituency.province}</span> </div>
+              {constituency.population && <div className="flex justify-between"><span><strong>Population:</strong> {constituency.population.toLocaleString('en-US')}</span> </div>}
+              {constituency.registeredVoters && <div className="flex justify-between"><span><strong>Registered Voters:</strong> {constituency.registeredVoters.toLocaleString('en-US')}</span> </div>}
+              {constituency.areaSqKm && <div className="flex justify-between"><span><strong>Area:</strong> {constituency.areaSqKm.toLocaleString('en-US')} sq. km</span> </div>}
             </CardContent>
           </Card>
           
@@ -305,10 +251,6 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><Users className="text-primary"/> Current Representative(s)</CardTitle>
-                    <div>
-                        {/* <EditFieldButton fieldPath="currentRepresentativeIds" onClick={openSuggestEditModal} tooltip="Edit Rep IDs (JSON)"/> */}
-                        {/* <EditFieldButton fieldPath="currentRepresentativeNames" onClick={openSuggestEditModal} tooltip="Edit Rep Names (JSON)"/> */}
-                    </div>
                 </CardHeader>
                 <CardContent>
                     <ul className="space-y-2">
@@ -339,21 +281,18 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><Landmark className="text-primary"/> Key Demographics</CardTitle>
-                {/* <EditFieldButton fieldPath="keyDemographics" onClick={openSuggestEditModal} tooltip="Edit key demographics"/> */}
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                {constituency.keyDemographics.literacyRate && <p className="flex justify-between"><span><strong>Literacy Rate:</strong> {constituency.keyDemographics.literacyRate}%</span> {/* <EditFieldButton fieldPath="keyDemographics.literacyRate" onClick={openSuggestEditModal}/> */}</p>}
+                {constituency.keyDemographics.literacyRate && <p className="flex justify-between"><span><strong>Literacy Rate:</strong> {constituency.keyDemographics.literacyRate}%</span> </p>}
                 {constituency.keyDemographics.ethnicGroups && constituency.keyDemographics.ethnicGroups.length > 0 && (
                   <div>
                     <div className="flex justify-between items-center">
                       <strong>Major Ethnic Groups:</strong>
-                      {/* <EditFieldButton fieldPath="keyDemographics.ethnicGroups" onClick={openSuggestEditModal} tooltip="Edit ethnic groups (JSON)"/> */}
                     </div>
                     <ul className="list-disc list-inside ml-4">
                       {constituency.keyDemographics.ethnicGroups.map((group, idx) => (
                         <li key={group.name} className="flex justify-between items-center">
                           <span>{group.name}: {group.percentage}%</span>
-                          {/* <EditFieldButton fieldPath={`keyDemographics.ethnicGroups[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this ethnic group"/> */}
                         </li>
                       ))}
                     </ul>
@@ -368,7 +307,6 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
              <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><History className="text-primary"/>Historical Election Results</CardTitle>
-                    {/* <EditFieldButton fieldPath="historicalElectionResults" onClick={openSuggestEditModal} tooltip="Edit historical election results (JSON)"/> */}
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {constituency.historicalElectionResults.map((result, idx) => (
@@ -378,7 +316,6 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                               {result.winnerPoliticianName && <p>Winner: {result.winnerPoliticianId ? <Link href={`/politicians/${result.winnerPoliticianId}`} className="text-primary hover:underline">{result.winnerPoliticianName}</Link> : result.winnerPoliticianName} ({result.winningPartyName || 'N/A'})</p>}
                               {result.detailsUrl && <Link href={result.detailsUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">View Full Results</Link>}
                             </div>
-                            {/* <EditFieldButton fieldPath={`historicalElectionResults[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this election result"/> */}
                         </div>
                     ))}
                      <p className="text-xs text-muted-foreground pt-2 border-t mt-2">Note: Full election result breakdowns will be available in future updates.</p>
@@ -453,7 +390,6 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><Package className="text-primary"/>Key Development Projects</CardTitle>
-                    {/* <EditFieldButton fieldPath="developmentProjects" onClick={openSuggestEditModal} tooltip="Edit development projects (JSON)"/> */}
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {constituency.developmentProjects.map((project: DevelopmentProject, idx: number) => (
@@ -468,7 +404,6 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                               {project.expectedCompletion && <p className="text-xs">Expected Completion: {project.expectedCompletion}</p>}
                                {project.implementingAgency && <p className="text-xs">Agency: {project.implementingAgency}</p>}
                             </div>
-                            {/* <EditFieldButton fieldPath={`developmentProjects[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this project"/> */}
                         </div>
                     ))}
                 </CardContent>
@@ -479,7 +414,6 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><AlertTriangle className="text-primary"/>Major Local Issues</CardTitle>
-                    {/* <EditFieldButton fieldPath="localIssues" onClick={openSuggestEditModal} tooltip="Edit local issues (JSON)"/> */}
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {constituency.localIssues.map((issue: LocalIssue, idx: number) => (
@@ -496,7 +430,6 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                              {issue.reportedBy && <p className="text-xs text-muted-foreground">Reported by: {issue.reportedBy} {issue.dateReported && `on ${format(new Date(issue.dateReported), 'MM/dd/yyyy')}`}</p>}
                              {issue.resolutionDetails && <p className="text-xs text-green-700 mt-0.5">Resolution: {issue.resolutionDetails}</p>}
                            </div>
-                           {/* <EditFieldButton fieldPath={`localIssues[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this issue"/> */}
                         </div>
                     ))}
                 </CardContent>
@@ -531,7 +464,6 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
                            <Tag className="h-5 w-5 text-primary"/> Tags
                         </CardTitle>
-                        {/* <EditFieldButton fieldPath="tags" onClick={openSuggestEditModal} tooltip="Edit tags (JSON)"/> */}
                     </CardHeader>
                     <CardContent className="flex flex-wrap gap-2">
                         {constituency.tags.map((tag) => (
@@ -542,17 +474,11 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
                     </CardContent>
                 </Card>
             )}
-            <Button
-              onClick={handleFollowToggle}
-              className="w-full"
-              variant={isFollowingConstituency ? "outline" : "default"}
-            >
-              {isFollowingConstituency ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-              {isFollowingConstituency ? `Following Constituency` : `Follow Constituency`}
-            </Button>
         </div>
       </div>
     </div>
   );
 }
 
+
+[end of src/app/(app)/constituencies/[id]/page.tsx]

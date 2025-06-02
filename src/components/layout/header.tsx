@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+// Removed Users, FileText, Landmark, MapPin, ShieldAlert, Vote, Newspaper, Shield, ClipboardList from here
 import { Menu, Search, UserCircle, ShieldCheck, LogOut, SettingsIcon, Compass, Home as HomeIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -12,6 +13,7 @@ import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import NotificationBell from './NotificationBell';
 import { getCurrentUser, logout } from '@/lib/auth';
+import { entityNavItems } from '@/lib/navigation'; // Import entityNavItems
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +35,7 @@ const mobileSheetNavLinks = [
   // Settings will be grouped with profile actions below if user is logged in
 ];
 
+// Removed local entityNavItems definition
 
 export function AppHeader() {
   const pathname = usePathname();
@@ -89,20 +92,25 @@ export function AppHeader() {
         </Link>
 
         <nav className="hidden lg:flex items-center space-x-1 text-sm font-medium">
-          {mainNavLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                'transition-colors hover:text-primary px-2.5 py-1.5 rounded-md text-sm',
-                (pathname === '/' && link.href === '/feed') || (link.href !== '/' && pathname.startsWith(link.href))
-                  ? 'text-primary bg-primary/10 font-semibold'
-                  : 'text-foreground/70'
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {mainNavLinks.map((link) => {
+            if (link.href === '/feed' && !user) {
+              return null; // Don't render "My Feed" if user is not logged in
+            }
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  'transition-colors hover:text-primary px-2.5 py-1.5 rounded-md text-sm',
+                  (pathname === '/' && link.href === '/feed') || (link.href !== '/' && pathname.startsWith(link.href))
+                    ? 'text-primary bg-primary/10 font-semibold'
+                    : 'text-foreground/70'
+                )}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -204,6 +212,23 @@ export function AppHeader() {
                         {link.label}
                       </Link>
                     ))}
+                    <div className="mt-3 pt-3 border-t">
+                      <p className="px-2.5 py-1.5 text-xs font-semibold text-muted-foreground">Categories</p>
+                      {entityNavItems.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={cn(
+                            'text-base transition-colors hover:bg-accent/50 p-2.5 rounded-md flex items-center gap-2.5',
+                            pathname.startsWith(item.href) ? 'text-primary font-semibold bg-primary/10' : 'text-foreground/80 hover:text-primary'
+                          )}
+                          onClick={() => setIsSheetOpen(false)}
+                        >
+                          <item.icon className="h-5 w-5" />
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
                     <div className="pt-3 border-t mt-2">
                        {user ? (
                          <>

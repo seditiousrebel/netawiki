@@ -765,32 +765,15 @@ export {
 
 import Link from "next/link"
 import {
-  Users,
-  FileText,
-  Landmark,
-  MapPin,
-  ShieldAlert,
-  Vote,
-  Newspaper,
-  Shield,
-  ClipboardList,
+  // Users, FileText, Landmark, MapPin, ShieldAlert, Vote, Newspaper, Shield, ClipboardList, // Removed as they come from entityNavItems
   SettingsIcon,
   PanelLeftOpen,
   ShieldCheck, // For App logo
 } from "lucide-react"
 import { usePathname } from "next/navigation"
+import { entityNavItems } from "@/lib/navigation"; // Import entityNavItems
 
-const entityNavItems = [
-  { href: "/politicians", label: "Politicians", icon: Users },
-  { href: "/parties", label: "Parties", icon: Shield },
-  { href: "/bills", label: "Bills", icon: FileText },
-  { href: "/promises", label: "Promises", icon: ClipboardList },
-  { href: "/committees", label: "Committees", icon: Landmark },
-  { href: "/constituencies", label: "Constituencies", icon: MapPin },
-  { href: "/controversies", label: "Controversies", icon: ShieldAlert },
-  { href: "/elections", label: "Elections", icon: Vote },
-  { href: "/news", label: "News", icon: Newspaper },
-];
+// Removed local entityNavItems definition
 
 export function AppEntitySidebar() {
   const pathname = usePathname();
