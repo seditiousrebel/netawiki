@@ -113,17 +113,18 @@ export interface Politician {
   popularityScore?: number; // New field for popularity
   dataAiHint?: string;
   controversyIds?: string[]; // New: Link to controversies
-  revisionHistory?: RevisionHistoryItem[]; // New: For tracking changes
+  revisionHistory?: EntityRevision[]; // New: For tracking changes
 }
 
-// --- Revision History Item ---
-export interface RevisionHistoryItem {
+// --- Entity Revision ---
+export interface EntityRevision {
   id: string;
   date: string; // ISO Date string
   author: string; // e.g., "Admin", "User:JohnDoe", "System"
   event: string; // e.g., "Bio updated", "Contact info changed", "New position added"
   details?: string; // Optional: e.g., "Changed email from x to y"
   suggestionId?: string; // Optional: link to the approved suggestion
+  entitySnapshot: any; // JSON snapshot of the entity at the time of revision
 }
 
 export type PartyWing = {
@@ -225,7 +226,7 @@ export type NewsArticleLink = {
   taggedElectionIds?: string[];
   taggedCommitteeIds?: string[];
   taggedConstituencyIds?: string[];
-  revisionHistory?: RevisionHistoryItem[];
+  revisionHistory?: EntityRevision[];
 };
 
 export interface Party {
@@ -268,7 +269,7 @@ export interface Party {
   dataAiHint?: string;
   controversyIds?: string[];
   tags?: string[];
-  revisionHistory?: RevisionHistoryItem[];
+  revisionHistory?: EntityRevision[];
 }
 
 export type VoteOption = 'Yea' | 'Nay' | 'Abstain' | 'Not Voting';
@@ -338,7 +339,7 @@ export interface Bill {
   committees?: string[];
   impact?: string; // Briefly, what laws it amends/repeals
   tags?: string[];
-  revisionHistory?: RevisionHistoryItem[];
+  revisionHistory?: EntityRevision[];
 }
 
 export interface UserProfile {
@@ -365,6 +366,25 @@ export interface EditSuggestion {
   submittedAt: string; // ISO Date string
   reviewedBy?: string; // Admin User ID
   reviewedAt?: string; // ISO Date string
+}
+
+// --- Pending Edit Suggestion ---
+// Defines a structure for holding proposed changes or new entity creations
+// that are awaiting admin approval.
+export interface PendingEdit {
+  id: string; // Unique ID for this pending edit
+  entityType: string; // e.g., 'Politician', 'Party', 'Bill'. Could be 'EntityType' from suggestions if available.
+  entityId?: string; // ID of the entity being edited (null if creating a new entity)
+  proposedData: any; // Full JSON snapshot of the proposed new entity or changes for an existing one
+  reasonForChange?: string; // User-provided reason for the suggested edit
+  evidenceUrl?: string; // URL to evidence supporting the change
+  submittedByUserId: string; // ID of the user who submitted the suggestion
+  submittedAt: string; // ISO date string when the suggestion was submitted
+  status: 'PENDING' | 'APPROVED' | 'DENIED'; // Current status of the suggestion
+  adminFeedback?: string; // Feedback from admin if reviewed
+  approvedByUserId?: string; // ID of the admin who approved (if applicable)
+  deniedByUserId?: string; // ID of the admin who denied (if applicable)
+  reviewedAt?: string; // ISO date string when the suggestion was reviewed
 }
 
 // --- Controversy Related Types ---
@@ -434,7 +454,7 @@ export interface Controversy {
   legalProceedings?: ControversyLegalProceeding[];
   summaryOutcome?: string; // Overall summary of the outcome
   dataAiHint?: string; // For main image if any
-  revisionHistory?: RevisionHistoryItem[];
+  revisionHistory?: EntityRevision[];
 }
 
 
@@ -492,7 +512,7 @@ export interface PromiseItem {
   evidenceLinks: PromiseEvidenceLink[];
   statusUpdateHistory?: PromiseStatusUpdate[]; // Timeline of status changes
   tags?: string[];
-  revisionHistory?: RevisionHistoryItem[];
+  revisionHistory?: EntityRevision[];
 }
 
 // --- Election Hub Types ---
@@ -540,7 +560,7 @@ export interface Election {
   timelineEvents?: ElectionTimelineEvent[];
   tags?: string[];
   dataAiHint?: string; // For a representative image
-  revisionHistory?: RevisionHistoryItem[];
+  revisionHistory?: EntityRevision[];
 }
 
 export type ElectionCandidateStatus =
@@ -642,7 +662,7 @@ export interface Committee {
   dissolutionDate?: string; // ISO Date string (if applicable)
   activityTimeline?: CommitteeActivityEvent[];
   dataAiHint?: string; // For a generic image placeholder
-  revisionHistory?: RevisionHistoryItem[];
+  revisionHistory?: EntityRevision[];
 }
 
 // --- Constituency Types ---
@@ -713,7 +733,7 @@ export interface Constituency {
   localIssues?: LocalIssue[];
   dataAiHint?: string; // For image placeholder on list views
   tags?: string[];
-  revisionHistory?: RevisionHistoryItem[];
+  revisionHistory?: EntityRevision[];
 }
 
 export interface Notification {

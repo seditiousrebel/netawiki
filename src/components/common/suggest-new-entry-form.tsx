@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox'; // Added for boolean type
+import type { PendingEdit } from '@/types/gov'; // Added
+import { getCurrentUser } from '@/lib/auth'; // Added
 
 // Define FieldType and FormFieldSchema interfaces
 export type FieldType =
@@ -100,15 +102,27 @@ export const SuggestNewEntryForm: React.FC<SuggestNewEntryFormProps> = ({
 
 
   const handleSubmit = () => {
-    const newEntryData = {
-      entityType,
-      ...formData, // Spread the dynamic form data
-      reason,
-      evidenceUrl,
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      // Or handle more gracefully, e.g., show a message, redirect to login
+      console.error("No user logged in. Cannot submit new entry suggestion.");
+      // Potentially show a toast message to the user here
+      return;
+    }
+
+    const pendingEditData: PendingEdit = {
+      entityType: entityType, // from props
+      // entityId is undefined for new entries
+      proposedData: formData, // from component state
+      reasonForChange: reason, // from component state
+      evidenceUrl: evidenceUrl, // from component state
+      submittedByUserId: currentUser.id,
       submittedAt: new Date().toISOString(),
-      status: 'PendingNewEntry',
+      status: 'PENDING',
+      // adminFeedback, approvedByUserId, deniedByUserId, reviewedAt are undefined initially
     };
-    onSubmit(newEntryData);
+
+    onSubmit(pendingEditData);
     setFormData({}); // Reset dynamic form data
     setReason('');
     setEvidenceUrl('');

@@ -1,40 +1,30 @@
 // src/lib/data/suggestions.ts
 import type {
-  EditSuggestion,
+  PendingEdit,
+  EntityRevision,
   Politician,
   Party,
-  Bill,
-  Committee,
-  Constituency,
-  Election,
-  NewsArticleLink, // Representing 'News'
-  PromiseItem,     // Representing 'Promise'
+  // Bill, // Keep if needed for other examples or future use
+  // Committee,
+  // Constituency,
+  // Election,
+  // NewsArticleLink,
+  // PromiseItem,
   ContactInfo,     // Imported for Politician data structure
   PartyAffiliation, // Imported for Politician data structure
   PoliticalJourneyEvent, // Imported for Politician data structure
   EducationEntry, // Imported for Politician data structure
-  AssetDeclaration, // Imported for Politician data structure
-  CriminalRecord, // Imported for Politician data structure
-  CommitteeMembership, // Imported for Politician data structure
-  StatementQuote, // Imported for Politician data structure
-  LeadershipMember, // Imported for Party data structure
-  BillTimelineEvent, // Imported for Bill data structure
-  VoteRecord, // Imported for Bill data structure
+  // AssetDeclaration, // Keep if needed for Politician structure
+  // CriminalRecord, // Keep if needed for Politician structure
+  // CommitteeMembership, // Keep if needed for Politician structure
+  // StatementQuote, // Keep if needed for Politician structure
+  // LeadershipMember, // Imported for Party data structure
 } from '@/types/gov';
+import { mockPoliticians, mockParties } from '../mock-data'; // Assuming mockParties will be used
 
-// Union type for all possible entity data structures in a new entry suggestion
-export type AllEntityData =
-  | Politician
-  | Party
-  | Bill
-  | Committee
-  | Constituency
-  | Election
-  | NewsArticleLink
-  | PromiseItem;
-
-// String literal union for entity types
-export type EntityType =
+// String literal union for entity types that PendingEdit might refer to.
+// This can be expanded as more entity types support pending edits.
+export type HandledEntityType =
   | 'Politician'
   | 'Party'
   | 'Bill'
@@ -42,15 +32,17 @@ export type EntityType =
   | 'Constituency'
   | 'Election'
   | 'News'
-  | 'Promise';
+  | 'Promise'; // This type can be used for PendingEdit.entityType if strict typing is desired later.
 
-// No longer needed, will be removed by replacing NewEntrySuggestion interface
-// interface NewEntrySuggestionData { ... }
+/*
+// Old EditSuggestion and NewEntrySuggestion types are removed or commented out.
+// EditSuggestion is imported from @/types/gov but its usage here (mockEditSuggestions) is removed.
+// NewEntrySuggestion was defined locally.
 
 export interface NewEntrySuggestion {
   id: string;
-  entityType: EntityType; // Constrained to specific entity type names
-  data: Partial<AllEntityData>; // Data is a partial of any of the AllEntityData types
+  entityType: EntityType;
+  data: Partial<AllEntityData>;
   reason: string;
   evidenceUrl: string;
   status: 'PendingNewEntry' | 'ApprovedNewEntry' | 'RejectedNewEntry';
@@ -60,138 +52,196 @@ export interface NewEntrySuggestion {
   reviewedAt?: string;
 }
 
-export let mockEditSuggestions: EditSuggestion[] = [
-  {
-    id: 's1',
-    contentType: 'politician',
-    contentId: 'p1',
-    fieldName: 'bio',
-    oldValue: 'Alice Democratia is a dedicated public servant...',
-    suggestedValue: 'Alice Democratia is a highly experienced public servant with over 15 years in governance...',
-    reason: 'Updated bio with more current information about her experience.',
-    evidenceUrl: 'https://example.com/news/alice-democratia-experience',
-    status: 'Pending',
-    submittedBy: 'user456',
-    submittedAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-  },
-  {
-    id: 's2',
-    contentType: 'party',
-    contentId: 'party2',
-    fieldName: 'history',
-    oldValue: 'Established in 1985, advocating for free markets...',
-    suggestedValue: 'Established in 1985, the Red Alliance Group has consistently advocated for robust free markets and individual liberties, adapting its platform over decades.',
-    reason: 'More detailed and accurate historical summary.',
-    evidenceUrl: 'https://example.com/party/red-alliance/history-update',
-    status: 'Approved',
-    submittedBy: 'user789',
-    submittedAt: new Date(Date.now() - 2 * 86400000).toISOString(), // 2 days ago
-    reviewedBy: 'admin01',
-    reviewedAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-   {
-    id: 's3',
-    contentType: 'promise',
-    contentId: 'pr3',
-    fieldName: 'status',
-    oldValue: 'Broken',
-    suggestedValue: 'Pending',
-    reason: 'This promise was re-evaluated and is now considered pending further review.',
-    evidenceUrl: '', // No evidence provided for this one
-    status: 'Rejected',
-    submittedBy: 'user101',
-    submittedAt: new Date(Date.now() - 3 * 86400000).toISOString(), // 3 days ago
-    reviewedBy: 'admin02',
-    reviewedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-  },
-];
+export let mockEditSuggestions: EditSuggestion[] = [ ... ]; // Removed
+export let mockNewEntrySuggestions: NewEntrySuggestion[] = [ ... ]; // Removed
+*/
 
-export let mockNewEntrySuggestions: NewEntrySuggestion[] = [
+export let mockPendingEdits: PendingEdit[] = [
   {
-    id: 'new-s1',
+    id: 'pe-new-p1',
     entityType: 'Politician',
-    data: {
-      // Conforms to Partial<Politician>
+    // entityId is undefined for new entities
+    proposedData: {
+      id: 'p-new-jqp', // New entities need an ID in their proposedData for simulation
       name: 'John Q. Public',
-      partyName: "People's Voice Party", // Example: will be part of partyAffiliations or direct partyId
-      positions: [{ title: 'Community Organizer', startDate: '2020-01-01' }, { title: 'Activist', startDate: '2018-05-01'}],
-      bio: 'John Q. Public has been a vocal advocate for community rights and transparency for over a decade. He believes in grassroots movements to effect change.',
-      contactInfo: { email: 'john.public@example.com' },
-      photoUrl: 'https://example.com/photos/john_q_public.jpg',
-      // Example of other Politician fields (optional due to Partial)
-      politicalJourney: [{ date: '2018-01-01', event: 'Started community activism' }],
+      nepaliName: 'जोन क्यू पब्लिक',
+      partyAffiliations: [{ partyId: 'new-party-1', partyName: 'Peoples Voice', role: 'Founder', startDate: '2024-01-01' }],
+      positions: [{ title: 'Community Organizer', startDate: '2023-01-01' }],
+      contactInfo: { email: 'john.public@example.com', website: 'https://jqpublic.example.org' } as ContactInfo,
+      photoUrl: 'https://placehold.co/300x300.png?text=JQP',
+      politicalJourney: [{ date: '2023-01-01', event: 'Founded Peoples Voice movement' }] as PoliticalJourneyEvent[],
+      bio: 'John Q. Public is a new voice advocating for community rights and transparency.',
+      politicalIdeology: ['Grassroots Activism', 'Community Empowerment'],
+      languagesSpoken: ['English'],
+      constituencyId: 'const-local-anytown-central',
+      province: 'Capital Province',
+      dateOfBirth: '1985-07-22',
       gender: 'Male',
-    } as Partial<Politician>, // Explicit cast for clarity, though structurally compatible
-    reason: 'This individual is a prominent new figure in local politics and should be listed.',
-    evidenceUrl: 'https://example.com/news/jqp_profile',
-    status: 'PendingNewEntry',
-    submittedBy: 'citizenX',
-    submittedAt: new Date(Date.now() - 86400000 * 0.5).toISOString(), // 0.5 days ago
-  },
-  {
-    id: 'new-s2',
-    entityType: 'Party',
-    data: {
-      // Conforms to Partial<Party>
-      name: 'Future Forward Alliance',
-      abbreviation: 'FFA',
-      ideology: ['Progressivism', 'Technological Advancement'],
-      logoUrl: 'https://example.com/logos/ffa.png',
-      electionSymbolUrl: 'https://example.com/symbols/ffa_symbol.png',
-    } as Partial<Party>,
-    reason: 'Newly formed political party gaining traction.',
-    evidenceUrl: 'https://example.com/ffa_announcement',
-    status: 'ApprovedNewEntry',
-    submittedBy: 'analystY',
-    submittedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-    reviewedBy: 'admin01',
-    reviewedAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: 'new-s3',
-    entityType: 'Bill',
-    data: {
-      // Conforms to Partial<Bill>
-      title: 'Data Privacy Act 2024',
-      billNumber: 'HR-2024-789',
-      summary: 'A bill to enhance personal data protection and provide citizens with more control over their digital information.',
-      status: 'Introduced',
-      introducedDate: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
-      sponsors: [{ id: 'p1', name: 'Alice Democratia', type: 'Primary' }],
-      timelineEvents: [
-        { date: new Date(Date.now() - 86400000 * 5).toISOString(), event: 'Bill introduced in the House' }
-      ],
-      billType: 'Government',
-    } as Partial<Bill>,
-    reason: 'Important new legislation regarding data privacy that needs to be tracked.',
-    evidenceUrl: 'https://example.com/bills/hr-2024-789',
-    status: 'PendingNewEntry',
-    submittedBy: 'legalEagle',
+      education: [{ institution: 'Community College', degree: 'Associate Degree', field: 'Social Work' }] as EducationEntry[],
+      isActiveInPolitics: true,
+      revisionHistory: [], // Initialize revision history
+    } as Politician, // Type assertion
+    reasonForChange: 'New prominent local political figure.',
+    evidenceUrl: 'https://example.com/news/jqp-emerges',
+    submittedByUserId: 'user-citizen-journalist-001',
     submittedAt: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
+    status: 'PENDING',
+  },
+  {
+    id: 'pe-edit-p1',
+    entityType: 'Politician',
+    entityId: 'p1', // Editing Alice Democratia
+    proposedData: {
+      // Start with a copy of Alice's data and modify it
+      // In a real app, this would be a more sophisticated merge or specific field updates
+      // For mock, we create a new object representing the *complete* proposed state
+      ...mockPoliticians.find(p => p.id === 'p1'), // Get current Alice's data
+      bio: 'Alice Democratia is a highly experienced public servant with over 15 years in governance, known for her dedication to transparency, citizen engagement, and pioneering environmental policies.',
+      contactInfo: { // Example of updating a nested object
+        ...(mockPoliticians.find(p => p.id === 'p1')?.contactInfo || {}),
+        phone: '555-1234', // New phone number
+        website: 'https://alice.democratia.gov', // New website
+      },
+      // Ensure all required fields of Politician are present if ...spread doesn't guarantee it or if it's partial
+      // For this mock, we assume the spread of a full Politician object is sufficient
+    } as Politician,
+    reasonForChange: 'Updated biography with recent achievements and new contact information.',
+    evidenceUrl: 'https://example.com/news/alice-democratia-achievements-2024',
+    submittedByUserId: 'user-campaign-manager-002',
+    submittedAt: new Date(Date.now() - 86400000 * 1).toISOString(), // 1 day ago
+    status: 'PENDING',
+  },
+  {
+    id: 'pe-new-party1',
+    entityType: 'Party',
+    proposedData: {
+      id: 'party-new-progressive-union', // New entities need an ID
+      name: 'Progressive Union',
+      abbreviation: 'PU',
+      ideology: ['Social Democracy', 'Environmentalism'],
+      logoUrl: 'https://placehold.co/200x100.png?text=PU+Logo',
+      electionSymbolUrl: 'https://placehold.co/100x100.png?text=Tree',
+      partyColorHex: '#34A853',
+      history: 'Founded in 2024 to bring together progressive voices.',
+      contactInfo: { website: 'https://progressiveunion.example.org' },
+      leadership: [{name: 'Jane Doe', role: 'Interim Leader'}],
+      revisionHistory: [], // Initialize revision history
+    } as Party,
+    reasonForChange: 'Newly formed political party with growing support.',
+    evidenceUrl: 'https://example.com/news/progressive-union-launch',
+    submittedByUserId: 'user-political-analyst-003',
+    submittedAt: new Date(Date.now() - 86400000 * 3).toISOString(), // 3 days ago
+    status: 'PENDING',
   },
 ];
 
-// Functions to simulate updating data (in a real app, these would be API calls)
-export const approveEditSuggestion = (id: string, adminId: string) => {
-  mockEditSuggestions = mockEditSuggestions.map(s =>
-    s.id === id ? { ...s, status: 'Approved', reviewedBy: adminId, reviewedAt: new Date().toISOString() } : s
-  );
+export const approvePendingEdit = (id: string, adminId: string, adminFeedback?: string): boolean => {
+  const pendingEditIndex = mockPendingEdits.findIndex(pe => pe.id === id);
+  if (pendingEditIndex === -1) {
+    console.error(`PendingEdit with ID ${id} not found.`);
+    return false;
+  }
+
+  const pendingEdit = mockPendingEdits[pendingEditIndex];
+
+  // Update PendingEdit status
+  mockPendingEdits[pendingEditIndex] = {
+    ...pendingEdit,
+    status: 'APPROVED',
+    approvedByUserId: adminId,
+    reviewedAt: new Date().toISOString(),
+    adminFeedback: adminFeedback || pendingEdit.adminFeedback, // Preserve existing feedback if new one isn't provided
+  };
+
+  let targetEntity: Politician | Party | undefined; // Add other entity types as needed
+
+  // Simulate Main Entity Update
+  if (pendingEdit.entityId) { // It's an EDIT to an existing entity
+    if (pendingEdit.entityType === 'Politician') {
+      const politicianIndex = mockPoliticians.findIndex(p => p.id === pendingEdit.entityId);
+      if (politicianIndex !== -1) {
+        mockPoliticians[politicianIndex] = pendingEdit.proposedData as Politician;
+        targetEntity = mockPoliticians[politicianIndex];
+      } else {
+        console.error(`Politician with ID ${pendingEdit.entityId} not found in mockPoliticians.`);
+        // Revert PendingEdit status if entity not found? Or handle as error.
+        return false;
+      }
+    } else if (pendingEdit.entityType === 'Party') {
+      const partyIndex = mockParties.findIndex(p => p.id === pendingEdit.entityId);
+      if (partyIndex !== -1) {
+        mockParties[partyIndex] = pendingEdit.proposedData as Party;
+        targetEntity = mockParties[partyIndex];
+      } else {
+        console.error(`Party with ID ${pendingEdit.entityId} not found in mockParties.`);
+        return false;
+      }
+    }
+    // Add else if blocks for other entity types (Bill, Committee, etc.)
+  } else { // It's a NEW entity creation
+    if (!pendingEdit.proposedData.id) {
+        console.error('New entity proposedData is missing an ID.');
+        return false; // ID is crucial for linking and future edits
+    }
+    if (pendingEdit.entityType === 'Politician') {
+      mockPoliticians.push(pendingEdit.proposedData as Politician);
+      targetEntity = pendingEdit.proposedData as Politician;
+    } else if (pendingEdit.entityType === 'Party') {
+      mockParties.push(pendingEdit.proposedData as Party);
+      targetEntity = pendingEdit.proposedData as Party;
+    }
+    // Add else if blocks for other entity types
+  }
+
+  // Simulate EntityRevision Creation if targetEntity was found/created
+  if (targetEntity) {
+    const newRevision: EntityRevision = {
+      id: `rev-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      date: new Date().toISOString(),
+      author: pendingEdit.submittedByUserId, // Could also be adminId if admin made direct edit
+      event: pendingEdit.entityId ? 'Entity Updated' : 'Entity Created',
+      details: adminFeedback || `Approved suggestion ${pendingEdit.id}`,
+      suggestionId: pendingEdit.id,
+      entitySnapshot: JSON.parse(JSON.stringify(pendingEdit.proposedData)), // Deep clone
+    };
+
+    if (!targetEntity.revisionHistory) {
+      targetEntity.revisionHistory = [];
+    }
+    targetEntity.revisionHistory.push(newRevision);
+    console.log(`Revision history updated for entity ${targetEntity.id}`);
+  } else {
+    console.warn(`Target entity not processed for pending edit ${id}, revision history not updated.`);
+    // This case should ideally be prevented by earlier checks (e.g., entity not found during edit)
+  }
+  
+  console.log(`PendingEdit ${id} approved by ${adminId}.`);
+  return true;
 };
 
-export const rejectEditSuggestion = (id: string, adminId: string) => {
-  mockEditSuggestions = mockEditSuggestions.map(s =>
-    s.id === id ? { ...s, status: 'Rejected', reviewedBy: adminId, reviewedAt: new Date().toISOString() } : s
-  );
+export const rejectPendingEdit = (id: string, adminId: string, adminFeedback?: string): boolean => {
+  const pendingEditIndex = mockPendingEdits.findIndex(pe => pe.id === id);
+  if (pendingEditIndex === -1) {
+    console.error(`PendingEdit with ID ${id} not found.`);
+    return false;
+  }
+
+  mockPendingEdits[pendingEditIndex] = {
+    ...mockPendingEdits[pendingEditIndex],
+    status: 'DENIED',
+    deniedByUserId: adminId,
+    reviewedAt: new Date().toISOString(),
+    adminFeedback: adminFeedback || mockPendingEdits[pendingEditIndex].adminFeedback,
+  };
+  
+  console.log(`PendingEdit ${id} rejected by ${adminId}.`);
+  return true;
 };
 
-export const approveNewEntrySuggestion = (id: string, adminId: string) => {
-  mockNewEntrySuggestions = mockNewEntrySuggestions.map(s =>
-    s.id === id ? { ...s, status: 'ApprovedNewEntry', reviewedBy: adminId, reviewedAt: new Date().toISOString() } : s
-  );
-};
-
-export const rejectNewEntrySuggestion = (id: string, adminId: string) => {
-  mockNewEntrySuggestions = mockNewEntrySuggestions.map(s =>
-    s.id === id ? { ...s, status: 'RejectedNewEntry', reviewedBy: adminId, reviewedAt: new Date().toISOString() } : s
-  );
-};
+/*
+// Old action functions are removed or commented out
+export const approveEditSuggestion = (id: string, adminId: string) => { ... };
+export const rejectEditSuggestion = (id: string, adminId: string) => { ... };
+export const approveNewEntrySuggestion = (id: string, adminId: string) => { ... };
+export const rejectNewEntrySuggestion = (id: string, adminId: string) => { ... };
+*/
