@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon, Newspaper, History, Download, Trash2 } from 'lucide-react';
+import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon, Newspaper, History, Trash2 } from 'lucide-react'; // Removed Download
 import { TimelineDisplay } from '@/components/common/timeline-display'; // Removed formatCombinedCareerTimeline from here
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent, NewsArticleLink } from '@/types/gov';
@@ -20,7 +20,7 @@ import { useNotificationStore } from "@/lib/notifications";
 import ScoreBarChart from '@/components/charts/ScoreBarChart';
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { exportElementAsPDF } from '@/lib/utils';
+// import { exportElementAsPDF } from '@/lib/utils'; // Removed export
 
 interface PoliticianVote extends VoteRecord {
   billId: string;
@@ -83,7 +83,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   const [hoverRating, setHoverRating] = useState(0);
   const [commentText, setCommentText] = useState("");
 
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  // const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // Removed for PDF export
   const [isSuggestEntityEditModalOpen, setIsSuggestEntityEditModalOpen] = useState(false); 
 
 
@@ -223,11 +223,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     });
   };
 
-  async function handleExportPdfWrapper() {
-    if (!politician) return;
-    const fileName = `politician-${politician.name.toLowerCase().replace(/\s+/g, '-')}-profile.pdf`;
-    await exportElementAsPDF('politician-profile-export-area', fileName, setIsGeneratingPdf);
-  }
+  // Removed handleExportPdfWrapper function
 
   const handleDelete = () => {
     if (!politician) return;
@@ -326,9 +322,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             <Button variant="outline" onClick={openSuggestEntityEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Profile
             </Button>
-            <Button variant="outline" onClick={handleExportPdfWrapper} disabled={isGeneratingPdf}>
-              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export to PDF'}
-            </Button>
+            {/* Export to PDF button removed */}
             {canAccess(currentUser.role, ADMIN_ROLES) && (
               <Button variant="destructive" onClick={handleDelete}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete Politician
