@@ -52,6 +52,7 @@ interface TimelineItem {
   date: string;
   title: string;
   description?: string;
+  iconType?: string; // Added iconType
 }
 
 // Helper function to combine and sort career events - This local definition is correct
@@ -66,6 +67,7 @@ function formatCombinedCareerTimeline(
       date: event.date,
       title: event.event,
       description: event.description,
+      iconType: 'politicalCareerEvent', // Added
     });
   });
 
@@ -74,12 +76,14 @@ function formatCombinedCareerTimeline(
       date: aff.startDate,
       title: `Joined ${aff.partyName}`,
       description: aff.role ? `Role: ${aff.role}` : undefined,
+      iconType: 'partyAffiliationEvent', // Added
     });
     if (aff.endDate && aff.endDate !== 'Present') {
       combinedEvents.push({
         date: aff.endDate,
         title: `Left ${aff.partyName}`,
         description: aff.role ? `Previous Role: ${aff.role}` : undefined,
+        iconType: 'partyAffiliationEvent', // Added
       });
     }
   });

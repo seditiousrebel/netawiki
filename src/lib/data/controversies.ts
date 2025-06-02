@@ -130,6 +130,120 @@ const mockControversiesData: Controversy[] = [
         {url: 'https://example.com/news/green-zones-battle', title: 'Battle Lines Drawn Over New Green Zones Policy', sourceName: 'Policy Watch', date: '2022-02-08'}
     ],
     dataAiHint: 'factory smokestack protest',
+  },
+  // New detailed controversy for bill b4
+  {
+    id: 'c-bill-lobbying-pressure-b4',
+    slug: 'lobbying-pressure-accountability-act',
+    title: 'Lobbying Efforts Against Accountability Act (b4)',
+    description: 'Reports and allegations of intense lobbying efforts by various interest groups aimed at defeating or significantly weakening the "Accountability in Public Office Act 2024" (Bill b4). Concerns were raised about undue influence on legislators.',
+    involvedEntities: [
+      { type: 'organization', id: 'org-lobby-group-alpha', name: 'Alpha Group Lobbyists', role: 'Lobbying Firm (Alleged)' },
+      { type: 'organization', id: 'org-corp-united', name: 'United Corporations Front', role: 'Industry Association (Alleged Opponent)' },
+      // Bill b4 itself is the subject, linked via bills.controversyIds
+    ],
+    dates: { started: '2024-05-01', ended: '2024-06-20' }, // Corresponds to House consideration of b4
+    period: 'Mid-2024',
+    severityIndicator: 'Medium',
+    status: 'Allegations Surfaced - No Formal Investigation Launched',
+    tags: ['lobbying', 'ethics', 'legislation', 'political-influence', 'accountability-act-b4'],
+    updates: [
+      { date: '2024-05-15', description: 'Investigative report by "Capitol Watchdog" details meetings between lobbyists and key committee members for Bill b4.' , sourceUrl: 'https://example.com/capitol-watchdog-b4-lobbying'},
+      { date: '2024-06-01', description: 'Public statements from good governance groups raise alarm over potential undue influence on the Accountability Act.' },
+      { date: '2024-06-21', description: 'Following failure of Bill b4 in the House, media speculates on impact of lobbying efforts.'}
+    ],
+    mediaCoverageLinks: [
+      { url: 'https://example.com/news/b4-lobbying-concerns', title: 'Concerns Mount Over Lobbying Against Accountability Act', sourceName: 'The Political Insider', date: '2024-05-20' }
+    ],
+    dataAiHint: 'lobbyist meeting politician',
+  },
+  // Minimal stubs for other fictional controversies
+  {
+    id: 'c-fictional-land-deal',
+    slug: 'fictional-land-deal-controversy',
+    title: 'Hopeville Land Deal Inquiry',
+    description: 'Questions raised about a municipal land deal during Alice Democratia\'s tenure as Mayor of Hopeville. No formal charges filed.',
+    involvedEntities: [{ type: 'politician', id: 'p1', name: 'Alice Democratia', role: 'Mayor at the time (subject of inquiry)' }],
+    severityIndicator: 'Low',
+    status: 'Closed - No findings of wrongdoing',
+    tags: ['municipal', 'land-deal', 'ethics-inquiry'],
+    dates: { started: '2018-03-01', ended: '2018-09-15'},
+  },
+  {
+    id: 'c-fictional-campaign-finance',
+    slug: 'fictional-campaign-finance-allegation-p2',
+    title: 'Alleged Campaign Ad Misspending (2020 Cycle)',
+    description: 'Minor allegations regarding Bob Republicanus\'s 2020 campaign advertising budget. Reviewed by electoral commission, no action taken.',
+    involvedEntities: [{ type: 'politician', id: 'p2', name: 'Bob Republicanus', role: 'Candidate (allegation against campaign)' }],
+    severityIndicator: 'Low',
+    status: 'Reviewed - No Action',
+    tags: ['campaign-finance', 'election-spending'],
+    dates: { started: '2021-01-10', ended: '2021-03-01'},
+  },
+  {
+    id: 'c-fictional-ethics-inquiry',
+    slug: 'fictional-ethics-inquiry-chang',
+    title: 'Senate Ethics Inquiry (Stock Trades)',
+    description: 'Senator Evelyn Chang faced a brief ethics inquiry regarding stock trades made by her spouse. Cleared of any wrongdoing.',
+    involvedEntities: [{ type: 'politician', id: 'p4', name: 'Senator Evelyn "Evie" Chang', role: 'Senator (subject of inquiry)' }],
+    severityIndicator: 'Low',
+    status: 'Cleared',
+    tags: ['ethics', 'stock-trades', 'senate'],
+    dates: { started: '2014-10-01', ended: '2014-12-15'},
+  },
+  {
+    id: 'c-fictional-healthcare-dispute',
+    slug: 'fictional-healthcare-policy-dispute-chang',
+    title: 'Healthcare Policy Stance Dispute (Party A)',
+    description: 'Internal party dispute involving then-Senator Evelyn Chang regarding her public criticism of Party A\'s official stance on a healthcare reform bill. Contributed to her eventual party switch.',
+    involvedEntities: [
+      { type: 'politician', id: 'p4', name: 'Senator Evelyn "Evie" Chang', role: 'Party Member (dissenter)' },
+      { type: 'party', id: 'party-fictional-A', name: 'Liberty Party', role: 'Party with internal disagreement' }
+    ],
+    severityIndicator: 'Medium',
+    status: 'Resolved by party switch',
+    tags: ['party-politics', 'policy-dispute', 'healthcare'],
+    dates: { started: '2008-09-15', ended: '2009-01-01'},
+  },
+  {
+    id: 'c-fictional-campaign-finance-centrist',
+    slug: 'fictional-campaign-finance-centrist-thorne',
+    title: 'Centrist Path Party Funding Questions',
+    description: 'Brief media attention on the funding sources for the Centrist Path Party during Marcus Thorne\'s involvement. No formal investigation.',
+    involvedEntities: [
+      { type: 'politician', id: 'p5', name: 'Councilman Marcus "The Maverick" Thorne', role: 'Founding Member of Centrist Path Party' },
+      { type: 'party', id: 'party-fictional-centrist', name: 'Centrist Path Party', role: 'Party under scrutiny' }
+    ],
+    severityIndicator: 'Low',
+    status: 'Media Interest Subsided',
+    tags: ['campaign-finance', 'minor-party', 'media-scrutiny'],
+    dates: { started: '2016-02-01', ended: '2016-04-01'},
+  },
+  {
+    id: 'c-fictional-rag-lobbying',
+    slug: 'fictional-rag-lobbying-allegations',
+    title: 'Red Alliance Group Lobbying Practices Questioned',
+    description: 'Anonymous sources alleged overly aggressive lobbying tactics by RAG representatives on the "Corporate Tax Cut Act of 2022". Internal party review found no breach of ethics.',
+    involvedEntities: [
+      { type: 'party', id: 'party2', name: 'Red Alliance Group', role: 'Party subject to allegations' }
+    ],
+    severityIndicator: 'Medium',
+    status: 'Internal Review Concluded - No Action',
+    tags: ['lobbying', 'party-ethics', 'corporate-tax'],
+    dates: { started: '2022-11-01', ended: '2023-02-01'},
+  },
+  {
+    id: 'c-fictional-ppf-funding-source-inquiry',
+    slug: 'fictional-ppf-funding-inquiry',
+    title: 'PPF Foreign Funding Allegation',
+    description: 'A short-lived media inquiry into alleged undisclosed foreign funding sources for the People\'s Progressive Front. PPF provided financial records and the story did not develop.',
+    involvedEntities: [
+      { type: 'party', id: 'party5', name: 'People\'s Progressive Front', role: 'Party subject to inquiry' }
+    ],
+    severityIndicator: 'Low',
+    status: 'Clarified - No Further Action',
+    tags: ['campaign-finance', 'foreign-influence', 'media-inquiry'],
+    dates: { started: '2021-05-10', ended: '2021-06-15'},
   }
 ];
 
