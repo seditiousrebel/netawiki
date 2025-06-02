@@ -22,6 +22,7 @@ import FollowButton from '@/components/common/FollowButton'; // Added FollowButt
 import { entitySchemas } from '@/lib/schemas';
 import type { EntityType } from '@/lib/data/suggestions';
 import { format } from 'date-fns';
+import ElectionPerformanceChart from '@/components/charts/ElectionPerformanceChart'; // Import the new chart
 
 interface TimelineItem {
   date: string;
@@ -103,7 +104,18 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   }, [party]);
 
   if (!party) {
-    return <p>Party not found.</p>;
+    return (
+      <div className="container mx-auto py-10 text-center">
+        <Building className="mx-auto h-16 w-16 text-muted-foreground" />
+        <h1 className="mt-4 text-2xl font-bold text-foreground">Party Not Found</h1>
+        <p className="mt-2 text-muted-foreground">
+          The party profile you are looking for does not exist or may have been removed.
+        </p>
+        <Button asChild className="mt-6">
+          <Link href="/parties">Back to Parties List</Link>
+        </Button>
+      </div>
+    );
   }
 
   const partyMembers = mockPoliticians.filter(p => p.partyId === party.id);
@@ -591,6 +603,24 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             </Card>
           )}
 
+          {/* Election Performance Charts */}
+          {party.electionHistory && party.electionHistory.length >= 2 && (
+            <>
+              <ElectionPerformanceChart 
+                performanceData={party.electionHistory} 
+                dataKey="seatsWon"
+                chartType="area" 
+              />
+              {party.electionHistory.some(h => h.votesPercentage !== undefined && h.votesPercentage !== null) && (
+                <ElectionPerformanceChart 
+                  performanceData={party.electionHistory.filter(h => h.votesPercentage !== undefined && h.votesPercentage !== null) as any} 
+                  dataKey="votesPercentage" 
+                  chartType="line"
+                />
+              )}
+            </>
+          )}
+          
           {party.electionHistory && party.electionHistory.length > 0 && (
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">

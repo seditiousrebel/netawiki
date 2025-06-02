@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Building } from 'lucide-react'; // Added Building
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
 import { entitySchemas } from '@/lib/schemas'; // Added
 import type { EntityType } from '@/lib/data/suggestions'; // Added
@@ -250,7 +250,13 @@ export default function PartiesPage() {
           ))}
         </div>
       ) : (
-        <p className="text-muted-foreground text-center py-8">No political parties found matching your criteria.</p>
+        <div className="text-center py-10">
+          <Building className="mx-auto h-12 w-12 text-muted-foreground" />
+          <h3 className="mt-2 text-lg font-medium">No Political Parties Found</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            No parties match your current search or filter criteria. Try adjusting your filters.
+          </p>
+        </div>
       )}
     </div>
   );

@@ -73,7 +73,18 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
   }, [bill]);
 
   if (!bill) {
-    return <p>Bill not found.</p>;
+    return (
+      <div className="container mx-auto py-10 text-center">
+        <FileText className="mx-auto h-16 w-16 text-muted-foreground" />
+        <h1 className="mt-4 text-2xl font-bold text-foreground">Bill Not Found</h1>
+        <p className="mt-2 text-muted-foreground">
+          The bill you are looking for does not exist or may have been removed.
+        </p>
+        <Button asChild className="mt-6">
+          <Link href="/bills">Back to Bills List</Link>
+        </Button>
+      </div>
+    );
   }
 
   const openSuggestBillEditModal = () => { // New form handler

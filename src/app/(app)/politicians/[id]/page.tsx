@@ -22,6 +22,7 @@ import ScoreBarChart from '@/components/charts/ScoreBarChart';
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 // import { exportElementAsPDF } from '@/lib/utils'; // Removed export
+import VotingRecordChart from '@/components/charts/VotingRecordChart'; // Import the new chart
 
 interface PoliticianVote extends VoteRecord {
   billId: string;
@@ -238,7 +239,18 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   };
 
   if (!politician) {
-    return <p>Politician not found.</p>;
+    return (
+      <div className="container mx-auto py-10 text-center">
+        <UserCircle className="mx-auto h-16 w-16 text-muted-foreground" />
+        <h1 className="mt-4 text-2xl font-bold text-foreground">Politician Not Found</h1>
+        <p className="mt-2 text-muted-foreground">
+          The politician profile you are looking for does not exist or may have been removed.
+        </p>
+        <Button asChild className="mt-6">
+          <Link href="/politicians">Back to Politicians List</Link>
+        </Button>
+      </div>
+    );
   }
 
   const promises = getPromisesByPolitician(params.id);
@@ -923,6 +935,13 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
               </Button>
             </CardContent>
           </Card>
+
+          {/* Voting Record Chart */}
+          {politician.votingRecords && politician.votingRecords.length > 0 && (
+            <Card>
+              <VotingRecordChart votingData={politician.votingRecords} />
+            </Card>
+          )}
 
           {politician.revisionHistory && politician.revisionHistory.length > 0 && (
             <Card>

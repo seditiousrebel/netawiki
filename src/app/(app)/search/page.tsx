@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { PageHeader } from '@/components/common/page-header';
 import { EntityCard } from '@/components/common/entity-card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2 } from 'lucide-react'; // Using Loader2 for spinner
+import { Loader2, SearchIcon as SearchIconLucide } from 'lucide-react'; // Using Loader2 for spinner, added SearchIconLucide
 import {
   mockPoliticians,
   mockParties,
@@ -385,10 +385,22 @@ function SearchResultsPageContent() {
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
           <p className="ml-4 text-lg">Loading search results...</p>
         </div>
-      ) : searchResults.length === 0 ? (
-        <p className="text-center text-muted-foreground py-10">
-          No results found for "{finalQuery || finalTag}".
-        </p>
+      ) : searchResults.length === 0 && (finalQuery || finalTag) ? ( // Condition: No results for a specific query/tag
+        <div className="text-center py-10">
+          <SearchIconLucide className="mx-auto h-12 w-12 text-muted-foreground" />
+          <h3 className="mt-2 text-lg font-medium">No Results Found</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            No results found for "{finalQuery || finalTag}". Try a different search term or tag.
+          </p>
+        </div>
+      ) : searchResults.length === 0 && !finalQuery && !finalTag ? ( // Condition: No query/tag entered yet
+        <div className="text-center py-10">
+          <SearchIconLucide className="mx-auto h-12 w-12 text-muted-foreground" />
+          <h3 className="mt-2 text-lg font-medium">Search GovTrackr</h3>
+           <p className="mt-1 text-sm text-muted-foreground">
+            Enter a search term in the header search bar or click on a tag to find relevant content.
+          </p>
+        </div>
       ) : (
         <div className="space-y-10">
           {Object.entries(groupedResults).map(([type, items]) => (
