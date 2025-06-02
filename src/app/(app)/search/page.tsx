@@ -374,7 +374,7 @@ function SearchResultsPageContent() {
   }, {} as Record<string, SearchResult[]>);
 
   return (
-    <div className="container mx-auto py-8">
+    <div>
       <PageHeader
         title={pageTitle}
         description={pageDescription}

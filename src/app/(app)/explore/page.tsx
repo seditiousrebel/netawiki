@@ -29,7 +29,7 @@ const entities = [
 
 export default function ExplorePage() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div>
       <PageHeader
         title="Explore GovTrackr"
         description="Discover detailed information across various political entities and activities."

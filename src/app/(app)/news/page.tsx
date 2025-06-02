@@ -112,14 +112,14 @@ export default function NewsPage() {
     const newBookmarkedIds = bookmarkedArticleIds.includes(articleId)
       ? bookmarkedArticleIds.filter(id => id !== articleId)
       : [...bookmarkedArticleIds, articleId];
-    
+
     setBookmarkedArticleIds(newBookmarkedIds);
 
     try {
       localStorage.setItem(LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY, JSON.stringify(newBookmarkedIds));
       toast({
         title: bookmarkedArticleIds.includes(articleId) ? `Bookmark Removed` : `Article Bookmarked`,
-        description: bookmarkedArticleIds.includes(articleId) 
+        description: bookmarkedArticleIds.includes(articleId)
           ? `"${articleTitle.substring(0,30)}..." removed from bookmarks.`
           : `"${articleTitle.substring(0,30)}..." added to bookmarks.`,
         duration: 3000,

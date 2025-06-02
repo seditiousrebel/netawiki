@@ -202,7 +202,7 @@ export default function FeedPage() {
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <div>
       <PageHeader
         title="Your Activity Feed"
         description="Updates from politicians, parties, promises, bills, and news you follow or bookmark."
