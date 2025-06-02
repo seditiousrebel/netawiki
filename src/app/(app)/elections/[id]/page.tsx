@@ -17,7 +17,10 @@ import { useToast } from "@/hooks/use-toast";
 import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { SuggestEditForm } from '@/components/common/suggest-edit-form';
+// import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
+import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; // Added
+import { entitySchemas } from '@/lib/schemas'; // Added
+import type { EntityType } from '@/lib/data/suggestions'; // Added
 
 const LOCAL_STORAGE_FOLLOWED_ELECTIONS_KEY = 'govtrackr_followed_elections';
 
@@ -47,9 +50,10 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
-  const [suggestionFieldName, setSuggestionFieldName] = useState('');
-  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
+  // const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false); // Old form state - Removed
+  // const [suggestionFieldName, setSuggestionFieldName] = useState(''); // Old form state - Removed
+  // const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>(''); // Old form state - Removed
+  const [isElectionSuggestEntityEditModalOpen, setIsElectionSuggestEntityEditModalOpen] = useState(false); // New form state
 
   useEffect(() => {
     if (election) {
@@ -79,30 +83,64 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
     );
   }
 
-  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+  // const handleSuggestEditClick = (fieldName: string, oldValue: any) => { // Old form handler - Removed
+  //   if (!isUserLoggedIn()) {
+  //     router.push('/auth/login');
+  //     return;
+  //   }
+  //   setSuggestionFieldName(fieldName);
+  //   setSuggestionOldValue(oldValue);
+  //   setIsSuggestEditModalOpen(true);
+  // };
+
+  // const handleElectionSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => { // Old form handler - Removed
+  //   console.log("Election Edit Suggestion:", {
+  //     entityType: "Election",
+  //     entityName: election?.name,
+  //     fieldName: suggestionFieldName,
+  //     oldValue: suggestionOldValue,
+  //     ...suggestion,
+  //   });
+  //   toast({
+  //     title: "Suggestion Submitted",
+  //     description: `Edit suggestion for ${suggestionFieldName} on election '${election?.name}' submitted for review.`,
+  //     duration: 5000,
+  //   });
+  //   setIsSuggestEditModalOpen(false);
+  // };
+
+  const openSuggestElectionEditModal = () => { // New form handler
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
     }
-    setSuggestionFieldName(fieldName);
-    setSuggestionOldValue(oldValue);
-    setIsSuggestEditModalOpen(true);
+    if (!election) return;
+    setIsElectionSuggestEntityEditModalOpen(true);
   };
 
-  const handleElectionSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
-    console.log("Election Edit Suggestion:", {
-      entityType: "Election",
-      entityName: election?.name,
-      fieldName: suggestionFieldName,
-      oldValue: suggestionOldValue,
-      ...suggestion,
+  const handleFullElectionEditSuggestionSubmit = (submission: { // New form handler
+    formData: Record<string, any>;
+    reason: string;
+    evidenceUrl: string;
+  }) => {
+    if (!election) return;
+
+    console.log("Full Election edit suggestion submitted:", {
+      entityType: "Election" as EntityType,
+      entityId: election.id,
+      suggestedData: submission.formData,
+      reason: submission.reason,
+      evidenceUrl: submission.evidenceUrl,
+      submittedAt: new Date().toISOString(),
+      status: "PendingEntityUpdate"
     });
+
     toast({
-      title: "Suggestion Submitted",
-      description: `Edit suggestion for ${suggestionFieldName} on election '${election?.name}' submitted for review.`,
+      title: "Changes Suggested",
+      description: `Your proposed changes for election "${election.name}" have been submitted for review. Thank you!`,
       duration: 5000,
     });
-    setIsSuggestEditModalOpen(false);
+    setIsElectionSuggestEntityEditModalOpen(false);
   };
 
   const handleFollowElectionToggle = () => {
@@ -186,8 +224,8 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
         }
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSuggestEditClick('Description', election.description || '')} >
-              <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+            <Button variant="outline" onClick={openSuggestElectionEditModal}>
+              <Edit className="mr-2 h-4 w-4" /> Propose Changes to Election
             </Button>
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
               <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Election Details'}
@@ -201,7 +239,7 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
         }
       />
 
-      <SuggestEditForm
+      {/* <SuggestEditForm // Old form instance - Removed
         isOpen={isSuggestEditModalOpen}
         onOpenChange={setIsSuggestEditModalOpen}
         entityType="Election"
@@ -209,7 +247,18 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
         fieldName={suggestionFieldName}
         oldValue={suggestionOldValue}
         onSubmit={handleElectionSuggestionSubmit}
-      />
+      /> */}
+
+      {election && isElectionSuggestEntityEditModalOpen && entitySchemas.Election && ( // New form instance
+        <SuggestEntityEditForm
+          isOpen={isElectionSuggestEntityEditModalOpen}
+          onOpenChange={setIsElectionSuggestEntityEditModalOpen}
+          entityType="Election"
+          entitySchema={entitySchemas.Election}
+          currentEntityData={election}
+          onSubmit={handleFullElectionEditSuggestionSubmit}
+        />
+      )}
 
       <div id="election-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">

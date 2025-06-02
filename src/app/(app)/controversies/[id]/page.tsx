@@ -15,8 +15,10 @@ import React, { useState, useEffect } from 'react';
 import { exportElementAsPDF } from '@/lib/utils';
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { SuggestEditForm } from '@/components/common/suggest-edit-form';
+// import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
+import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; // Added
 import { entitySchemas } from '@/lib/schemas'; // Added import
+import type { EntityType } from '@/lib/data/suggestions'; // Added
 import { format } from 'date-fns';
 
 const LOCAL_STORAGE_FOLLOWED_CONTROVERSIES_KEY = 'govtrackr_followed_controversies';
@@ -33,8 +35,9 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
-  const [suggestionFieldName, setSuggestionFieldName] = useState('');
+  // const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false); // Old form state - Removed
+  // const [suggestionFieldName, setSuggestionFieldName] = useState(''); // Old form state - Removed
+  const [isControversySuggestEntityEditModalOpen, setIsControversySuggestEntityEditModalOpen] = useState(false); // New form state
   // suggestionOldValue is not needed here, SuggestEditForm derives it
 
   useEffect(() => {
@@ -64,38 +67,72 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
     );
   }
 
-  const handleSuggestEditClick = (fieldName: string) => { // Removed oldValue param
+  // const handleSuggestEditClick = (fieldName: string) => { // Old form handler - Removed
+  //   if (!isUserLoggedIn()) {
+  //     router.push('/auth/login');
+  //     return;
+  //   }
+  //   setSuggestionFieldName(fieldName);
+  //   // setSuggestionOldValue(oldValue); // No longer needed
+  //   setIsSuggestEditModalOpen(true);
+  // };
+
+  // const handleControversySuggestionSubmit = (suggestion: { // Old form handler - Removed
+  //   fieldPath: string;
+  //   suggestedValue: any;
+  //   oldValue: any;
+  //   reason: string;
+  //   evidenceUrl: string;
+  // }) => {
+  //   console.log("Controversy Edit Suggestion:", {
+  //     entityType: "Controversy",
+  //     entityName: controversy?.title,
+  //     fieldPath: suggestion.fieldPath,
+  //     oldValue: suggestion.oldValue,
+  //     suggestedValue: suggestion.suggestedValue,
+  //     reason: suggestion.reason,
+  //     evidenceUrl: suggestion.evidenceUrl,
+  //   });
+  //   toast({
+  //     title: "Suggestion Submitted",
+  //     description: `Edit suggestion for ${suggestion.fieldPath} on controversy '${controversy?.title}' submitted for review.`,
+  //     duration: 5000,
+  //   });
+  //   setIsSuggestEditModalOpen(false);
+  // };
+
+  const openSuggestControversyEditModal = () => { // New form handler
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
     }
-    setSuggestionFieldName(fieldName);
-    // setSuggestionOldValue(oldValue); // No longer needed
-    setIsSuggestEditModalOpen(true);
+    if (!controversy) return;
+    setIsControversySuggestEntityEditModalOpen(true);
   };
 
-  const handleControversySuggestionSubmit = (suggestion: {
-    fieldPath: string; // fieldPath is passed from SuggestEditForm
-    suggestedValue: any;
-    oldValue: any;
+  const handleFullControversyEditSuggestionSubmit = (submission: { // New form handler
+    formData: Record<string, any>;
     reason: string;
     evidenceUrl: string;
   }) => {
-    console.log("Controversy Edit Suggestion:", {
-      entityType: "Controversy",
-      entityName: controversy?.title,
-      fieldPath: suggestion.fieldPath, // Use the fieldPath from the suggestion object
-      oldValue: suggestion.oldValue,
-      suggestedValue: suggestion.suggestedValue,
-      reason: suggestion.reason,
-      evidenceUrl: suggestion.evidenceUrl,
+    if (!controversy) return;
+
+    console.log("Full Controversy edit suggestion submitted:", {
+      entityType: "Controversy" as EntityType,
+      entityId: controversy.id,
+      suggestedData: submission.formData,
+      reason: submission.reason,
+      evidenceUrl: submission.evidenceUrl,
+      submittedAt: new Date().toISOString(),
+      status: "PendingEntityUpdate"
     });
+
     toast({
-      title: "Suggestion Submitted",
-      description: `Edit suggestion for ${suggestion.fieldPath} on controversy '${controversy?.title}' submitted for review.`,
+      title: "Changes Suggested",
+      description: `Your proposed changes for controversy "${controversy.title}" have been submitted for review. Thank you!`,
       duration: 5000,
     });
-    setIsSuggestEditModalOpen(false);
+    setIsControversySuggestEntityEditModalOpen(false);
   };
 
   const handleFollowToggle = () => {
@@ -192,8 +229,8 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
         }
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSuggestEditClick('description')} >
-              <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+            <Button variant="outline" onClick={openSuggestControversyEditModal}>
+              <Edit className="mr-2 h-4 w-4" /> Propose Changes to Controversy
             </Button>
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
               <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Controversy Details'}
@@ -207,7 +244,7 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
         }
       />
       
-      {controversy && entitySchemas.Controversy && (
+      {/* {controversy && entitySchemas.Controversy && ( // Old form instance - Removed
         <SuggestEditForm
           isOpen={isSuggestEditModalOpen}
           onOpenChange={setIsSuggestEditModalOpen}
@@ -216,6 +253,17 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
           fieldPath={suggestionFieldName}
           entityDisplayName={controversy.title}
           onSubmit={handleControversySuggestionSubmit}
+        />
+      )} */}
+
+      {controversy && isControversySuggestEntityEditModalOpen && entitySchemas.Controversy && ( // New form instance
+        <SuggestEntityEditForm
+          isOpen={isControversySuggestEntityEditModalOpen}
+          onOpenChange={setIsControversySuggestEntityEditModalOpen}
+          entityType="Controversy"
+          entitySchema={entitySchemas.Controversy}
+          currentEntityData={controversy}
+          onSubmit={handleFullControversyEditSuggestionSubmit}
         />
       )}
 

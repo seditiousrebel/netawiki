@@ -16,23 +16,24 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { exportElementAsPDF } from '@/lib/utils';
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { SuggestEditForm } from '@/components/common/suggest-edit-form';
+// import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
+import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; // Added
 import { entitySchemas } from '@/lib/schemas';
 import type { EntityType } from '@/lib/data/suggestions';
 import { format } from 'date-fns';
 
-// Helper component for edit buttons
-const EditFieldButton: React.FC<{ fieldPath: string; onClick: (fieldPath: string) => void; className?: string; tooltip?: string }> = ({ fieldPath, onClick, className, tooltip }) => (
-  <Button
-    variant="ghost"
-    size="icon"
-    className={`ml-2 h-5 w-5 ${className ?? ''} opacity-50 group-hover:opacity-100 transition-opacity`}
-    onClick={(e) => { e.stopPropagation(); onClick(fieldPath); }}
-    title={tooltip || `Suggest edit for ${fieldPath.split('.').pop()?.replace(/\[\d+\]/, '')}`}
-  >
-    <Edit className="h-3 w-3 text-muted-foreground" />
-  </Button>
-);
+// Helper component for edit buttons - REMOVED
+// const EditFieldButton: React.FC<{ fieldPath: string; onClick: (fieldPath: string) => void; className?: string; tooltip?: string }> = ({ fieldPath, onClick, className, tooltip }) => (
+//   <Button
+//     variant="ghost"
+//     size="icon"
+//     className={`ml-2 h-5 w-5 ${className ?? ''} opacity-50 group-hover:opacity-100 transition-opacity`}
+//     onClick={(e) => { e.stopPropagation(); onClick(fieldPath); }}
+//     title={tooltip || `Suggest edit for ${fieldPath.split('.').pop()?.replace(/\[\d+\]/, '')}`}
+//   >
+//     <Edit className="h-3 w-3 text-muted-foreground" />
+//   </Button>
+// );
 
 interface TimelineItem {
   date: string;
@@ -83,8 +84,9 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   const router = useRouter();
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
-  const [editingFieldPath, setEditingFieldPath] = useState('');
+  // const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false); // Old form state - Removed
+  // const [editingFieldPath, setEditingFieldPath] = useState(''); // Old form state - Removed
+  const [isPartySuggestEntityEditModalOpen, setIsPartySuggestEntityEditModalOpen] = useState(false); // New form state
 
   const [formattedFoundedDate, setFormattedFoundedDate] = useState<string | null>(null);
   const [formattedDissolvedDate, setFormattedDissolvedDate] = useState<string | null>(null);
@@ -135,34 +137,68 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   const relatedControversies = getControversiesByPartyId(party.id);
   const relatedNews = getNewsByPartyId(party.id);
 
-  const openSuggestEditModal = (fieldPath: string) => {
+  // const openSuggestEditModal = (fieldPath: string) => { // Old form handler - Removed
+  //   if (!isUserLoggedIn()) {
+  //     router.push('/auth/login');
+  //     return;
+  //   }
+  //   if (!party) return;
+  //   setEditingFieldPath(fieldPath);
+  //   setIsSuggestEditModalOpen(true);
+  // };
+
+  // const handleSuggestionSubmit = (suggestion: { // Old form handler - Removed
+  //   fieldPath: string;
+  //   suggestedValue: any;
+  //   oldValue: any;
+  //   reason: string;
+  //   evidenceUrl: string;
+  // }) => {
+  //   console.log("Party Edit Suggestion Submitted:", {
+  //     entityType: "Party",
+  //     entityId: party?.id,
+  //     ...suggestion,
+  //   });
+  //   toast({
+  //     title: "Suggestion Submitted",
+  //     description: `Edit suggestion for '${suggestion.fieldPath}' on party '${party?.name}' submitted for review.`,
+  //     duration: 5000,
+  //   });
+  //   setIsSuggestEditModalOpen(false);
+  // };
+
+  const openSuggestPartyEditModal = () => { // New form handler
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
     }
     if (!party) return;
-    setEditingFieldPath(fieldPath);
-    setIsSuggestEditModalOpen(true);
+    setIsPartySuggestEntityEditModalOpen(true);
   };
 
-  const handleSuggestionSubmit = (suggestion: {
-    fieldPath: string;
-    suggestedValue: any;
-    oldValue: any;
+  const handlePartyEntityEditSuggestionSubmit = (submission: { // New form handler
+    formData: Record<string, any>;
     reason: string;
     evidenceUrl: string;
   }) => {
-    console.log("Party Edit Suggestion Submitted:", {
-      entityType: "Party",
-      entityId: party?.id,
-      ...suggestion,
+    if (!party) return;
+
+    console.log("Full Party edit suggestion submitted:", {
+      entityType: "Party" as EntityType,
+      entityId: party.id,
+      suggestedData: submission.formData,
+      reason: submission.reason,
+      evidenceUrl: submission.evidenceUrl,
+      submittedAt: new Date().toISOString(),
+      status: "PendingEntityUpdate"
     });
+
     toast({
-      title: "Suggestion Submitted",
-      description: `Edit suggestion for '${suggestion.fieldPath}' on party '${party?.name}' submitted for review.`,
+      title: "Changes Suggested",
+      description: `Your proposed changes for party "${party.name}" have been submitted for review. Thank you!`,
       duration: 5000,
     });
-    setIsSuggestEditModalOpen(false);
+    setIsPartySuggestEntityEditModalOpen(false);
   };
 
   const handleFollowPartyToggle = () => {
@@ -234,31 +270,34 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
     <div>
       <PageHeader
         title={
-          <span className="group flex items-center">
+          <span className="flex items-center">
             {party.name}
-            <EditFieldButton fieldPath="name" onClick={openSuggestEditModal} tooltip="Edit name"/>
-            {party.abbreviation && <span className="ml-2 group flex items-center">({party.abbreviation} <EditFieldButton fieldPath="abbreviation" onClick={openSuggestEditModal} tooltip="Edit abbreviation"/>)</span>}
+            {/* <EditFieldButton fieldPath="name" onClick={openSuggestEditModal} tooltip="Edit name"/> */}
+            {party.abbreviation && <span className="ml-2 flex items-center">({party.abbreviation} {/* <EditFieldButton fieldPath="abbreviation" onClick={openSuggestEditModal} tooltip="Edit abbreviation"/> */})</span>}
           </span>
         }
         description={
            <div className="flex flex-wrap gap-2 mt-1 items-center">
             {party.isActive !== undefined && (
-              <Badge variant={party.isActive ? 'default' : 'secondary'} className={`group ${party.isActive ? 'bg-green-500 text-white' : ''}`}>
+              <Badge variant={party.isActive ? 'default' : 'secondary'} className={`${party.isActive ? 'bg-green-500 text-white' : ''}`}>
                 {party.isActive ? <CheckCircle className="mr-1 h-3 w-3"/> : <XCircle className="mr-1 h-3 w-3"/>}
                 {party.isActive ? 'Active' : 'Inactive'}
-                <EditFieldButton fieldPath="isActive" onClick={openSuggestEditModal} tooltip="Edit active status" className="text-white group-hover:text-primary-foreground"/>
+                {/* <EditFieldButton fieldPath="isActive" onClick={openSuggestEditModal} tooltip="Edit active status" className="text-white group-hover:text-primary-foreground"/> */}
               </Badge>
             )}
             {party.isNationalParty !== undefined && (
-              <Badge variant={party.isNationalParty ? 'default' : 'outline'} className="group">
+              <Badge variant={party.isNationalParty ? 'default' : 'outline'}>
                 {party.isNationalParty ? 'National Party' : 'Regional Party'}
-                <EditFieldButton fieldPath="isNationalParty" onClick={openSuggestEditModal} tooltip="Edit national party status"/>
+                {/* <EditFieldButton fieldPath="isNationalParty" onClick={openSuggestEditModal} tooltip="Edit national party status"/> */}
               </Badge>
             )}
           </div>
         }
         actions={(
           <div className="flex gap-2">
+            <Button variant="outline" onClick={openSuggestPartyEditModal}>
+              <Edit className="mr-2 h-4 w-4" /> Propose Changes to Party
+            </Button>
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
               <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Party Details'}
             </Button>
@@ -271,7 +310,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
         )}
       />
 
-      {party && isSuggestEditModalOpen && entitySchemas.Party && (
+      {/* {party && isSuggestEditModalOpen && entitySchemas.Party && ( // Old form instance - Removed
         <SuggestEditForm
           isOpen={isSuggestEditModalOpen}
           onOpenChange={setIsSuggestEditModalOpen}
@@ -281,13 +320,24 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
           entityDisplayName={party.name}
           onSubmit={handleSuggestionSubmit}
         />
+      )} */}
+
+      {party && isPartySuggestEntityEditModalOpen && entitySchemas.Party && ( // New form instance
+        <SuggestEntityEditForm
+          isOpen={isPartySuggestEntityEditModalOpen}
+          onOpenChange={setIsPartySuggestEntityEditModalOpen}
+          entityType="Party"
+          entitySchema={entitySchemas.Party}
+          currentEntityData={party}
+          onSubmit={handlePartyEntityEditSuggestionSubmit}
+        />
       )}
 
       <div id="party-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardContent className="p-0">
-              <div className="bg-muted p-4 flex justify-center items-center rounded-t-lg min-h-[180px] relative group">
+              <div className="bg-muted p-4 flex justify-center items-center rounded-t-lg min-h-[180px] relative">
                 {party.logoUrl && (
                   <Image
                     src={party.logoUrl}
@@ -298,52 +348,52 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                     data-ai-hint={party.dataAiHint as string || "party logo"}
                   />
                 )}
-                <EditFieldButton fieldPath="logoUrl" onClick={openSuggestEditModal} className="absolute top-2 right-2 bg-background/50 hover:bg-background/80" tooltip="Edit logo URL"/>
+                {/* <EditFieldButton fieldPath="logoUrl" onClick={openSuggestEditModal} className="absolute top-2 right-2 bg-background/50 hover:bg-background/80" tooltip="Edit logo URL"/> */}
               </div>
               <div className="p-6 space-y-2">
-                <h2 className="text-2xl font-headline font-semibold mb-1 group flex items-center">{party.name} <EditFieldButton fieldPath="name" onClick={openSuggestEditModal} tooltip="Edit name"/></h2>
-                {party.nepaliName && <p className="text-lg text-muted-foreground -mt-1 mb-1 group flex items-center">{party.nepaliName} <EditFieldButton fieldPath="nepaliName" onClick={openSuggestEditModal} tooltip="Edit Nepali name"/> </p>}
+                <h2 className="text-2xl font-headline font-semibold mb-1 flex items-center">{party.name} {/* <EditFieldButton fieldPath="name" onClick={openSuggestEditModal} tooltip="Edit name"/> */}</h2>
+                {party.nepaliName && <p className="text-lg text-muted-foreground -mt-1 mb-1 flex items-center">{party.nepaliName} {/* <EditFieldButton fieldPath="nepaliName" onClick={openSuggestEditModal} tooltip="Edit Nepali name"/> */} </p>}
 
                 <div className="flex flex-wrap gap-2 items-center">
                     {party.electionSymbolUrl && (
-                        <div className="text-center group relative">
+                        <div className="text-center relative">
                           <h3 className="text-xs font-medium text-muted-foreground mb-0.5">Symbol</h3>
                           <Image src={party.electionSymbolUrl} alt={`${party.name} Election Symbol`} width={40} height={40} className="object-contain border rounded-md p-0.5"/>
-                          <EditFieldButton fieldPath="electionSymbolUrl" onClick={openSuggestEditModal} className="absolute -top-1 -right-1" tooltip="Edit symbol URL"/>
+                          {/* <EditFieldButton fieldPath="electionSymbolUrl" onClick={openSuggestEditModal} className="absolute -top-1 -right-1" tooltip="Edit symbol URL"/> */}
                         </div>
                     )}
                     {party.flagUrl && (
-                        <div className="text-center group relative">
+                        <div className="text-center relative">
                           <h3 className="text-xs font-medium text-muted-foreground mb-0.5">Flag</h3>
                           <Image src={party.flagUrl} alt={`${party.name} Flag`} width={60} height={40} className="object-cover border rounded-md"/>
-                          <EditFieldButton fieldPath="flagUrl" onClick={openSuggestEditModal} className="absolute -top-1 -right-1" tooltip="Edit flag URL"/>
+                          {/* <EditFieldButton fieldPath="flagUrl" onClick={openSuggestEditModal} className="absolute -top-1 -right-1" tooltip="Edit flag URL"/> */}
                         </div>
                     )}
                     {party.partyColorHex && (
-                        <div className="text-center group relative">
+                        <div className="text-center relative">
                             <h3 className="text-xs font-medium text-muted-foreground mb-0.5">Color</h3>
                             <div style={{ backgroundColor: party.partyColorHex }} className="w-10 h-10 rounded-md border" title={`Party Color: ${party.partyColorHex}`}></div>
-                            <EditFieldButton fieldPath="partyColorHex" onClick={openSuggestEditModal} className="absolute -top-1 -right-1" tooltip="Edit color hex"/>
+                            {/* <EditFieldButton fieldPath="partyColorHex" onClick={openSuggestEditModal} className="absolute -top-1 -right-1" tooltip="Edit color hex"/> */}
                         </div>
                     )}
                 </div>
 
                 {party.foundedDate && (
-                    <p className="text-sm text-muted-foreground flex items-center gap-1 pt-2 group">
+                    <p className="text-sm text-muted-foreground flex items-center gap-1 pt-2">
                         <CalendarDays className="h-4 w-4" /> Founded: {formattedFoundedDate || '...'}
-                        <EditFieldButton fieldPath="foundedDate" onClick={openSuggestEditModal} tooltip="Edit founded date"/>
+                        {/* <EditFieldButton fieldPath="foundedDate" onClick={openSuggestEditModal} tooltip="Edit founded date"/> */}
                     </p>
                 )}
                  {party.dissolvedDate && (
-                    <p className="text-sm text-muted-foreground flex items-center gap-1 group">
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
                         <CalendarDays className="h-4 w-4" /> Dissolved: {formattedDissolvedDate || '...'}
-                        <EditFieldButton fieldPath="dissolvedDate" onClick={openSuggestEditModal} tooltip="Edit dissolved date"/>
+                        {/* <EditFieldButton fieldPath="dissolvedDate" onClick={openSuggestEditModal} tooltip="Edit dissolved date"/> */}
                     </p>
                 )}
                 {party.registrationNumber && (
-                    <p className="text-sm text-muted-foreground flex items-center gap-1 group">
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
                         <Briefcase className="h-4 w-4" /> Reg. No: {party.registrationNumber}
-                        <EditFieldButton fieldPath="registrationNumber" onClick={openSuggestEditModal} tooltip="Edit registration number"/>
+                        {/* <EditFieldButton fieldPath="registrationNumber" onClick={openSuggestEditModal} tooltip="Edit registration number"/> */}
                     </p>
                 )}
               </div>
@@ -353,12 +403,12 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="font-headline text-xl flex items-center gap-2"><Users className="text-primary"/> Current Leadership</CardTitle>
-              <EditFieldButton fieldPath="leadership" onClick={openSuggestEditModal} tooltip="Edit leadership array (JSON)"/>
+              {/* <EditFieldButton fieldPath="leadership" onClick={openSuggestEditModal} tooltip="Edit leadership array (JSON)"/> */}
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
                 {party.leadership.map((leader, idx) => (
-                  <li key={idx} className="text-sm group flex justify-between items-start">
+                  <li key={idx} className="text-sm flex justify-between items-start">
                     <div>
                       {leader.politicianId ? (
                         <Link href={`/politicians/${leader.politicianId}`} className="text-primary hover:underline font-semibold">
@@ -369,7 +419,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                       )}
                       - <span className="text-muted-foreground">{leader.role}</span>
                     </div>
-                    <EditFieldButton fieldPath={`leadership[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this leader"/>
+                    {/* <EditFieldButton fieldPath={`leadership[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this leader"/> */}
                   </li>
                 ))}
               </ul>
@@ -382,7 +432,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                 <CardTitle className="font-headline text-xl flex items-center gap-2">
                   <Tag className="h-5 w-5 text-primary"/> Tags
                 </CardTitle>
-                <EditFieldButton fieldPath="tags" onClick={openSuggestEditModal} tooltip="Edit tags (JSON)"/>
+                {/* <EditFieldButton fieldPath="tags" onClick={openSuggestEditModal} tooltip="Edit tags (JSON)"/> */}
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2">
                 {party.tags.map((tag) => (
@@ -398,7 +448,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><Tag className="text-primary"/> Stated Ideology</CardTitle>
-                    <EditFieldButton fieldPath="ideology" onClick={openSuggestEditModal} tooltip="Edit ideologies (JSON)"/>
+                    {/* <EditFieldButton fieldPath="ideology" onClick={openSuggestEditModal} tooltip="Edit ideologies (JSON)"/> */}
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-wrap gap-2">
@@ -413,31 +463,31 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="font-headline text-xl flex items-center gap-2"><Building className="text-primary"/> Contact Information</CardTitle>
-               <EditFieldButton fieldPath="contactInfo" onClick={openSuggestEditModal} tooltip="Edit all contact info (JSON)"/>
+               {/* <EditFieldButton fieldPath="contactInfo" onClick={openSuggestEditModal} tooltip="Edit all contact info (JSON)"/> */}
             </CardHeader>
             <CardContent className="space-y-2">
               {party.headquartersAddress && (
-                <p className="flex items-start justify-between gap-2 text-sm group">
+                <p className="flex items-start justify-between gap-2 text-sm">
                   <span className="flex items-start gap-2"><Landmark className="h-4 w-4 text-primary mt-0.5 shrink-0" /> {party.headquartersAddress}</span>
-                  <EditFieldButton fieldPath="headquartersAddress" onClick={openSuggestEditModal} tooltip="Edit headquarters address"/>
+                  {/* <EditFieldButton fieldPath="headquartersAddress" onClick={openSuggestEditModal} tooltip="Edit headquarters address"/> */}
                 </p>
               )}
               {party.contactInfo.email && (
-                <p className="flex items-center justify-between gap-2 text-sm group">
+                <p className="flex items-center justify-between gap-2 text-sm">
                   <span className="flex items-center gap-2"><Mail className="h-4 w-4 text-primary" /><a href={`mailto:${party.contactInfo.email}`} className="hover:underline truncate">{party.contactInfo.email}</a></span>
-                  <EditFieldButton fieldPath="contactInfo.email" onClick={openSuggestEditModal} tooltip="Edit email"/>
+                  {/* <EditFieldButton fieldPath="contactInfo.email" onClick={openSuggestEditModal} tooltip="Edit email"/> */}
                 </p>
               )}
               {party.contactInfo.phone && (
-                <p className="flex items-center justify-between gap-2 text-sm group">
+                <p className="flex items-center justify-between gap-2 text-sm">
                   <span className="flex items-center gap-2"><Phone className="h-4 w-4 text-primary" /> {party.contactInfo.phone}</span>
-                  <EditFieldButton fieldPath="contactInfo.phone" onClick={openSuggestEditModal} tooltip="Edit phone"/>
+                  {/* <EditFieldButton fieldPath="contactInfo.phone" onClick={openSuggestEditModal} tooltip="Edit phone"/> */}
                 </p>
               )}
               {party.contactInfo.website && (
-                <p className="flex items-center justify-between gap-2 text-sm group">
+                <p className="flex items-center justify-between gap-2 text-sm">
                   <span className="flex items-center gap-2"><Globe className="h-4 w-4 text-primary" /><a href={party.contactInfo.website} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">Official Website</a></span>
-                  <EditFieldButton fieldPath="contactInfo.website" onClick={openSuggestEditModal} tooltip="Edit website"/>
+                  {/* <EditFieldButton fieldPath="contactInfo.website" onClick={openSuggestEditModal} tooltip="Edit website"/> */}
                 </p>
               )}
             </CardContent>
@@ -449,7 +499,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><Info className="text-primary"/> About the Party</CardTitle>
-                <EditFieldButton fieldPath="aboutParty" onClick={openSuggestEditModal} tooltip="Edit about party section"/>
+                {/* <EditFieldButton fieldPath="aboutParty" onClick={openSuggestEditModal} tooltip="Edit about party section"/> */}
               </CardHeader>
               <CardContent>
                 <p className="text-foreground/80 whitespace-pre-line">{party.aboutParty}</p>
@@ -460,18 +510,18 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><Milestone className="text-primary"/> Ideology &amp; Platform</CardTitle>
-                 <EditFieldButton fieldPath="historicalManifestos" onClick={openSuggestEditModal} tooltip="Edit historical manifestos (JSON)"/>
+                 {/* <EditFieldButton fieldPath="historicalManifestos" onClick={openSuggestEditModal} tooltip="Edit historical manifestos (JSON)"/> */}
               </CardHeader>
               <CardContent className="space-y-3">
-                {party.detailedIdeologyDescription && <p className="text-foreground/80 whitespace-pre-line group flex justify-between items-start"><span>{party.detailedIdeologyDescription}</span> <EditFieldButton fieldPath="detailedIdeologyDescription" onClick={openSuggestEditModal} tooltip="Edit detailed ideology"/> </p>}
+                {party.detailedIdeologyDescription && <p className="text-foreground/80 whitespace-pre-line flex justify-between items-start"><span>{party.detailedIdeologyDescription}</span> {/* <EditFieldButton fieldPath="detailedIdeologyDescription" onClick={openSuggestEditModal} tooltip="Edit detailed ideology"/> */} </p>}
                 {party.partyManifestoUrl && (
-                  <div className='mb-2 group flex justify-between items-center'>
+                  <div className='mb-2 flex justify-between items-center'>
                     <Button variant="link" asChild className="p-0 h-auto text-primary items-center font-semibold">
                       <a href={party.partyManifestoUrl} target="_blank" rel="noopener noreferrer">
                         Read Current Manifesto <ExternalLink className="ml-1 h-3 w-3" />
                       </a>
                     </Button>
-                    <EditFieldButton fieldPath="partyManifestoUrl" onClick={openSuggestEditModal} tooltip="Edit manifesto URL"/>
+                    {/* <EditFieldButton fieldPath="partyManifestoUrl" onClick={openSuggestEditModal} tooltip="Edit manifesto URL"/> */}
                   </div>
                 )}
                 {party.historicalManifestos && party.historicalManifestos.length > 0 && (
@@ -479,11 +529,11 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                     <h4 className="font-semibold text-sm mb-2 flex items-center gap-1"><BookOpen className="h-4 w-4 text-muted-foreground"/> Historical Manifestos</h4>
                     <ul className="space-y-1">
                       {party.historicalManifestos.map((manifesto, idx) => (
-                        <li key={idx} className="text-sm group flex justify-between items-center">
+                        <li key={idx} className="text-sm flex justify-between items-center">
                            <a href={manifesto.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
                             {manifesto.year} {manifesto.description ? `- ${manifesto.description}` : 'Manifesto'} <ExternalLink className="h-3 w-3"/>
                           </a>
-                          <EditFieldButton fieldPath={`historicalManifestos[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this manifesto"/>
+                          {/* <EditFieldButton fieldPath={`historicalManifestos[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this manifesto"/> */}
                         </li>
                       ))}
                     </ul>
@@ -500,13 +550,13 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
                     {party.parentPartyName && (
-                        <p className="flex items-center justify-between gap-1 group"><span className="flex items-center gap-1"><GitMerge className="h-4 w-4 text-muted-foreground" /> <span className="font-semibold">Parent Party:</span> {party.parentPartyName}</span> <span><EditFieldButton fieldPath="parentPartyName" onClick={openSuggestEditModal} tooltip="Edit parent party name"/> <EditFieldButton fieldPath="parentPartyId" onClick={openSuggestEditModal} tooltip="Edit Parent Party ID"/></span></p>
+                        <p className="flex items-center justify-between gap-1"><span className="flex items-center gap-1"><GitMerge className="h-4 w-4 text-muted-foreground" /> <span className="font-semibold">Parent Party:</span> {party.parentPartyName}</span> <span>{/* <EditFieldButton fieldPath="parentPartyName" onClick={openSuggestEditModal} tooltip="Edit parent party name"/> */} {/* <EditFieldButton fieldPath="parentPartyId" onClick={openSuggestEditModal} tooltip="Edit Parent Party ID"/> */}</span></p>
                     )}
                     {party.splinterPartyNames && party.splinterPartyNames.length > 0 && (
-                         <p className="flex items-center justify-between gap-1 group"><span className="flex items-center gap-1"><GitPullRequest className="h-4 w-4 text-muted-foreground" /> <span className="font-semibold">Splinter Parties:</span> {party.splinterPartyNames.join(', ')}</span> <span><EditFieldButton fieldPath="splinterPartyNames" onClick={openSuggestEditModal} tooltip="Edit splinter party names (JSON)"/><EditFieldButton fieldPath="splinterPartyIds" onClick={openSuggestEditModal} tooltip="Edit splinter party IDs (JSON)"/></span></p>
+                         <p className="flex items-center justify-between gap-1"><span className="flex items-center gap-1"><GitPullRequest className="h-4 w-4 text-muted-foreground" /> <span className="font-semibold">Splinter Parties:</span> {party.splinterPartyNames.join(', ')}</span> <span>{/* <EditFieldButton fieldPath="splinterPartyNames" onClick={openSuggestEditModal} tooltip="Edit splinter party names (JSON)"/> */}{/* <EditFieldButton fieldPath="splinterPartyIds" onClick={openSuggestEditModal} tooltip="Edit splinter party IDs (JSON)"/> */}</span></p>
                     )}
                     {party.internationalAffiliations && party.internationalAffiliations.length > 0 && (
-                        <p className="flex items-center justify-between gap-1 group"><span className="flex items-center gap-1"><Globe className="h-4 w-4 text-muted-foreground" /> <span className="font-semibold">International Affiliations:</span> {party.internationalAffiliations.join(', ')}</span><EditFieldButton fieldPath="internationalAffiliations" onClick={openSuggestEditModal} tooltip="Edit intl affiliations (JSON)"/></p>
+                        <p className="flex items-center justify-between gap-1"><span className="flex items-center gap-1"><Globe className="h-4 w-4 text-muted-foreground" /> <span className="font-semibold">International Affiliations:</span> {party.internationalAffiliations.join(', ')}</span>{/* <EditFieldButton fieldPath="internationalAffiliations" onClick={openSuggestEditModal} tooltip="Edit intl affiliations (JSON)"/> */}</p>
                     )}
                 </CardContent>
             </Card>
@@ -516,7 +566,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
              <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><History className="text-primary"/> Leadership History</CardTitle>
-                    <EditFieldButton fieldPath="leadershipHistory" onClick={openSuggestEditModal} tooltip="Edit leadership history (JSON)"/>
+                    {/* <EditFieldButton fieldPath="leadershipHistory" onClick={openSuggestEditModal} tooltip="Edit leadership history (JSON)"/> */}
                 </CardHeader>
                 <CardContent>
                     <TimelineDisplay items={leadershipTimelineItems} />
@@ -528,7 +578,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
              <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><GitMerge className="text-primary"/> Party Evolution</CardTitle>
-                    <EditFieldButton fieldPath="splitMergerHistory" onClick={openSuggestEditModal} tooltip="Edit split/merger history (JSON)"/>
+                    {/* <EditFieldButton fieldPath="splitMergerHistory" onClick={openSuggestEditModal} tooltip="Edit split/merger history (JSON)"/> */}
                 </CardHeader>
                 <CardContent>
                     <TimelineDisplay items={splitMergerTimelineItems} />
@@ -540,12 +590,12 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><Handshake className="text-primary"/> Political Alliances</CardTitle>
-                <EditFieldButton fieldPath="alliances" onClick={openSuggestEditModal} tooltip="Edit alliances (JSON)"/>
+                {/* <EditFieldButton fieldPath="alliances" onClick={openSuggestEditModal} tooltip="Edit alliances (JSON)"/> */}
               </CardHeader>
               <CardContent>
                 <ul className="space-y-4">
                   {party.alliances.map((alliance, idx) => (
-                    <li key={idx} className="text-sm border-b pb-3 last:border-b-0 group flex justify-between items-start">
+                    <li key={idx} className="text-sm border-b pb-3 last:border-b-0 flex justify-between items-start">
                       <div>
                         <h4 className="font-semibold text-md">{alliance.name}
                           {alliance.status && (
@@ -564,7 +614,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                         </p>
                       )}
                       </div>
-                      <EditFieldButton fieldPath={`alliances[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this alliance"/>
+                      {/* <EditFieldButton fieldPath={`alliances[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this alliance"/> */}
                     </li>
                   ))}
                 </ul>
@@ -576,11 +626,11 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><Megaphone className="text-primary"/> Stances on Key Issues</CardTitle>
-                <EditFieldButton fieldPath="stancesOnIssues" onClick={openSuggestEditModal} tooltip="Edit stances (JSON)"/>
+                {/* <EditFieldButton fieldPath="stancesOnIssues" onClick={openSuggestEditModal} tooltip="Edit stances (JSON)"/> */}
               </CardHeader>
               <CardContent className="space-y-4">
                 {party.stancesOnIssues.map((stance, idx) => (
-                  <div key={idx} className="text-sm border-b pb-3 last:border-b-0 group flex justify-between items-start">
+                  <div key={idx} className="text-sm border-b pb-3 last:border-b-0 flex justify-between items-start">
                     <div>
                       <h4 className="font-semibold">
                         {stance.isBill ? (
@@ -606,7 +656,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                         </a>
                       )}
                     </div>
-                    <EditFieldButton fieldPath={`stancesOnIssues[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this stance"/>
+                    {/* <EditFieldButton fieldPath={`stancesOnIssues[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this stance"/> */}
                   </div>
                 ))}
               </CardContent>
@@ -617,11 +667,11 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><DollarSign className="text-primary"/> Funding &amp; Transparency</CardTitle>
-                <EditFieldButton fieldPath="fundingSources" onClick={openSuggestEditModal} tooltip="Edit funding sources (JSON)"/>
+                {/* <EditFieldButton fieldPath="fundingSources" onClick={openSuggestEditModal} tooltip="Edit funding sources (JSON)"/> */}
               </CardHeader>
               <CardContent className="space-y-4">
                 {party.fundingSources.map((source: FundingSource, idx: number) => (
-                  <div key={idx} className="text-sm border-b pb-3 last:border-b-0 group flex justify-between items-start">
+                  <div key={idx} className="text-sm border-b pb-3 last:border-b-0 flex justify-between items-start">
                     <div>
                       <div className="flex justify-between items-start">
                           <h4 className="font-semibold">{source.sourceName} ({source.year})</h4>
@@ -635,7 +685,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                         </a>
                       )}
                     </div>
-                    <EditFieldButton fieldPath={`fundingSources[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this funding source"/>
+                    {/* <EditFieldButton fieldPath={`fundingSources[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this funding source"/> */}
                   </div>
                 ))}
               </CardContent>
@@ -646,11 +696,11 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><VoteIcon className="text-primary"/> Internal Party Elections</CardTitle>
-                <EditFieldButton fieldPath="intraPartyElections" onClick={openSuggestEditModal} tooltip="Edit internal elections (JSON)"/>
+                {/* <EditFieldButton fieldPath="intraPartyElections" onClick={openSuggestEditModal} tooltip="Edit internal elections (JSON)"/> */}
               </CardHeader>
               <CardContent className="space-y-4">
                 {party.intraPartyElections.map((election: IntraPartyElection, idx: number) => (
-                  <div key={idx} className="text-sm border-b pb-3 last:border-b-0 group flex justify-between items-start">
+                  <div key={idx} className="text-sm border-b pb-3 last:border-b-0 flex justify-between items-start">
                     <div>
                       <h4 className="font-semibold">{election.electionTitle} ({format(new Date(election.date), 'MM/dd/yyyy')})</h4>
                       {election.description && <p className="text-foreground/80 mt-1">{election.description}</p>}
@@ -661,7 +711,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                         </a>
                       )}
                     </div>
-                    <EditFieldButton fieldPath={`intraPartyElections[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this internal election"/>
+                    {/* <EditFieldButton fieldPath={`intraPartyElections[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this internal election"/> */}
                   </div>
                 ))}
               </CardContent>
@@ -672,7 +722,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><BarChart3 className="text-primary"/> Election Performance</CardTitle>
-                 <EditFieldButton fieldPath="electionHistory" onClick={openSuggestEditModal} tooltip="Edit election history (JSON)"/>
+                 {/* <EditFieldButton fieldPath="electionHistory" onClick={openSuggestEditModal} tooltip="Edit election history (JSON)"/> */}
               </CardHeader>
               <CardContent>
                 <Table>
@@ -687,12 +737,12 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                   </TableHeader>
                   <TableBody>
                     {party.electionHistory.map((record: ElectionPerformanceRecord, idx: number) => (
-                      <TableRow key={idx} className="group">
+                      <TableRow key={idx}>
                         <TableCell>{record.electionYear}</TableCell>
                         <TableCell>{record.electionType}</TableCell>
                         <TableCell className="text-right">{record.seatsWon}</TableCell>
                         <TableCell className="text-right">{record.votePercentage ? `${record.votePercentage.toFixed(1)}%` : 'N/A'}</TableCell>
-                        <TableCell className="text-right"><EditFieldButton fieldPath={`electionHistory[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this election record"/></TableCell>
+                        <TableCell className="text-right">{/* <EditFieldButton fieldPath={`electionHistory[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this election record"/> */}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -801,12 +851,12 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><Group className="text-primary"/> Party Wings</CardTitle>
-                <EditFieldButton fieldPath="wings" onClick={openSuggestEditModal} tooltip="Edit party wings (JSON)"/>
+                {/* <EditFieldButton fieldPath="wings" onClick={openSuggestEditModal} tooltip="Edit party wings (JSON)"/> */}
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
                   {party.wings.map((wing, idx) => (
-                    <li key={idx} className="text-sm border-b pb-2 last:border-b-0 group flex justify-between items-start">
+                    <li key={idx} className="text-sm border-b pb-2 last:border-b-0 flex justify-between items-start">
                       <div>
                         <p className="font-semibold">{wing.name}</p>
                         {wing.description && <p className="text-muted-foreground text-xs mt-0.5">{wing.description}</p>}
@@ -828,7 +878,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                           </div>
                         )}
                       </div>
-                      <EditFieldButton fieldPath={`wings[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this party wing"/>
+                      {/* <EditFieldButton fieldPath={`wings[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this party wing"/> */}
                     </li>
                   ))}
                 </ul>

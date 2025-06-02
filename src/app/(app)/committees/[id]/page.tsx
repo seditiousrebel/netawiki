@@ -16,24 +16,25 @@ import { useToast } from "@/hooks/use-toast";
 import { exportElementAsPDF } from '@/lib/utils';
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { SuggestEditForm } from '@/components/common/suggest-edit-form';
+// import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
+import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; // Added
 import { entitySchemas } from '@/lib/schemas';
 import type { EntityType } from '@/lib/data/suggestions';
 
 const LOCAL_STORAGE_FOLLOWED_COMMITTEES_KEY = 'govtrackr_followed_committees';
 
-// Helper component for edit buttons
-const EditFieldButton: React.FC<{ fieldPath: string; onClick: (fieldPath: string) => void; className?: string; tooltip?: string }> = ({ fieldPath, onClick, className, tooltip }) => (
-  <Button
-    variant="ghost"
-    size="icon"
-    className={`ml-2 h-5 w-5 ${className ?? ''} opacity-50 group-hover:opacity-100 transition-opacity`}
-    onClick={(e) => { e.stopPropagation(); onClick(fieldPath); }}
-    title={tooltip || `Suggest edit for ${fieldPath.split('.').pop()?.replace(/\[\d+\]/, '')}`}
-  >
-    <Edit className="h-3 w-3 text-muted-foreground" />
-  </Button>
-);
+// Helper component for edit buttons - REMOVED
+// const EditFieldButton: React.FC<{ fieldPath: string; onClick: (fieldPath: string) => void; className?: string; tooltip?: string }> = ({ fieldPath, onClick, className, tooltip }) => (
+//   <Button
+//     variant="ghost"
+//     size="icon"
+//     className={`ml-2 h-5 w-5 ${className ?? ''} opacity-50 group-hover:opacity-100 transition-opacity`}
+//     onClick={(e) => { e.stopPropagation(); onClick(fieldPath); }}
+//     title={tooltip || `Suggest edit for ${fieldPath.split('.').pop()?.replace(/\[\d+\]/, '')}`}
+//   >
+//     <Edit className="h-3 w-3 text-muted-foreground" />
+//   </Button>
+// );
 
 function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
@@ -49,8 +50,9 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
-  const [editingFieldPath, setEditingFieldPath] = useState('');
+  // const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false); // Old form state - Removed
+  // const [editingFieldPath, setEditingFieldPath] = useState(''); // Old form state - Removed
+  const [isCommitteeSuggestEntityEditModalOpen, setIsCommitteeSuggestEntityEditModalOpen] = useState(false); // New form state
 
   useEffect(() => {
     if (committee) {
@@ -80,36 +82,69 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
     );
   }
 
-  const openSuggestEditModal = (fieldPath: string) => {
+  // const openSuggestEditModal = (fieldPath: string) => { // Old form handler - Removed
+  //   if (!isUserLoggedIn()) {
+  //     router.push('/auth/login');
+  //     return;
+  //   }
+  //   if (!committee) return;
+  //   setEditingFieldPath(fieldPath);
+  //   setIsSuggestEditModalOpen(true);
+  // };
+
+  // const handleSuggestionSubmit = (suggestion: { // Old form handler - Removed
+  //   fieldPath: string;
+  //   suggestedValue: any;
+  //   oldValue: any;
+  //   reason: string;
+  //   evidenceUrl: string;
+  // }) => {
+  //   console.log("Committee Edit Suggestion:", {
+  //     entityType: "Committee",
+  //     entityId: committee?.id,
+  //     ...suggestion,
+  //   });
+  //   toast({
+  //     title: "Suggestion Submitted",
+  //     description: `Edit suggestion for ${suggestion.fieldPath} on committee '${committee?.name}' submitted for review.`,
+  //     duration: 5000,
+  //   });
+  //   setIsSuggestEditModalOpen(false);
+  // };
+
+  const openSuggestCommitteeEditModal = () => { // New form handler
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
     }
     if (!committee) return;
-    setEditingFieldPath(fieldPath);
-    setIsSuggestEditModalOpen(true);
+    setIsCommitteeSuggestEntityEditModalOpen(true);
   };
 
-  const handleSuggestionSubmit = (suggestion: {
-    fieldPath: string;
-    suggestedValue: any;
-    oldValue: any;
+  const handleCommitteeEntityEditSuggestionSubmit = (submission: { // New form handler
+    formData: Record<string, any>;
     reason: string;
     evidenceUrl: string;
   }) => {
-    console.log("Committee Edit Suggestion:", {
-      entityType: "Committee",
-      entityId: committee?.id,
-      ...suggestion,
+    if (!committee) return;
+
+    console.log("Full Committee edit suggestion submitted:", {
+      entityType: "Committee" as EntityType,
+      entityId: committee.id,
+      suggestedData: submission.formData,
+      reason: submission.reason,
+      evidenceUrl: submission.evidenceUrl,
+      submittedAt: new Date().toISOString(),
+      status: "PendingEntityUpdate"
     });
+
     toast({
-      title: "Suggestion Submitted",
-      description: `Edit suggestion for ${suggestion.fieldPath} on committee '${committee?.name}' submitted for review.`,
+      title: "Changes Suggested",
+      description: `Your proposed changes for committee "${committee.name}" have been submitted for review. Thank you!`,
       duration: 5000,
     });
-    setIsSuggestEditModalOpen(false);
+    setIsCommitteeSuggestEntityEditModalOpen(false);
   };
-
 
   const handleFollowToggle = () => {
     if (!committee) return;
@@ -180,25 +215,28 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
     <div>
       <PageHeader
         title={
-          <span className="group flex items-center">
-            {committee.name} <EditFieldButton fieldPath="name" onClick={openSuggestEditModal} />
-            {committee.nepaliName && <span className="text-lg text-muted-foreground ml-2 group flex items-center">({committee.nepaliName} <EditFieldButton fieldPath="nepaliName" onClick={openSuggestEditModal}/>)</span>}
+          <span className="flex items-center">
+            {committee.name} {/* <EditFieldButton fieldPath="name" onClick={openSuggestEditModal} /> */}
+            {committee.nepaliName && <span className="text-lg text-muted-foreground ml-2 flex items-center">({committee.nepaliName} {/* <EditFieldButton fieldPath="nepaliName" onClick={openSuggestEditModal}/> */})</span>}
           </span>
         }
         description={
           <div className="flex flex-wrap gap-2 items-center mt-1 text-sm">
-            <Badge variant="secondary" className="group">{committee.committeeType} <EditFieldButton fieldPath="committeeType" onClick={openSuggestEditModal}/></Badge>
-            {committee.house && <Badge variant="outline" className="group">{committee.house} <EditFieldButton fieldPath="house" onClick={openSuggestEditModal}/></Badge>}
+            <Badge variant="secondary">{committee.committeeType} {/* <EditFieldButton fieldPath="committeeType" onClick={openSuggestEditModal}/> */}</Badge>
+            {committee.house && <Badge variant="outline">{committee.house} {/* <EditFieldButton fieldPath="house" onClick={openSuggestEditModal}/> */}</Badge>}
             {committee.isActive !== undefined && (
-                <Badge variant={committee.isActive ? 'default' : 'destructive'} className={`group ${committee.isActive ? 'bg-green-500 text-white': ''}`}>
+                <Badge variant={committee.isActive ? 'default' : 'destructive'} className={`${committee.isActive ? 'bg-green-500 text-white': ''}`}>
                     {committee.isActive ? 'Active' : 'Inactive'}
-                    <EditFieldButton fieldPath="isActive" onClick={openSuggestEditModal} className="text-white group-hover:text-primary-foreground"/>
+                    {/* <EditFieldButton fieldPath="isActive" onClick={openSuggestEditModal} className="text-white group-hover:text-primary-foreground"/> */}
                 </Badge>
             )}
           </div>
         }
         actions={
           <div className="flex gap-2">
+            <Button variant="outline" onClick={openSuggestCommitteeEditModal}>
+              <Edit className="mr-2 h-4 w-4" /> Propose Changes to Committee
+            </Button>
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
               <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Details'}
             </Button>
@@ -211,7 +249,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
         }
       />
 
-      {committee && isSuggestEditModalOpen && entitySchemas.Committee && (
+      {/* {committee && isSuggestEditModalOpen && entitySchemas.Committee && ( // Old form instance - Removed
         <SuggestEditForm
           isOpen={isSuggestEditModalOpen}
           onOpenChange={setIsSuggestEditModalOpen}
@@ -221,6 +259,17 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
           entityDisplayName={committee.name}
           onSubmit={handleSuggestionSubmit}
         />
+      )} */}
+
+      {committee && isCommitteeSuggestEntityEditModalOpen && entitySchemas.Committee && ( // New form instance
+        <SuggestEntityEditForm
+          isOpen={isCommitteeSuggestEntityEditModalOpen}
+          onOpenChange={setIsCommitteeSuggestEntityEditModalOpen}
+          entityType="Committee"
+          entitySchema={entitySchemas.Committee}
+          currentEntityData={committee}
+          onSubmit={handleCommitteeEntityEditSuggestionSubmit}
+        />
       )}
 
       <div id="committee-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -229,7 +278,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><FileText className="text-primary"/> Mandate & Terms of Reference</CardTitle>
-                <EditFieldButton fieldPath="mandate" onClick={openSuggestEditModal}/>
+                {/* <EditFieldButton fieldPath="mandate" onClick={openSuggestEditModal}/> */}
               </CardHeader>
               <CardContent>
                 <p className="text-foreground/80 whitespace-pre-line">{committee.mandate}</p>
@@ -244,19 +293,19 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><Users className="text-primary"/> Members</CardTitle>
                     {chairperson && <CardDescription>Chairperson: <Link href={`/politicians/${chairperson.politicianId}`} className="text-primary hover:underline">{chairperson.politicianName}</Link></CardDescription>}
                   </div>
-                  <EditFieldButton fieldPath="members" onClick={openSuggestEditModal} tooltip="Edit members (JSON)"/>
+                  {/* <EditFieldButton fieldPath="members" onClick={openSuggestEditModal} tooltip="Edit members (JSON)"/> */}
                 </CardHeader>
                 <CardContent>
                 <ul className="space-y-2">
                     {committee.members.map((member, idx) => (
-                    <li key={idx} className="text-sm group flex justify-between items-start">
+                    <li key={idx} className="text-sm flex justify-between items-start">
                         <div>
                           <Link href={`/politicians/${member.politicianId}`} className="text-primary hover:underline font-semibold">
                             {member.politicianName}
                           </Link>
                           <span className="text-xs text-muted-foreground"> ({member.role})</span>
                         </div>
-                        <EditFieldButton fieldPath={`members[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this member"/>
+                        {/* <EditFieldButton fieldPath={`members[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this member"/> */}
                     </li>
                     ))}
                 </ul>
@@ -268,13 +317,13 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><ListChecks className="text-primary"/> Bills Referred / Under Review</CardTitle>
-                <EditFieldButton fieldPath="billsReferred" onClick={openSuggestEditModal} tooltip="Edit bills referred (JSON)"/>
+                {/* <EditFieldButton fieldPath="billsReferred" onClick={openSuggestEditModal} tooltip="Edit bills referred (JSON)"/> */}
               </CardHeader>
               <CardContent className="space-y-4">
                 {committee.billsReferred.map((billRef, idx) => {
                   const bill = getBillById(billRef.billId); // Assuming this function exists
                   return (
-                    <div key={idx} className="p-3 border rounded-md bg-muted/30 group flex justify-between items-start">
+                    <div key={idx} className="p-3 border rounded-md bg-muted/30 flex justify-between items-start">
                       <div>
                         <Link href={`/bills/${bill?.slug || billRef.billId}`} className="font-semibold text-primary hover:underline">
                           {billRef.billName} {billRef.billNumber && `(${billRef.billNumber})`}
@@ -282,7 +331,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                         <p className="text-xs text-muted-foreground">Referred: {format(new Date(billRef.referralDate), 'MMMM dd, yyyy')}</p>
                         {billRef.status && <div className="text-xs">Committee Status: <Badge variant="outline" className="text-xs">{billRef.status}</Badge></div>}
                       </div>
-                      <EditFieldButton fieldPath={`billsReferred[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this referred bill entry"/>
+                      {/* <EditFieldButton fieldPath={`billsReferred[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this referred bill entry"/> */}
                     </div>
                   );
                 })}
@@ -294,11 +343,11 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
              <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><FileText className="text-primary"/> Published Reports</CardTitle>
-                    <EditFieldButton fieldPath="reports" onClick={openSuggestEditModal} tooltip="Edit reports (JSON)"/>
+                    {/* <EditFieldButton fieldPath="reports" onClick={openSuggestEditModal} tooltip="Edit reports (JSON)"/> */}
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {committee.reports.map((report, idx) => (
-                        <div key={report.id || idx} className="text-sm border-b pb-2 last:border-b-0 group flex justify-between items-start">
+                        <div key={report.id || idx} className="text-sm border-b pb-2 last:border-b-0 flex justify-between items-start">
                             <div>
                               <a href={report.reportUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline flex items-center gap-1">
                                   {report.title} <ExternalLink className="h-3 w-3 shrink-0"/>
@@ -306,7 +355,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                               <p className="text-xs text-muted-foreground">Published: {format(new Date(report.publicationDate), 'MMMM dd, yyyy')}{report.reportType && ` (${report.reportType})`}</p>
                               {report.summary && <p className="text-xs text-foreground/80 mt-1 line-clamp-2">{report.summary}</p>}
                             </div>
-                            <EditFieldButton fieldPath={`reports[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this report"/>
+                            {/* <EditFieldButton fieldPath={`reports[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this report"/> */}
                         </div>
                     ))}
                 </CardContent>
@@ -317,11 +366,11 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
              <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><CalendarDays className="text-primary"/> Recent Meetings</CardTitle>
-                    <EditFieldButton fieldPath="meetings" onClick={openSuggestEditModal} tooltip="Edit meetings (JSON)"/>
+                    {/* <EditFieldButton fieldPath="meetings" onClick={openSuggestEditModal} tooltip="Edit meetings (JSON)"/> */}
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {committee.meetings.slice(0,5).map((meeting, idx) => (
-                        <div key={meeting.id || idx} className="text-sm border-b pb-2 last:border-b-0 group flex justify-between items-start">
+                        <div key={meeting.id || idx} className="text-sm border-b pb-2 last:border-b-0 flex justify-between items-start">
                             <div>
                               <p className="font-semibold">{meeting.title || `Meeting on ${format(new Date(meeting.date), 'MMMM dd, yyyy')}`}</p>
                               <p className="text-xs text-muted-foreground">Date: {format(new Date(meeting.date), 'MMMM dd, yyyy')}</p>
@@ -331,7 +380,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                                   {meeting.minutesUrl && <Button variant="link" size="sm" asChild className="p-0 h-auto text-xs"><a href={meeting.minutesUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3 w-3 mr-1"/>View Minutes</a></Button>}
                               </div>
                             </div>
-                             <EditFieldButton fieldPath={`meetings[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this meeting"/>
+                             {/* <EditFieldButton fieldPath={`meetings[${idx}]`} onClick={openSuggestEditModal} tooltip="Edit this meeting"/> */}
                         </div>
                     ))}
                     {committee.meetings.length > 5 && <p className="text-xs text-muted-foreground mt-2">... and more meetings.</p>}
@@ -343,7 +392,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-primary"/>Activity Timeline</CardTitle>
-                    <EditFieldButton fieldPath="activityTimeline" onClick={openSuggestEditModal} tooltip="Edit activity timeline (JSON)"/>
+                    {/* <EditFieldButton fieldPath="activityTimeline" onClick={openSuggestEditModal} tooltip="Edit activity timeline (JSON)"/> */}
                 </CardHeader>
                 <CardContent>
                    <TimelineDisplay items={activityTimelineItems} />
@@ -418,13 +467,13 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><MessageSquare className="text-primary"/>Contact Information</CardTitle>
-                    <EditFieldButton fieldPath="contactInfo" onClick={openSuggestEditModal} tooltip="Edit contact info (JSON)"/>
+                    {/* <EditFieldButton fieldPath="contactInfo" onClick={openSuggestEditModal} tooltip="Edit contact info (JSON)"/> */}
                 </CardHeader>
                 <CardContent className="space-y-1.5 text-sm">
-                    {committee.contactInfo.officeAddress && <p className="flex items-start justify-between gap-1.5 group"><span className="flex items-start gap-1.5"><Landmark className="h-4 w-4 text-primary/70 mt-0.5 shrink-0"/> {committee.contactInfo.officeAddress}</span> <EditFieldButton fieldPath="contactInfo.officeAddress" onClick={openSuggestEditModal}/></p>}
-                    {committee.contactInfo.email && <p className="flex items-center justify-between gap-1.5 group"><span className="flex items-center gap-1.5"><Mail className="h-4 w-4 text-primary/70"/><a href={`mailto:${committee.contactInfo.email}`} className="hover:underline">{committee.contactInfo.email}</a></span> <EditFieldButton fieldPath="contactInfo.email" onClick={openSuggestEditModal}/></p>}
-                    {committee.contactInfo.phone && <p className="flex items-center justify-between gap-1.5 group"><span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-primary/70"/>{committee.contactInfo.phone}</span> <EditFieldButton fieldPath="contactInfo.phone" onClick={openSuggestEditModal}/></p>}
-                    {committee.contactInfo.website && <p className="flex items-center justify-between gap-1.5 group"><span className="flex items-center gap-1.5"><Globe className="h-4 w-4 text-primary/70"/><a href={committee.contactInfo.website} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">Official Website</a></span> <EditFieldButton fieldPath="contactInfo.website" onClick={openSuggestEditModal}/></p>}
+                    {committee.contactInfo.officeAddress && <p className="flex items-start justify-between gap-1.5"><span className="flex items-start gap-1.5"><Landmark className="h-4 w-4 text-primary/70 mt-0.5 shrink-0"/> {committee.contactInfo.officeAddress}</span> {/* <EditFieldButton fieldPath="contactInfo.officeAddress" onClick={openSuggestEditModal}/> */}</p>}
+                    {committee.contactInfo.email && <p className="flex items-center justify-between gap-1.5"><span className="flex items-center gap-1.5"><Mail className="h-4 w-4 text-primary/70"/><a href={`mailto:${committee.contactInfo.email}`} className="hover:underline">{committee.contactInfo.email}</a></span> {/* <EditFieldButton fieldPath="contactInfo.email" onClick={openSuggestEditModal}/> */}</p>}
+                    {committee.contactInfo.phone && <p className="flex items-center justify-between gap-1.5"><span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-primary/70"/>{committee.contactInfo.phone}</span> {/* <EditFieldButton fieldPath="contactInfo.phone" onClick={openSuggestEditModal}/> */}</p>}
+                    {committee.contactInfo.website && <p className="flex items-center justify-between gap-1.5"><span className="flex items-center gap-1.5"><Globe className="h-4 w-4 text-primary/70"/><a href={committee.contactInfo.website} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">Official Website</a></span> {/* <EditFieldButton fieldPath="contactInfo.website" onClick={openSuggestEditModal}/> */}</p>}
                 </CardContent>
             </Card>
            )}
@@ -435,7 +484,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
                             <Tag className="h-5 w-5 text-primary"/> Tags
                         </CardTitle>
-                        <EditFieldButton fieldPath="tags" onClick={openSuggestEditModal} tooltip="Edit tags (JSON)"/>
+                        {/* <EditFieldButton fieldPath="tags" onClick={openSuggestEditModal} tooltip="Edit tags (JSON)"/> */}
                     </CardHeader>
                     <CardContent className="flex flex-wrap gap-2">
                         {committee.tags.map((tag) => (
@@ -471,7 +520,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
              <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><Activity className="text-primary"/>Activity Timeline</CardTitle>
-                    <EditFieldButton fieldPath="activityTimeline" onClick={openSuggestEditModal} tooltip="Edit activity timeline (JSON)"/>
+                    {/* <EditFieldButton fieldPath="activityTimeline" onClick={openSuggestEditModal} tooltip="Edit activity timeline (JSON)"/> */}
                 </CardHeader>
                 <CardContent>
                    <p className="text-muted-foreground text-sm">(Detailed committee activity timeline will be available in future updates.)</p>
