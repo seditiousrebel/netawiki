@@ -13,29 +13,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox'; // Added for boolean type
-import type { PendingEdit } from '@/types/gov'; // Added
-import { getCurrentUser } from '@/lib/auth'; // Added
+import type { PendingEdit } from '@/types/gov';
+import { getCurrentUser } from '@/lib/auth';
+import type { FormFieldSchema, FieldType } from '@/types/form-schema';
+import { DynamicFormRenderer } from './form-parts/DynamicFormRenderer'; // Import the new renderer
 
-// Define FieldType and FormFieldSchema interfaces
-export type FieldType =
-  | 'text'
-  | 'textarea'
-  | 'number'
-  | 'boolean'
-  | 'date'
-  | 'url'
-  | 'email';
-
-export interface FormFieldSchema {
-  name: string;
-  label: string;
-  type: FieldType | 'object' | 'array'; // Allow 'object' and 'array' as types
-  required?: boolean;
-  placeholder?: string;
-  options?: string[]; // For select/radio group type fields (not implemented yet)
-  objectSchema?: FormFieldSchema[]; // For nested objects
-  arrayItemSchema?: FormFieldSchema | FieldType; // Schema for array items
-}
+// Removed local FieldType and FormFieldSchema definitions
 
 interface SuggestNewEntryFormProps {
   isOpen: boolean;
@@ -135,196 +118,7 @@ export const SuggestNewEntryForm: React.FC<SuggestNewEntryFormProps> = ({
     setEvidenceUrl('');
   };
 
-  // Placeholder for the recursive rendering function
-  const renderFormField = (fieldSchema: FormFieldSchema, basePath: string, dataForPath: any) => {
-    const { name, label, type, required, placeholder, objectSchema, arrayItemSchema } = fieldSchema;
-    // Construct the full path for the current field. If basePath is empty (root level), don't prepend a dot.
-    const fullPath = basePath ? `${basePath}.${name}` : name;
-
-    // Get the current value for this field using the full path from the top-level formData
-    // This was a slight misunderstanding in previous step: getValueByPath should always work from root formData or the specific object slice.
-    // dataForPath IS the specific slice. So we access `name` directly on it.
-    // const currentValue = getValueByPath(formData, fullPath); // Option 1: always use root formData
-    const currentValue = dataForPath && typeof dataForPath === 'object' ? dataForPath[name] : undefined; // Option 2: use the passed dataForPath slice
-
-
-    switch (type) {
-      case 'text':
-      case 'url':
-      case 'email':
-      case 'date':
-      case 'number':
-        return (
-          <div key={fullPath} className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor={fullPath} className="text-right">
-              {label}{required && '*'}
-            </Label>
-            <Input
-              id={fullPath}
-              type={type === 'number' ? 'number' : (type === 'date' ? 'date' : 'text')}
-              value={currentValue || ''}
-              onChange={(e) => handleInputChange(fullPath, e.target.value)}
-              className="col-span-3"
-              placeholder={placeholder || `Enter ${label.toLowerCase()}`}
-              required={required}
-            />
-          </div>
-        );
-      case 'textarea':
-        return (
-          <div key={fullPath} className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor={fullPath} className="text-right pt-2">
-              {label}{required && '*'}
-            </Label>
-            <Textarea
-              id={fullPath}
-              value={currentValue || ''}
-              onChange={(e) => handleInputChange(fullPath, e.target.value)}
-              className="col-span-3 min-h-[100px]"
-              placeholder={placeholder || `Enter ${label.toLowerCase()}`}
-              required={required}
-            />
-          </div>
-        );
-      case 'boolean':
-        return (
-          <div key={fullPath} className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor={fullPath} className="text-right col-span-3">
-              {label}{required && '*'}
-            </Label>
-            <Checkbox
-              id={fullPath}
-              checked={!!currentValue}
-              onCheckedChange={(checked) => handleInputChange(fullPath, checked)}
-              className="col-span-1 justify-self-start"
-            />
-          </div>
-        );
-      case 'object':
-        if (!objectSchema) {
-          return <p key={fullPath}>Error: objectSchema not defined for {name}</p>;
-        }
-        return (
-          <div key={fullPath} className="space-y-4 p-4 border rounded-md">
-            <h3 className="font-semibold text-lg">{label}</h3>
-            {/* Pass `currentValue` as the `dataForPath` for sub-fields. This is the object slice. */}
-            {objectSchema.map(subField => renderFormField(subField, fullPath, currentValue || {}))}
-          </div>
-        );
-      case 'array':
-        if (!arrayItemSchema) {
-          return <p key={fullPath}>Error: arrayItemSchema not defined for {name}</p>;
-        }
-        // `currentValue` here is the array itself
-        const items = Array.isArray(currentValue) ? currentValue : [];
-        return (
-          <div key={fullPath} className="space-y-4 p-4 border rounded-md">
-            <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-lg">{label}</h3>
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                        // Path for the new item in the array
-                        const newItemPath = `${fullPath}[${items.length}]`;
-                        if (typeof arrayItemSchema === 'object' && arrayItemSchema.objectSchema) {
-                            // Initialize new object based on its schema
-                            const newObj = arrayItemSchema.objectSchema.reduce((acc, sf) => {
-                                // @ts-ignore - initialize with undefined or default based on schema
-                                acc[sf.name] = undefined;
-                                return acc;
-                            }, {} as Record<string, any>);
-                            handleInputChange(newItemPath, newObj);
-                        } else {
-                             // For simple types or arrayItemSchema as FieldType
-                            handleInputChange(newItemPath, ''); // Initialize with empty string or undefined
-                        }
-                    }}
-                >
-                    Add {typeof arrayItemSchema === 'object' ? arrayItemSchema.label || 'Item' : 'Item'}
-                </Button>
-            </div>
-            {items.map((item: any, index: number) => {
-              // Path for the current item within the array
-              const itemPath = `${fullPath}[${index}]`;
-              return (
-                <div key={itemPath} className="p-3 border rounded bg-slate-50 dark:bg-slate-800 relative">
-                  {typeof arrayItemSchema === 'object' ? (
-                     arrayItemSchema.objectSchema ?
-                        // For array of objects, 'item' is the object. Pass it as `dataForPath`.
-                        // The `basePath` for sub-fields is `itemPath`.
-                        arrayItemSchema.objectSchema.map(subField => renderFormField(subField, itemPath, item))
-                        : <p>Error: objectSchema missing in arrayItemSchema for {arrayItemSchema.label}</p>
-                  ) : (
-                    // Array of simple types. `item` is the value.
-                    <div className="grid grid-cols-4 items-center gap-2">
-                        <Input
-                            id={itemPath} // ID for the input field itself
-                            type={arrayItemSchema as FieldType === 'number' ? 'number' : 'text'}
-                            value={item || ''}
-                            onChange={(e) => handleInputChange(itemPath, e.target.value)}
-                            className="col-span-3"
-                            placeholder={`Enter value`}
-                        />
-                        <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => {
-                                const newItems = [...items];
-                                newItems.splice(index, 1);
-                                // Update the whole array at its path (`fullPath`)
-                                handleInputChange(fullPath, newItems);
-                            }}
-                            className="col-span-1"
-                        >
-                            Remove
-                        </Button>
-                    </div>
-                  )}
-                   {/* Common Remove button for array of objects items */}
-                   {typeof arrayItemSchema === 'object' && (
-                     <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => {
-                            const newItems = [...items];
-                            newItems.splice(index, 1);
-                            handleInputChange(fullPath, newItems); // Update the whole array
-                        }}
-                        className="mt-2" // Placed consistently for object array items
-                    >
-                        Remove {arrayItemSchema.label || 'Item'}
-                    </Button>
-                   )}
-                </div>
-              );
-            })}
-             {items.length === 0 && <p className="text-sm text-muted-foreground">No items yet. Click "Add" to create one.</p>}
-          </div>
-        );
-      default:
-        // Fallback for unsupported field types
-        const fieldIdForDefault = fullPath; // Use fullPath for id
-        return (
-          <div key={fieldIdForDefault} className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor={fieldIdForDefault} className="text-right">
-              {label}
-            </Label>
-            <Input
-              id={fieldIdForDefault}
-              value={currentValue || ''} // Display current value if any
-              onChange={(e) => handleInputChange(fullPath, e.target.value)} // Allow editing, though type is unknown
-              className="col-span-3"
-              placeholder={`Unsupported field type: ${String(type)}`}
-              disabled
-            />
-          </div>
-        );
-    }
-  };
+  // Local renderFormField removed, will use DynamicFormRenderer
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -338,8 +132,16 @@ export const SuggestNewEntryForm: React.FC<SuggestNewEntryFormProps> = ({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           {/* Dynamic form fields will be rendered here */}
-          {/* Initial call: basePath is empty, dataForPath is the root formData object */}
-          {entitySchema.map((field) => renderFormField(field, '', formData))}
+          {entitySchema.map((field) => (
+            <DynamicFormRenderer
+              key={field.name}
+              fieldSchema={field}
+              basePath=""
+              dataForPath={formData}
+              onInputChange={handleInputChange}
+              // isSingleFieldRoot is false by default for SNEF
+            />
+          ))}
 
           {/* Fixed fields for reason and evidence */}
           <div className="grid grid-cols-4 items-start gap-4 pt-4 border-t mt-4">
