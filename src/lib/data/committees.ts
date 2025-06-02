@@ -126,7 +126,7 @@ export const mockCommittees: Committee[] = [
         { politicianId: 'p1', politicianName: getPoliticianName('p1'), role: 'Member' }
     ],
     billsReferred: [
-      { billId: 'b1', billName: getBillDetails('b1')?.title || 'Clean Energy Act 2024', billNumber: getBillDetails('b1')?.billNumber, referralDate: '2024-03-18', status: 'Under Review by Committee' },
+      { billId: 'b1', billName: getBillDetails('b1')?.title || 'Clean Energy Act 2024', billNumber: getBillDetails('b1')?.billNumber, referralDate: '2024-03-18', status: 'Reported out of Committee' },
     ],
     tags: ['energy', 'environment', 'natural-resources'],
     isActive: true,
@@ -148,6 +148,105 @@ export const mockCommittees: Committee[] = [
     tags: ['education', 'labor', 'workforce'],
     isActive: true,
     dataAiHint: 'students graduation cap',
+  },
+  // Stubs for new committees identified from bills.ts
+  {
+    id: 'com6',
+    slug: 'house-committee-on-energy-and-commerce',
+    name: 'House Committee on Energy and Commerce',
+    committeeType: 'House Committee',
+    house: 'House of Representatives',
+    mandate: 'Jurisdiction over energy, commerce, health, environment, and telecommunications.',
+    members: [],
+    billsReferred: [
+      { billId: 'b1', billName: getBillDetails('b1')?.title || 'Clean Energy Act 2024', billNumber: getBillDetails('b1')?.billNumber, referralDate: '2024-07-12', status: 'Pending Review' } // Assuming referral after Senate passage for b1
+    ], 
+    tags: ['energy', 'commerce', 'health', 'environment'],
+    isActive: true,
+  },
+  {
+    id: 'com7',
+    slug: 'senate-committee-on-health-education-labor-pensions',
+    name: 'Senate Committee on Health, Education, Labor, and Pensions (HELP)',
+    committeeType: 'Senate Committee',
+    house: 'Senate',
+    mandate: 'Oversees matters related to health, education, labor, and pensions.',
+    members: [],
+    billsReferred: [
+      { billId: 'b2', billName: getBillDetails('b2')?.title || 'Digital Literacy For All Act', billNumber: getBillDetails('b2')?.billNumber, referralDate: '2024-02-28', status: 'Reported Favorably' }
+    ], 
+    tags: ['health', 'education', 'labor', 'pensions'],
+    isActive: true,
+  },
+  {
+    id: 'com8',
+    slug: 'house-committee-on-science-space-technology',
+    name: 'House Committee on Science, Space, and Technology',
+    committeeType: 'House Committee',
+    house: 'House of Representatives',
+    mandate: 'Jurisdiction over non-defense federal scientific research and development.',
+    members: [],
+    billsReferred: [
+      { billId: 'b3', billName: getBillDetails('b3')?.title || 'National AI Research & Development Act 2025', billNumber: getBillDetails('b3')?.billNumber, referralDate: '2025-01-20', status: 'Reported Favorably (Amended)' }
+    ], 
+    tags: ['science', 'technology', 'space', 'research'],
+    isActive: true,
+  },
+  {
+    id: 'com9',
+    slug: 'senate-committee-on-commerce-science-transportation',
+    name: 'Senate Committee on Commerce, Science, and Transportation',
+    committeeType: 'Senate Committee',
+    house: 'Senate',
+    mandate: 'Oversees commerce, science, technology, and transportation policy.',
+    members: [],
+    billsReferred: [
+      { billId: 'b3', billName: getBillDetails('b3')?.title || 'National AI Research & Development Act 2025', billNumber: getBillDetails('b3')?.billNumber, referralDate: '2025-04-15', status: 'Reported Favorably (Amended)' }
+    ], 
+    tags: ['commerce', 'science', 'transportation', 'technology'],
+    isActive: true,
+  },
+  {
+    id: 'com10',
+    slug: 'senate-judiciary-committee',
+    name: 'Senate Judiciary Committee',
+    committeeType: 'Senate Committee',
+    house: 'Senate',
+    mandate: 'Oversees federal judiciary, constitutional amendments, and criminal justice.',
+    members: [],
+    billsReferred: [
+      { billId: 'b4', billName: getBillDetails('b4')?.title || 'Accountability in Public Office Act 2024', billNumber: getBillDetails('b4')?.billNumber, referralDate: '2024-02-10', status: 'Reported with No Recommendation' }
+    ], 
+    tags: ['judiciary', 'law', 'crime', 'constitution'],
+    isActive: true,
+  },
+  {
+    id: 'com11',
+    slug: 'house-oversight-committee',
+    name: 'House Oversight Committee',
+    committeeType: 'House Committee',
+    house: 'House of Representatives',
+    mandate: 'Primary investigative committee in the House.',
+    members: [],
+    billsReferred: [
+      { billId: 'b4', billName: getBillDetails('b4')?.title || 'Accountability in Public Office Act 2024', billNumber: getBillDetails('b4')?.billNumber, referralDate: '2024-04-25', status: 'Voted Against Bill' }
+    ], 
+    tags: ['oversight', 'investigations', 'government-accountability'],
+    isActive: true,
+  },
+  {
+    id: 'com12',
+    slug: 'house-committee-on-financial-services',
+    name: 'House Committee on Financial Services',
+    committeeType: 'House Committee',
+    house: 'House of Representatives',
+    mandate: 'Jurisdiction over the financial services industry, including banking, insurance, housing, and securities.',
+    members: [],
+    billsReferred: [
+      { billId: 'b5', billName: getBillDetails('b5')?.title || 'Commemorative Coin for Local Hero Act 2024', billNumber: getBillDetails('b5')?.billNumber, referralDate: '2024-07-02', status: 'Failed in Committee Vote' }
+    ], 
+    tags: ['finance', 'banking', 'insurance', 'housing', 'securities'],
+    isActive: true,
   }
 ];
 

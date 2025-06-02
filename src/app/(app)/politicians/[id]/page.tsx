@@ -6,10 +6,26 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Globe, Edit, Users, Tag, CalendarDays, Briefcase, Landmark, MapPin, GraduationCap, Twitter, Facebook, Linkedin, Instagram, ScrollText, ExternalLink, Gavel, Star, BarChart3, ListChecks, FileText, ClipboardList, UserPlus, UserCheck, ShieldAlert, Building, Languages, CheckCircle, XCircle, AlertCircle, MessageSquare, Map, CircleHelp, Quote, AlertOctagon, Newspaper, History, Trash2 } from 'lucide-react'; // Removed Download
-import { TimelineDisplay } from '@/components/common/timeline-display'; // Removed formatCombinedCareerTimeline from here
+// Lucide imports selectively kept based on direct usage on this page
+import { Edit, Users, Tag, CalendarDays, Landmark, MapPin, Star, BarChart3, ListChecks, Languages, CheckCircle, XCircle, MessageSquare, CircleHelp, Quote, Trash2, UserCircle, ExternalLink } from 'lucide-react';
+import { TimelineDisplay } from '@/components/common/timeline-display';
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent, NewsArticleLink, PendingEdit } from '@/types/gov';
+
+// Import new reusable components
+import ContactInfoDisplay from '@/components/common/details/ContactInfoDisplay';
+import TagsDisplay from '@/components/common/details/TagsDisplay';
+import EducationHistoryDisplay from '@/components/common/details/EducationHistoryDisplay';
+import CareerHistoryDisplay from '@/components/common/details/CareerHistoryDisplay';
+import CommitteeMembershipsDisplay from '@/components/common/details/CommitteeMembershipsDisplay';
+import SponsoredBillsDisplay from '@/components/common/details/SponsoredBillsDisplay';
+import VotingRecordDisplay from '@/components/common/details/VotingRecordDisplay';
+import AssetDeclarationsDisplay from '@/components/common/details/AssetDeclarationsDisplay';
+import CriminalRecordsDisplay from '@/components/common/details/CriminalRecordsDisplay';
+import RelatedNewsDisplay from '@/components/common/details/RelatedNewsDisplay';
+import AssociatedControversiesDisplay from '@/components/common/details/AssociatedControversiesDisplay';
+import PromisesDisplay from '@/components/common/details/PromisesDisplay';
+import RevisionHistoryDisplay from '@/components/common/details/RevisionHistoryDisplay';
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect, useRef } from 'react'; // Keep useEffect if other effects use it
 import { Textarea } from '@/components/ui/textarea';
@@ -36,6 +52,7 @@ interface TimelineItem {
   date: string;
   title: string;
   description?: string;
+  iconType?: string; // Added iconType
 }
 
 // Helper function to combine and sort career events - This local definition is correct
@@ -50,6 +67,7 @@ function formatCombinedCareerTimeline(
       date: event.date,
       title: event.event,
       description: event.description,
+      iconType: 'politicalCareerEvent', // Added
     });
   });
 
@@ -58,12 +76,14 @@ function formatCombinedCareerTimeline(
       date: aff.startDate,
       title: `Joined ${aff.partyName}`,
       description: aff.role ? `Role: ${aff.role}` : undefined,
+      iconType: 'partyAffiliationEvent', // Added
     });
     if (aff.endDate && aff.endDate !== 'Present') {
       combinedEvents.push({
         date: aff.endDate,
         title: `Left ${aff.partyName}`,
         description: aff.role ? `Previous Role: ${aff.role}` : undefined,
+        iconType: 'partyAffiliationEvent', // Added
       });
     }
   });
@@ -255,11 +275,19 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
 
   const promises = getPromisesByPolitician(params.id);
   const party = politician.partyId ? mockParties.find(p => p.id === politician.partyId) : null;
-  const sponsoredBills = getBillsBySponsor(politician.id);
+  const sponsoredBillsData = getBillsBySponsor(politician.id); // Renamed to avoid conflict
   const relatedControversies = getControversiesByPoliticianId(politician.id);
   const careerTimelineItems = formatCombinedCareerTimeline(politician.politicalJourney, politician.partyAffiliations);
   const relatedNews = getNewsByPoliticianId(politician.id);
 
+  // Prepare data for SponsoredBillsDisplay
+  const sponsoredBillsForDisplay = sponsoredBillsData.map(bill => ({
+    ...bill,
+    // Ensure type safety if bill.sponsors is undefined or if find returns undefined
+    sponsorshipType: bill.sponsors?.find(s => s.id === politician.id)?.type
+      ? `${bill.sponsors.find(s => s.id === politician.id)?.type} Sponsor`
+      : undefined
+  }));
 
   const politicianVotes: PoliticianVote[] = [];
   mockBills.forEach(bill => {
@@ -291,22 +319,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     }
   });
 
-
-  const getCriminalStatusBadgeVariant = (status: CriminalRecord['status']) => {
-    switch (status) {
-      case 'Convicted':
-      case 'Charges Filed':
-        return 'destructive';
-      case 'Alleged':
-      case 'Under Investigation':
-        return 'secondary';
-      case 'Acquitted':
-      case 'Dismissed':
-        return 'default';
-      default:
-        return 'outline';
-    }
-  };
+  // Removed getCriminalStatusBadgeVariant as it's now in CriminalRecordsDisplay.tsx
 
   return (
     <div>
@@ -398,166 +411,21 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="font-headline text-xl">Contact Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {politician.contactInfo.email && (
-                <p className="flex items-center justify-between gap-2 text-sm">
-                  <span className="flex items-center gap-2"><Mail className="h-4 w-4 text-primary" />
-                  <a href={`mailto:${politician.contactInfo.email}`} className="hover:underline truncate">{politician.contactInfo.email}</a></span>
-                </p>
-              )}
-              {politician.contactInfo.phone && (
-                <p className="flex items-center justify-between gap-2 text-sm">
-                  <span className="flex items-center gap-2"><Phone className="h-4 w-4 text-primary" /> {politician.contactInfo.phone} (Personal)</span>
-                </p>
-              )}
-              {politician.contactInfo.officePhone && (
-                <p className="flex items-center justify-between gap-2 text-sm">
-                  <span className="flex items-center gap-2"><Building className="h-4 w-4 text-primary" /> {politician.contactInfo.officePhone} (Office)</span>
-                </p>
-              )}
-              {politician.contactInfo.permanentAddress && (
-                <p className="flex items-start justify-between gap-2 text-sm">
-                  <span className="flex items-start gap-2"><Map className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Permanent Address: {politician.contactInfo.permanentAddress}</span>
-                </p>
-              )}
-              {politician.contactInfo.temporaryAddress && (
-                <p className="flex items-start justify-between gap-2 text-sm">
-                  <span className="flex items-start gap-2"><Map className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Temporary Address: {politician.contactInfo.temporaryAddress}</span>
-                </p>
-              )}
-              {politician.contactInfo.website && (
-                <p className="flex items-center justify-between gap-2 text-sm">
-                  <span className="flex items-center gap-2"><Globe className="h-4 w-4 text-primary" />
-                  <a href={politician.contactInfo.website} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
-                    Official Website
-                  </a></span>
-                </p>
-              )}
-              {politician.contactInfo.twitter && (
-                <p className="flex items-center justify-between gap-2 text-sm">
-                  <span className="flex items-center gap-2"><Twitter className="h-4 w-4 text-primary" />
-                  <a href={politician.contactInfo.twitter} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
-                    @{politician.contactInfo.twitter.split('/').pop()}
-                  </a></span>
-                </p>
-              )}
-              {politician.contactInfo.facebook && (
-                <p className="flex items-center justify-between gap-2 text-sm">
-                  <span className="flex items-center gap-2"><Facebook className="h-4 w-4 text-primary" />
-                  <a href={politician.contactInfo.facebook} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
-                    Facebook Profile
-                  </a></span>
-                </p>
-              )}
-              {politician.contactInfo.linkedin && (
-                <p className="flex items-center justify-between gap-2 text-sm">
-                  <span className="flex items-center gap-2"><Linkedin className="h-4 w-4 text-primary" />
-                  <a href={politician.contactInfo.linkedin} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
-                    LinkedIn Profile
-                  </a></span>
-                </p>
-              )}
-              {politician.contactInfo.instagram && (
-                <p className="flex items-center justify-between gap-2 text-sm">
-                  <span className="flex items-center gap-2"><Instagram className="h-4 w-4 text-primary" />
-                  <a href={politician.contactInfo.instagram} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
-                    @{politician.contactInfo.instagram.split('/').pop()?.replace(/[/]/g,'')}
-                  </a></span>
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          <ContactInfoDisplay contactInfo={politician.contactInfo} />
 
           {politician.tags && politician.tags.length > 0 && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="font-headline text-xl flex items-center gap-2">
-                  <Tag className="h-5 w-5 text-primary"/> Tags
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                {politician.tags.map((tag) => (
-                  <Link key={tag} href={`/search?tag=${encodeURIComponent(tag)}`} passHref>
-                    <Badge variant="secondary" className="hover:bg-primary/20 transition-colors cursor-pointer">{tag}</Badge>
-                  </Link>
-                ))}
-              </CardContent>
-            </Card>
+            <TagsDisplay tags={politician.tags} />
           )}
 
           {politician.education && politician.education.length > 0 && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="font-headline text-xl flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5 text-primary"/> Education
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {politician.education.map((edu, idx) => (
-                    <li key={idx} className="text-sm flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold">{edu.degree}{edu.field && ` in ${edu.field}`}</p>
-                        <p className="text-muted-foreground">{edu.institution}</p>
-                        {edu.graduationYear && <p className="text-xs text-muted-foreground">Graduated: {edu.graduationYear}</p>}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            <EducationHistoryDisplay educationHistory={politician.education} />
           )}
-
-          <Card>
-             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="font-headline text-xl flex items-center gap-2"><Briefcase className="text-primary"/> Positions Held</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {politician.positions.map((pos, idx) => (
-                  <li key={idx} className="text-sm flex justify-between items-start">
-                    <div>
-                      <span className="font-semibold">{pos.title}</span>
-                      <br />
-                      <span className="text-muted-foreground">
-                        {new Date(pos.startDate).toLocaleDateString()} - {pos.endDate ? new Date(pos.endDate).toLocaleDateString() : 'Present'}
-                      </span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+          
+          {/* CareerHistoryDisplay renders its own Card if careerHistory is not empty */}
+          <CareerHistoryDisplay careerHistory={politician.positions} />
 
           {politician.committeeMemberships && politician.committeeMemberships.length > 0 && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="font-headline text-xl flex items-center gap-2">
-                  <Landmark className="h-5 w-5 text-primary"/> Committee Memberships
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {politician.committeeMemberships.map((mem, idx) => (
-                    <li key={idx} className="text-sm flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold">{mem.committeeName}</p>
-                        {mem.role && <p className="text-muted-foreground">{mem.role}</p>}
-                        {mem.startDate && (
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(mem.startDate).toLocaleDateString()} - {mem.endDate && mem.endDate !== 'Present' ? new Date(mem.endDate).toLocaleDateString() : 'Present'}
-                          </p>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            <CommitteeMembershipsDisplay committeeMemberships={politician.committeeMemberships} />
           )}
         </div>
 
@@ -686,215 +554,38 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             </Card>
           )}
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="font-headline text-xl">Career Timeline</CardTitle>
-            </CardHeader>
             <CardContent>
               <TimelineDisplay items={careerTimelineItems} />
             </CardContent>
           </Card>
 
-          {sponsoredBills.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-headline text-xl flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-primary"/> Sponsored Bills
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {sponsoredBills.map((bill: Bill) => (
-                    <li key={bill.id} className="p-3 border rounded-md bg-secondary/50 hover:bg-secondary/70 transition-colors">
-                      <Link href={`/bills/${bill.id}`} className="font-semibold text-primary hover:underline">
-                        {bill.title} ({bill.billNumber})
-                      </Link>
-                      <div className="flex justify-between items-center mt-1">
-                        <p className="text-xs text-muted-foreground">
-                          Status: {bill.status}
-                        </p>
-                        {bill.sponsors.find(s => s.id === politician.id)?.type === 'Primary' && (
-                            <Badge variant="outline" className="text-xs">Primary Sponsor</Badge>
-                        )}
-                        {bill.sponsors.find(s => s.id === politician.id)?.type === 'Co-Sponsor' && (
-                             <Badge variant="secondary" className="text-xs">Co-Sponsor</Badge>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
+          {/* SponsoredBillsDisplay renders its own Card if data exists */}
+          <SponsoredBillsDisplay sponsoredBills={sponsoredBillsForDisplay} />
 
-          {politicianVotes.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-headline text-xl flex items-center gap-2">
-                  <ClipboardList className="h-5 w-5 text-primary"/> Voting Record
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-4">
-                  {politicianVotes.map((vote, idx) => (
-                    <li key={`vote-${idx}-${vote.billId}`} className="text-sm border-b pb-3 last:border-b-0 last:pb-0">
-                       <Link href={`/bills/${vote.billId}`} className="font-semibold text-primary hover:underline">
-                        {vote.billTitle} ({vote.billNumber})
-                      </Link>
-                      <p className="text-muted-foreground">
-                        Vote: <span className={`font-medium ${vote.vote === 'Yea' ? 'text-green-600' : vote.vote === 'Nay' ? 'text-red-600' : ''}`}>{vote.vote}</span> in {vote.chamber}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Date: {new Date(vote.voteDate).toLocaleDateString()}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
+          {/* VotingRecordDisplay renders its own Card if data exists */}
+          <VotingRecordDisplay votingRecords={politicianVotes} />
 
+          {/* AssetDeclarationsDisplay renders its own Card if data exists */}
           {politician.assetDeclarations && politician.assetDeclarations.length > 0 && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="font-headline text-xl flex items-center gap-2">
-                  <ScrollText className="h-5 w-5 text-primary"/> Asset Declarations
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-4">
-                  {politician.assetDeclarations.map((asset: AssetDeclaration, idx: number) => (
-                    <li key={idx} className="text-sm border-b pb-3 last:border-b-0 last:pb-0 flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold">{asset.description} ({asset.year})</p>
-                        {asset.value && <p className="text-muted-foreground">Value: {asset.value}</p>}
-                        {asset.sourceUrl && (
-                          <a href={asset.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1">
-                            View Source <ExternalLink className="h-3 w-3"/>
-                          </a>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+             <AssetDeclarationsDisplay assetDeclarations={politician.assetDeclarations} />
           )}
-
+         
+          {/* CriminalRecordsDisplay renders its own Card if data exists */}
           {politician.criminalRecords && politician.criminalRecords.length > 0 && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="font-headline text-xl flex items-center gap-2">
-                  <Gavel className="h-5 w-5 text-primary"/> Criminal Records
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-4">
-                  {politician.criminalRecords.map((record: CriminalRecord, idx: number) => (
-                    <li key={idx} className="text-sm border-b pb-3 last:border-b-0 last:pb-0">
-                       <div className="flex justify-between items-start mb-1">
-                          <div>
-                            <p className="font-semibold">{record.offense}</p>
-                          </div>
-                          <div className="flex items-center">
-                            <Badge variant={getCriminalStatusBadgeVariant(record.status)}>{record.status}</Badge>
-                          </div>
-                       </div>
-                      <p className="text-xs text-muted-foreground">Date: {new Date(record.date).toLocaleDateString()}</p>
-                      {record.caseNumber && <p className="text-xs text-muted-foreground">Case: {record.caseNumber}</p>}
-                      {record.court && <p className="text-xs text-muted-foreground">Court: {record.court}</p>}
-                      {record.summary && <p className="mt-1 text-foreground/80">{record.summary}</p>}
-                      {record.sourceUrl && (
-                        <a href={record.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs flex items-center gap-1 mt-1">
-                          View Source <ExternalLink className="h-3 w-3"/>
-                        </a>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            <CriminalRecordsDisplay criminalRecords={politician.criminalRecords} />
           )}
 
-          {relatedNews && relatedNews.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-headline text-xl flex items-center gap-2"><Newspaper className="text-primary"/> Related News</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {relatedNews.map((news: NewsArticleLink, idx: number) => (
-                    <li key={idx} className="text-sm border-b pb-2 last:border-b-0">
-                      <a href={news.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">
-                        {news.title}
-                      </a>
-                      <p className="text-xs text-muted-foreground">{news.sourceName} - {new Date(news.publicationDate).toLocaleDateString()}</p>
-                      {news.summary && <p className="text-xs text-foreground/80 mt-1">{news.summary}</p>}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
-
-          {relatedControversies.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-headline text-xl flex items-center gap-2">
-                  <ShieldAlert className="h-5 w-5 text-primary"/> Associated Controversies
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {relatedControversies.map((controversy: Controversy) => (
-                    <li key={controversy.id} className="p-3 border rounded-md bg-secondary/50 hover:bg-secondary/70 transition-colors">
-                      <Link href={`/controversies/${controversy.id}`} className="font-semibold text-primary hover:underline">
-                        {controversy.title}
-                      </Link>
-                      <div className="flex justify-between items-center mt-1">
-                        <p className="text-xs text-muted-foreground">
-                          Status: {controversy.status}
-                        </p>
-                        <Badge variant={
-                            controversy.severityIndicator === 'Critical' || controversy.severityIndicator === 'High' ? 'destructive' :
-                            controversy.severityIndicator === 'Medium' ? 'secondary' : 'outline'
-                        } className="text-xs">
-                           Severity: {controversy.severityIndicator}
-                        </Badge>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/controversies" className="mt-4 inline-block">
-                   <Button variant="link" className="p-0 h-auto text-primary text-sm">View all controversies</Button>
-                </Link>
-              </CardContent>
-            </Card>
-          )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-headline text-xl">Promises</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {promises.length > 0 ? (
-                <ul className="space-y-3">
-                  {promises.map((promise: PromiseItem) => (
-                    <li key={promise.id} className="p-3 border rounded-md bg-secondary/50">
-                      <Link href={`/promises#${promise.id}`} className="font-semibold text-primary hover:underline">{promise.title}</Link>
-                      <p className="text-xs text-muted-foreground mt-1">Status: {promise.status} {promise.dueDate && `(Due: ${new Date(promise.dueDate).toLocaleDateString()})`}</p>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-muted-foreground">No promises listed for this politician yet.</p>
-              )}
-               <Link href="/promises" className="mt-4 inline-block">
-                  <Button variant="link" className="p-0 h-auto text-primary">View all promises</Button>
-               </Link>
-            </CardContent>
-          </Card>
-
+          {/* RelatedNewsDisplay renders its own Card if data exists */}
+          <RelatedNewsDisplay newsItems={relatedNews} />
+          
+          {/* AssociatedControversiesDisplay renders its own Card if data exists */}
+          <AssociatedControversiesDisplay controversies={relatedControversies} />
+          {/* Note: The "View all controversies" link from the original page can be added here by the page author if desired. */}
+          
+          {/* PromisesDisplay handles its own empty message and Card structure */}
+          <PromisesDisplay promises={promises} />
+          {/* Optional: Link to view all promises - can be added by the page author if desired. */}
+          
           <Card>
             <CardHeader>
               <CardTitle className="font-headline text-xl flex items-center gap-2">
@@ -943,40 +634,8 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             </Card>
           )}
 
-          {politician.revisionHistory && politician.revisionHistory.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-headline text-xl flex items-center gap-2">
-                  <History className="h-5 w-5 text-primary"/> Revision History
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-4">
-                  {politician.revisionHistory.map((item) => (
-                    <li key={item.id} className="text-sm border-b border-border/50 pb-3 last:border-b-0 last:pb-0">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="font-semibold text-foreground/90">{item.event}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString()}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">Author: {item.author}</p>
-                      {item.details && <p className="mt-1 text-xs text-foreground/70 bg-muted/30 p-1.5 rounded-sm">{item.details}</p>}
-                      {item.suggestionId && <p className="text-xs text-muted-foreground mt-1">Suggestion ID: {item.suggestionId}</p>}
-                      {item.entitySnapshot && (
-                        <div className="mt-2">
-                          <p className="text-xs font-semibold text-muted-foreground">Snapshot:</p>
-                          <pre className="p-2 bg-muted rounded-md text-xs whitespace-pre-wrap break-all">
-                            {JSON.stringify(item.entitySnapshot, null, 2)}
-                          </pre>
-                        </div>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
+          {/* RevisionHistoryDisplay renders its own Card if data exists */}
+          <RevisionHistoryDisplay historyItems={politician.revisionHistory} />
         </div>
       </div>
     </div>
