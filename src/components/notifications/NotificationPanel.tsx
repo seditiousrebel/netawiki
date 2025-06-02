@@ -12,17 +12,17 @@ const NotificationPanel: React.FC = () => {
   const sortedNotifications = [...notifications].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return (
-    <div className="w-80 md:w-96">
+    <div className="w-full">
       <div className="p-4">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-2 flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <h3 className="text-lg font-medium">Notifications</h3>
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead}>
+            <Button variant="link" size="sm" onClick={markAllAsRead} className="p-0 h-auto text-primary self-start sm:self-center">
               Mark all as read
             </Button>
           )}
         </div>
-        <Separator />
+        <Separator className="mt-2" />
       </div>
 
       {notifications.length === 0 ? (

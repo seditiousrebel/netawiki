@@ -21,7 +21,7 @@ const NotificationBell: React.FC = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0" align="end">
+      <PopoverContent className="p-0 w-[calc(100vw-32px)] max-w-sm sm:w-96" align="end">
         <NotificationPanel />
       </PopoverContent>
     </Popover>
