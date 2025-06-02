@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { followEntity, unfollowEntity, isEntityFollowed } from '@/lib/user';
 import type { FollowableEntityType } from '@/lib/user';
 import { Loader2 } from 'lucide-react';
+import { isUserLoggedIn } from '@/lib/auth'; // Added import
+import { useRouter } from 'next/navigation'; // Added import
 
 interface FollowButtonProps {
   entityId: string;
@@ -15,6 +17,7 @@ interface FollowButtonProps {
 const FollowButton: React.FC<FollowButtonProps> = ({ entityId, entityType, entityName, className }) => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // Start with loading true to check initial state
+  const router = useRouter(); // Initialize router
 
   // Memoize checkInitialFollowStatus to prevent re-creation on every render
   const checkInitialFollowStatus = useCallback(() => {
@@ -50,6 +53,11 @@ const FollowButton: React.FC<FollowButtonProps> = ({ entityId, entityType, entit
   }, [checkInitialFollowStatus, entityId, entityType]);
 
   const handleFollowToggle = async () => {
+    if (!isUserLoggedIn()) { // Check if user is logged in
+      router.push('/auth/login'); // Redirect to login page
+      return; // Stop further execution
+    }
+
     setIsLoading(true);
     try {
       if (isFollowing) {
