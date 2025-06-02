@@ -19,6 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { getCurrentUser } from "@/lib/auth"; // Added
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -778,6 +779,7 @@ import { entityNavItems } from "@/lib/navigation"; // Import entityNavItems
 export function AppEntitySidebar() {
   const pathname = usePathname();
   const { state, toggleSidebar, isMobile, open } = useSidebar();
+  const currentUser = getCurrentUser(); // Get current user
 
   if (isMobile) { // The base Sidebar handles rendering SheetContent for mobile.
                   // This AppEntitySidebar is primarily for desktop.
@@ -829,18 +831,20 @@ export function AppEntitySidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={pathname.startsWith("/settings")}
-              tooltip={{ children: "Settings", side: "right", align: "center", sideOffset: 8 }}
-            >
-              <Link href="/settings">
-                <SettingsIcon />
-                <span>Settings</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {currentUser.role !== 'Guest' && ( // Conditionally render Settings
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith("/settings")}
+                tooltip={{ children: "Settings", side: "right", align: "center", sideOffset: 8 }}
+              >
+                <Link href="/settings">
+                  <SettingsIcon />
+                  <span>Settings</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

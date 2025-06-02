@@ -125,7 +125,7 @@ export function AppHeader() {
             />
           </form>
 
-          <NotificationBell />
+          {user && <NotificationBell />}
 
           {user ? (
             <DropdownMenu>
@@ -177,7 +177,7 @@ export function AppHeader() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0">
-                 <SheetHeader className="p-4 border-b">
+                 <SheetHeader className="p-4 border-b border-sidebar-border">
                   <SheetTitle className="text-lg font-semibold text-primary sr-only">Mobile Menu</SheetTitle>
                    <Link href="/feed" className="flex items-center gap-2 text-lg font-headline font-semibold text-primary" onClick={() => setIsSheetOpen(false)}>
                     <ShieldCheck className="h-7 w-7" />
