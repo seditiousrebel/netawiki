@@ -216,7 +216,7 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
         }
       />
 
-      {election && isElectionSuggestEntityEditModalOpen && entitySchemas.Election && (
+      {election && isElectionSuggestEntityEditModalOpen && entitySchemas.Election && ( 
         <SuggestEntityEditForm
           isOpen={isElectionSuggestEntityEditModalOpen}
           onOpenChange={setIsElectionSuggestEntityEditModalOpen}

@@ -168,7 +168,7 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
       <PageHeader
         title={
           <span className="flex items-center">
-            {constituency.name}
+            {constituency.name} 
             {constituency.code && <span className="ml-1 flex items-center">({constituency.code})</span>}
           </span>
         }
@@ -204,7 +204,7 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
         }
       />
 
-      {constituency && isConstituencySuggestEntityEditModalOpen && entitySchemas.Constituency && (
+      {constituency && isConstituencySuggestEntityEditModalOpen && entitySchemas.Constituency && ( 
         <SuggestEntityEditForm
           isOpen={isConstituencySuggestEntityEditModalOpen}
           onOpenChange={setIsConstituencySuggestEntityEditModalOpen}

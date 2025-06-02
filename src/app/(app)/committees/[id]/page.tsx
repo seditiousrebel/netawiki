@@ -170,7 +170,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
       <PageHeader
         title={
           <span className="flex items-center">
-            {committee.name}
+            {committee.name} 
             {committee.nepaliName && <span className="text-lg text-muted-foreground ml-2 flex items-center">({committee.nepaliName})</span>}
           </span>
         }
@@ -209,7 +209,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
         }
       />
 
-      {committee && isCommitteeSuggestEntityEditModalOpen && entitySchemas.Committee && (
+      {committee && isCommitteeSuggestEntityEditModalOpen && entitySchemas.Committee && ( 
         <SuggestEntityEditForm
           isOpen={isCommitteeSuggestEntityEditModalOpen}
           onOpenChange={setIsCommitteeSuggestEntityEditModalOpen}
@@ -265,7 +265,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
               </CardHeader>
               <CardContent className="space-y-4">
                 {committee.billsReferred.map((billRef, idx) => {
-                  const bill = getBillById(billRef.billId);
+                  const bill = getBillById(billRef.billId); 
                   return (
                     <div key={idx} className="p-3 border rounded-md bg-muted/30 flex justify-between items-start">
                       <div>

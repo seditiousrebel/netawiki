@@ -269,7 +269,7 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
         )}
       />
 
-      {party && isPartySuggestEntityEditModalOpen && entitySchemas.Party && (
+      {party && isPartySuggestEntityEditModalOpen && entitySchemas.Party && ( 
         <SuggestEntityEditForm
           isOpen={isPartySuggestEntityEditModalOpen}
           onOpenChange={setIsPartySuggestEntityEditModalOpen}

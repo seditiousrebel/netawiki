@@ -84,7 +84,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   const [commentText, setCommentText] = useState("");
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const [isSuggestEntityEditModalOpen, setIsSuggestEntityEditModalOpen] = useState(false);
+  const [isSuggestEntityEditModalOpen, setIsSuggestEntityEditModalOpen] = useState(false); 
 
 
   const [formattedDateOfBirth, setFormattedDateOfBirth] = useState<string | null>(null);
@@ -149,16 +149,16 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     reason: string;
     evidenceUrl: string;
   }) => {
-    if (!politician) return;
+    if (!politician) return; 
 
     console.log("Full entity edit suggestion submitted:", {
-      entityType: "Politician",
+      entityType: "Politician", 
       entityId: politician.id,
       suggestedData: submission.formData,
       reason: submission.reason,
       evidenceUrl: submission.evidenceUrl,
       submittedAt: new Date().toISOString(),
-      status: "PendingEntityUpdate"
+      status: "PendingEntityUpdate" 
     });
 
     toast({
@@ -343,7 +343,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
           isOpen={isSuggestEntityEditModalOpen}
           onOpenChange={setIsSuggestEntityEditModalOpen}
           entityType="Politician"
-          entitySchema={entitySchemas.Politician}
+          entitySchema={entitySchemas.Politician} 
           currentEntityData={politician}
           onSubmit={handleEntityEditSuggestionSubmit}
         />

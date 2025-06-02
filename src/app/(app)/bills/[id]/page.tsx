@@ -180,14 +180,14 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
       <PageHeader
         title={
           <span className="flex items-center">
-            {bill.title}
+            {bill.title} 
             {bill.billNumber && <span className="ml-1 flex items-center">({bill.billNumber})</span>}
           </span>
         }
         description={
             <div className="flex flex-wrap gap-2 items-center mt-1">
                 <Badge variant={bill.status === 'Became Law' ? 'default' : 'secondary'} className={`${bill.status === 'Became Law' ? 'bg-green-500 text-white' : ''}`}>
-                    {bill.status}
+                    {bill.status} 
                 </Badge>
                 {bill.billType && <Badge variant="outline">{bill.billType}</Badge>}
             </div>
@@ -216,7 +216,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
         }
       />
 
-      {bill && isSuggestEntityEditModalOpen && entitySchemas.Bill && (
+      {bill && isSuggestEntityEditModalOpen && entitySchemas.Bill && ( 
         <SuggestEntityEditForm
           isOpen={isSuggestEntityEditModalOpen}
           onOpenChange={setIsSuggestEntityEditModalOpen}
@@ -419,7 +419,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                  <Badge variant={bill.status === 'Became Law' ? 'default' : 'secondary'}
                         className={`ml-1 ${bill.status === 'Became Law' ? 'bg-green-500 text-white' : ''}`}>
                     {bill.status}
-                </Badge></span>
+                </Badge></span> 
               </div>
               {bill.introducedDate && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><CalendarDays className="inline-block h-4 w-4 mr-1 text-primary/70" /> Introduced: {format(new Date(bill.introducedDate), 'MMMM dd, yyyy')}</span> </div>}
               {bill.keyDates?.committeeReferral && <div className="flex justify-between items-center"><span className="flex items-center gap-1"><GitBranch className="inline-block h-4 w-4 mr-1 text-primary/70" /> Committee Referral: {format(new Date(bill.keyDates.committeeReferral), 'MMMM dd, yyyy')}</span> </div>}
@@ -464,7 +464,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                       const committee = getCommitteeByName(committeeName);
                       return (
                         <li key={idx} className="text-sm text-foreground/80 flex justify-between items-center">
-                           {committee && committee.id ? (
+                           {committee && committee.id ? ( 
                             <Link href={`/committees/${committee.slug || committee.id}`} className="text-primary hover:underline">
                                 {committeeName}
                             </Link>

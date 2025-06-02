@@ -213,7 +213,7 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
         }
       />
       
-      {controversy && isControversySuggestEntityEditModalOpen && entitySchemas.Controversy && (
+      {controversy && isControversySuggestEntityEditModalOpen && entitySchemas.Controversy && ( 
         <SuggestEntityEditForm
           isOpen={isControversySuggestEntityEditModalOpen}
           onOpenChange={setIsControversySuggestEntityEditModalOpen}
