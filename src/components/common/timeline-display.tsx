@@ -137,7 +137,7 @@ export function TimelineDisplay({ items, title }: TimelineDisplayProps) {
                 <IconComponent className="w-4 h-4" />
               </div>
               <p className="font-semibold text-foreground">{item.title}</p>
-              <p className="text-sm text-muted-foreground mb-1">{new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+              <p className="text-sm text-muted-foreground mb-1">{new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
               {item.description && <p className="text-sm text-foreground/80 whitespace-pre-line">{item.description}</p>}
             {item.actor && <p className="text-xs text-muted-foreground mt-0.5">Actor: {item.actor}</p>}
             {item.relatedDocumentUrl && (
@@ -221,3 +221,4 @@ export function formatCommitteeActivityForTimeline(events: CommitteeActivityEven
     iconType: 'committeeActivity',
   }));
 }
+

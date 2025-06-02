@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -436,8 +437,3 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
     </div>
   );
 }
-
-
-    
-
-[end of src/app/(app)/elections/[id]/page.tsx]
