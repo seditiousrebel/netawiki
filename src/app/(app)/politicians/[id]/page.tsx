@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from 'next/image';
@@ -6,13 +7,11 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-// Lucide imports selectively kept based on direct usage on this page
-import { Edit, Users, Tag, CalendarDays, Landmark, MapPin, Star, BarChart3, ListChecks, Languages, CheckCircle, XCircle, MessageSquare, CircleHelp, Quote, Trash2, UserCircle, ExternalLink } from 'lucide-react';
+import { Edit, Users, Tag, CalendarDays, Landmark, MapPin, Star, BarChart3, ListChecks, Languages, CheckCircle, XCircle, MessageSquare, CircleHelp, Quote, Trash2, UserCircle, ExternalLink, History } from 'lucide-react';
 import { TimelineDisplay } from '@/components/common/timeline-display';
 import Link from 'next/link';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent, NewsArticleLink, PendingEdit } from '@/types/gov';
 
-// Import new reusable components
 import ContactInfoDisplay from '@/components/common/details/ContactInfoDisplay';
 import TagsDisplay from '@/components/common/details/TagsDisplay';
 import EducationHistoryDisplay from '@/components/common/details/EducationHistoryDisplay';
@@ -27,18 +26,16 @@ import AssociatedControversiesDisplay from '@/components/common/details/Associat
 import PromisesDisplay from '@/components/common/details/PromisesDisplay';
 import RevisionHistoryDisplay from '@/components/common/details/RevisionHistoryDisplay';
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useEffect, useRef } from 'react'; // Keep useEffect if other effects use it
+import React, { useState, useEffect, useRef } from 'react';
 import { Textarea } from '@/components/ui/textarea';
-// import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
 import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm';
-import FollowButton from '@/components/common/FollowButton'; // Added FollowButton import
-import { entitySchemas } from '@/lib/schemas'; // Added
+import FollowButton from '@/components/common/FollowButton';
+import { entitySchemas } from '@/lib/schemas';
 import { useNotificationStore } from "@/lib/notifications";
 import ScoreBarChart from '@/components/charts/ScoreBarChart';
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-// import { exportElementAsPDF } from '@/lib/utils'; // Removed export
-import VotingRecordChart from '@/components/charts/VotingRecordChart'; // Import the new chart
+import VotingRecordChart from '@/components/charts/VotingRecordChart';
 
 interface PoliticianVote extends VoteRecord {
   billId: string;
@@ -52,10 +49,9 @@ interface TimelineItem {
   date: string;
   title: string;
   description?: string;
-  iconType?: string; // Added iconType
+  iconType?: string;
 }
 
-// Helper function to combine and sort career events - This local definition is correct
 function formatCombinedCareerTimeline(
   journeyEvents: PoliticalJourneyEvent[] = [],
   partyAffiliations: PartyAffiliation[] = []
@@ -67,7 +63,7 @@ function formatCombinedCareerTimeline(
       date: event.date,
       title: event.event,
       description: event.description,
-      iconType: 'politicalCareerEvent', // Added
+      iconType: 'politicalCareerEvent',
     });
   });
 
@@ -76,14 +72,14 @@ function formatCombinedCareerTimeline(
       date: aff.startDate,
       title: `Joined ${aff.partyName}`,
       description: aff.role ? `Role: ${aff.role}` : undefined,
-      iconType: 'partyAffiliationEvent', // Added
+      iconType: 'partyAffiliationEvent',
     });
     if (aff.endDate && aff.endDate !== 'Present') {
       combinedEvents.push({
         date: aff.endDate,
         title: `Left ${aff.partyName}`,
         description: aff.role ? `Previous Role: ${aff.role}` : undefined,
-        iconType: 'partyAffiliationEvent', // Added
+        iconType: 'partyAffiliationEvent',
       });
     }
   });
@@ -91,20 +87,9 @@ function formatCombinedCareerTimeline(
   return combinedEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
-// Mock function to simulate saving a pending edit
 const mockSavePendingEdit = async (pendingEditData: PendingEdit) => {
   console.log("Mock saving PendingEdit:", JSON.stringify(pendingEditData, null, 2));
-  // In a real scenario, this would be an API call:
-  // const response = await fetch('/api/pending-edits', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(pendingEditData),
-  // });
-  // if (!response.ok) {
-  //   throw new Error('Failed to save pending edit');
-  // }
-  // return await response.json();
-  return { ...pendingEditData, id: `mock-${Date.now()}` }; // Simulate ID generation
+  return { ...pendingEditData, id: `mock-${Date.now()}` };
 };
 
 export default function PoliticianProfilePage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
@@ -113,15 +98,10 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   const router = useRouter();
   const politician = getPoliticianById(params.id);
   const { toast } = useToast();
-  // const [isFollowing, setIsFollowing] = useState(false); // Removed isFollowing state
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [commentText, setCommentText] = useState("");
-
-  // const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // Removed for PDF export
-  const [isSuggestEntityEditModalOpen, setIsSuggestEntityEditModalOpen] = useState(false); 
-
-
+  const [isSuggestEntityEditModalOpen, setIsSuggestEntityEditModalOpen] = useState(false);
   const [formattedDateOfBirth, setFormattedDateOfBirth] = useState<string | null>(null);
   const [formattedDateOfDeath, setFormattedDateOfDeath] = useState<string | null>(null);
   const { addNotification } = useNotificationStore();
@@ -163,8 +143,6 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     }
   }, [politician?.dateOfBirth, politician?.dateOfDeath]);
 
-  // Removed useEffect for isFollowing
-
   const handleEntityEditSuggestionSubmit = (submission: {
     formData: Record<string, any>;
     reason: string;
@@ -172,14 +150,12 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   }) => {
     if (!politician || !currentUser) return;
 
-    // Construct proposedData
     const proposedData = {
-      ...JSON.parse(JSON.stringify(politician)), // Deep clone of the current politician object
-      ...submission.formData, // Merge the changes from the form
+      ...JSON.parse(JSON.stringify(politician)),
+      ...submission.formData,
     };
 
     const pendingEdit: PendingEdit = {
-      // id will be generated by the backend, mockSavePendingEdit simulates this
       entityType: "Politician",
       entityId: politician.id,
       proposedData: proposedData,
@@ -188,7 +164,6 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
       submittedByUserId: currentUser.id,
       submittedAt: new Date().toISOString(),
       status: 'PENDING',
-      // adminFeedback, approvedByUserId, deniedByUserId, reviewedAt will be undefined initially
     };
 
     mockSavePendingEdit(pendingEdit)
@@ -209,29 +184,8 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
           duration: 5000,
         });
       });
-    
-    // Original console log kept for comparison during development if needed, can be removed.
-    // console.log("Original Full entity edit suggestion submitted:", {
-    //   entityType: "Politician",
-    //   entityId: politician.id,
-    //   suggestedData: submission.formData,
-    //   reason: submission.reason,
-    //   evidenceUrl: submission.evidenceUrl,
-    //   submittedAt: new Date().toISOString(),
-    //   status: "PendingEntityUpdate"
-    // });
-
-    // The toast call below was part of the original code before PendingEdit integration.
-    // It's now handled within the .then() of mockSavePendingEdit.
-    // toast({
-    //   title: "Changes Suggested",
-    //   description: `Your proposed changes for ${politician.name} have been submitted for review. Thank you!`,
-    //   duration: 5000,
-    // });
     setIsSuggestEntityEditModalOpen(false);
   };
-
-  // Removed handleFollowToggle function
 
   const handleRatingSubmit = () => {
     if (currentRating === 0) {
@@ -250,8 +204,6 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
       duration: 5000,
     });
   };
-
-  // Removed handleExportPdfWrapper function
 
   const handleDelete = () => {
     if (!politician) return;
@@ -275,15 +227,13 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
 
   const promises = getPromisesByPolitician(params.id);
   const party = politician.partyId ? mockParties.find(p => p.id === politician.partyId) : null;
-  const sponsoredBillsData = getBillsBySponsor(politician.id); // Renamed to avoid conflict
+  const sponsoredBillsData = getBillsBySponsor(politician.id);
   const relatedControversies = getControversiesByPoliticianId(politician.id);
   const careerTimelineItems = formatCombinedCareerTimeline(politician.politicalJourney, politician.partyAffiliations);
   const relatedNews = getNewsByPoliticianId(politician.id);
 
-  // Prepare data for SponsoredBillsDisplay
   const sponsoredBillsForDisplay = sponsoredBillsData.map(bill => ({
     ...bill,
-    // Ensure type safety if bill.sponsors is undefined or if find returns undefined
     sponsorshipType: bill.sponsors?.find(s => s.id === politician.id)?.type
       ? `${bill.sponsors.find(s => s.id === politician.id)?.type} Sponsor`
       : undefined
@@ -319,8 +269,6 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     }
   });
 
-  // Removed getCriminalStatusBadgeVariant as it's now in CriminalRecordsDisplay.tsx
-
   return (
     <div>
       <PageHeader
@@ -344,18 +292,17 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
         }
         actions={(
           <div className="flex gap-2">
-            {politician && ( // Ensure politician data is loaded
+            {politician && (
               <FollowButton
                 entityId={politician.id}
                 entityType="politician"
                 entityName={politician.name}
-                className="whitespace-nowrap" // Added for consistent styling with other buttons if needed
+                className="whitespace-nowrap"
               />
             )}
             <Button variant="outline" onClick={openSuggestEntityEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Profile
             </Button>
-            {/* Export to PDF button removed */}
             {canAccess(currentUser.role, ADMIN_ROLES) && (
               <Button variant="destructive" onClick={handleDelete}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete Politician
@@ -370,7 +317,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
           isOpen={isSuggestEntityEditModalOpen}
           onOpenChange={setIsSuggestEntityEditModalOpen}
           entityType="Politician"
-          entitySchema={entitySchemas.Politician} 
+          entitySchema={entitySchemas.Politician}
           currentEntityData={politician}
           onSubmit={handleEntityEditSuggestionSubmit}
         />
@@ -393,11 +340,9 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
               <div className="p-6 space-y-1.5">
                 <h2 className="text-2xl font-headline font-semibold mb-1 flex items-center">{politician.name} </h2>
                 {politician.nepaliName && <p className="text-lg text-muted-foreground -mt-1 mb-1 flex items-center">{politician.nepaliName} </p>}
-
                 <div className="flex items-center">
                   <span className="text-sm text-muted-foreground">Also known as: {politician.aliases?.join(', ') || 'N/A'}</span>
                 </div>
-
                 {party && (
                   <Link href={`/parties/${party.id}`} className="text-primary hover:underline flex items-center gap-1 text-sm">
                     <Landmark className="h-4 w-4" /> {party.name}
@@ -412,18 +357,13 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
           </Card>
 
           <ContactInfoDisplay contactInfo={politician.contactInfo} />
-
           {politician.tags && politician.tags.length > 0 && (
             <TagsDisplay tags={politician.tags} />
           )}
-
           {politician.education && politician.education.length > 0 && (
             <EducationHistoryDisplay educationHistory={politician.education} />
           )}
-          
-          {/* CareerHistoryDisplay renders its own Card if careerHistory is not empty */}
           <CareerHistoryDisplay careerHistory={politician.positions} />
-
           {politician.committeeMemberships && politician.committeeMemberships.length > 0 && (
             <CommitteeMembershipsDisplay committeeMemberships={politician.committeeMemberships} />
           )}
@@ -461,7 +401,6 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
               </CardContent>
             </Card>
           ) : null}
-
 
           {(politician.overallRating !== undefined || politician.voteScore !== undefined || politician.promiseFulfillmentRate !== undefined || politician.popularityScore !== undefined) && (
             <Card>
@@ -554,37 +493,30 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             </Card>
           )}
 
-            <CardContent>
-              <TimelineDisplay items={careerTimelineItems} />
-            </CardContent>
-          </Card>
+          {careerTimelineItems.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-xl flex items-center gap-2">
+                  <History className="h-5 w-5 text-primary"/> Political Journey
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TimelineDisplay items={careerTimelineItems} />
+              </CardContent>
+            </Card>
+          )}
 
-          {/* SponsoredBillsDisplay renders its own Card if data exists */}
           <SponsoredBillsDisplay sponsoredBills={sponsoredBillsForDisplay} />
-
-          {/* VotingRecordDisplay renders its own Card if data exists */}
           <VotingRecordDisplay votingRecords={politicianVotes} />
-
-          {/* AssetDeclarationsDisplay renders its own Card if data exists */}
           {politician.assetDeclarations && politician.assetDeclarations.length > 0 && (
              <AssetDeclarationsDisplay assetDeclarations={politician.assetDeclarations} />
           )}
-         
-          {/* CriminalRecordsDisplay renders its own Card if data exists */}
           {politician.criminalRecords && politician.criminalRecords.length > 0 && (
             <CriminalRecordsDisplay criminalRecords={politician.criminalRecords} />
           )}
-
-          {/* RelatedNewsDisplay renders its own Card if data exists */}
           <RelatedNewsDisplay newsItems={relatedNews} />
-          
-          {/* AssociatedControversiesDisplay renders its own Card if data exists */}
           <AssociatedControversiesDisplay controversies={relatedControversies} />
-          {/* Note: The "View all controversies" link from the original page can be added here by the page author if desired. */}
-          
-          {/* PromisesDisplay handles its own empty message and Card structure */}
           <PromisesDisplay promises={promises} />
-          {/* Optional: Link to view all promises - can be added by the page author if desired. */}
           
           <Card>
             <CardHeader>
@@ -627,14 +559,11 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             </CardContent>
           </Card>
 
-          {/* Voting Record Chart */}
           {politician.votingRecords && politician.votingRecords.length > 0 && (
             <Card>
               <VotingRecordChart votingData={politician.votingRecords} />
             </Card>
           )}
-
-          {/* RevisionHistoryDisplay renders its own Card if data exists */}
           <RevisionHistoryDisplay historyItems={politician.revisionHistory} />
         </div>
       </div>

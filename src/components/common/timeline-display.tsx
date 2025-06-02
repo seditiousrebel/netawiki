@@ -66,10 +66,9 @@ export function TimelineDisplay({ items, title }: TimelineDisplayProps) {
     setSearchTerm("");
   };
   
-  const sortedItems = useMemo(() => 
-    [...items].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), 
-    [items]
-  );
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [items]);
 
   const filteredItems = useMemo(() => {
     return sortedItems.filter(item => {
@@ -147,7 +146,8 @@ export function TimelineDisplay({ items, title }: TimelineDisplayProps) {
               </a>
             )}
           </div>
-        ))}
+        );
+        })}
       </div>
     </div>
   );
@@ -182,7 +182,7 @@ export function formatPromiseStatusUpdatesForTimeline(statusUpdates: PromiseStat
     }
     let desc = update.description || '';
     if (update.updatedBy) {
-      desc += `\n(Updated by: ${update.updatedBy})`;
+      desc += `\\n(Updated by: ${update.updatedBy})`;
     }
     return {
       date: update.date,

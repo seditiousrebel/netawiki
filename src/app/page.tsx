@@ -11,27 +11,11 @@ import {
   getPartyById,
   getElectionById
 } from '@/lib/mock-data'; // Added getter functions
+import { AppLayout } from '@/components/layout/app-layout';
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-lg font-headline font-semibold text-primary">
-            <ShieldCheck className="h-7 w-7" />
-            <span>GovTrackr</span>
-          </Link>
-          <nav className="flex items-center gap-2">
-            <Link href="/auth/login">
-              <Button variant="ghost">Log In</Button>
-            </Link>
-            <Link href="/auth/signup">
-              <Button variant="default" className="bg-accent hover:bg-accent/90 text-accent-foreground">Sign Up</Button>
-            </Link>
-          </nav>
-        </div>
-      </header>
-
+    <AppLayout>
       <main className="flex-grow">
         <section className="py-12 md:py-20 bg-gradient-to-b from-background to-secondary/30">
           <div className="container text-center">
@@ -194,7 +178,7 @@ export default function HomePage() {
           <p>&copy; {new Date().getFullYear()} GovTrackr. All rights reserved.</p>
         </div>
       </footer>
-    </div>
+    </AppLayout>
   );
 }
 
