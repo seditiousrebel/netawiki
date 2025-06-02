@@ -18,7 +18,10 @@ import { format } from 'date-fns';
 import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { SuggestEditForm } from '@/components/common/suggest-edit-form';
+// import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
+import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; // Added
+import { entitySchemas } from '@/lib/schemas'; // Added
+import type { EntityType } from '@/lib/data/suggestions'; // Added
 
 const LOCAL_STORAGE_FOLLOWED_PROMISES_KEY = 'govtrackr_followed_promises';
 
@@ -58,9 +61,10 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
   const [hoverRating, setHoverRating] = useState(0);
   const [relatedNews, setRelatedNews] = useState<NewsArticleLink[]>([]);
 
-  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
-  const [suggestionFieldName, setSuggestionFieldName] = useState('');
-  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
+  // const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false); // Old form state - Removed
+  // const [suggestionFieldName, setSuggestionFieldName] = useState(''); // Old form state - Removed
+  // const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>(''); // Old form state - Removed
+  const [isPromiseSuggestEntityEditModalOpen, setIsPromiseSuggestEntityEditModalOpen] = useState(false); // New form state
 
   useEffect(() => {
     if (promise) {
@@ -90,32 +94,65 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
     );
   }
 
-  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+  // const handleSuggestEditClick = (fieldName: string, oldValue: any) => { // Old form handler - Removed
+  //   if (!isUserLoggedIn()) {
+  //     router.push('/auth/login');
+  //     return;
+  //   }
+  //   setSuggestionFieldName(fieldName);
+  //   setSuggestionOldValue(oldValue);
+  //   setIsSuggestEditModalOpen(true);
+  // };
+
+  // const handlePromiseSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => { // Old form handler - Removed
+  //   console.log("Promise Edit Suggestion:", {
+  //     entityType: "Promise",
+  //     entityName: promise?.title,
+  //     fieldName: suggestionFieldName,
+  //     oldValue: suggestionOldValue,
+  //     ...suggestion,
+  //   });
+  //   toast({
+  //     title: "Suggestion Submitted",
+  //     description: `Edit suggestion for ${suggestionFieldName} on promise '${promise?.title}' submitted for review.`,
+  //     duration: 5000,
+  //   });
+  //   setIsSuggestEditModalOpen(false);
+  // };
+
+  const openSuggestPromiseEditModal = () => { // New form handler
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
     }
-    setSuggestionFieldName(fieldName);
-    setSuggestionOldValue(oldValue);
-    setIsSuggestEditModalOpen(true);
+    if (!promise) return;
+    setIsPromiseSuggestEntityEditModalOpen(true);
   };
 
-  const handlePromiseSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
-    console.log("Promise Edit Suggestion:", {
-      entityType: "Promise",
-      entityName: promise?.title,
-      fieldName: suggestionFieldName,
-      oldValue: suggestionOldValue,
-      ...suggestion,
+  const handleFullPromiseEditSuggestionSubmit = (submission: { // New form handler
+    formData: Record<string, any>;
+    reason: string;
+    evidenceUrl: string;
+  }) => {
+    if (!promise) return;
+
+    console.log("Full Promise edit suggestion submitted:", {
+      entityType: "Promise" as EntityType,
+      entityId: promise.id,
+      suggestedData: submission.formData,
+      reason: submission.reason,
+      evidenceUrl: submission.evidenceUrl,
+      submittedAt: new Date().toISOString(),
+      status: "PendingEntityUpdate"
     });
+
     toast({
-      title: "Suggestion Submitted",
-      description: `Edit suggestion for ${suggestionFieldName} on promise '${promise?.title}' submitted for review.`,
+      title: "Changes Suggested",
+      description: `Your proposed changes for promise "${promise.title}" have been submitted for review. Thank you!`,
       duration: 5000,
     });
-    setIsSuggestEditModalOpen(false);
+    setIsPromiseSuggestEntityEditModalOpen(false);
   };
-
 
   const handleFollowPromiseToggle = () => {
     if (!promise) return;
@@ -210,8 +247,8 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
         description={<div className="text-sm text-muted-foreground">Promised by: {promiserLink}</div>}
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSuggestEditClick('Description', promise.description || '')} >
-              <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+            <Button variant="outline" onClick={openSuggestPromiseEditModal}>
+              <Edit className="mr-2 h-4 w-4" /> Propose Changes to Promise
             </Button>
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
               <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Promise Details'}
@@ -225,7 +262,7 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
         }
       />
 
-      <SuggestEditForm
+      {/* <SuggestEditForm // Old form instance - Removed
         isOpen={isSuggestEditModalOpen}
         onOpenChange={setIsSuggestEditModalOpen}
         entityType="Promise"
@@ -233,7 +270,18 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
         fieldName={suggestionFieldName}
         oldValue={suggestionOldValue}
         onSubmit={handlePromiseSuggestionSubmit}
-      />
+      /> */}
+
+      {promise && isPromiseSuggestEntityEditModalOpen && entitySchemas.Promise && ( // New form instance
+        <SuggestEntityEditForm
+          isOpen={isPromiseSuggestEntityEditModalOpen}
+          onOpenChange={setIsPromiseSuggestEntityEditModalOpen}
+          entityType="Promise"
+          entitySchema={entitySchemas.Promise}
+          currentEntityData={promise}
+          onSubmit={handleFullPromiseEditSuggestionSubmit}
+        />
+      )}
 
       <div id="promise-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">

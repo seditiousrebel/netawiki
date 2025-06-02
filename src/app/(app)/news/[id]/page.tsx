@@ -15,7 +15,10 @@ import { useToast } from "@/hooks/use-toast";
 import { exportElementAsPDF } from '@/lib/utils'; // Assuming PDF export might be added
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { SuggestEditForm } from '@/components/common/suggest-edit-form';
+// import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
+import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; // Added
+import { entitySchemas } from '@/lib/schemas'; // Added
+import type { EntityType } from '@/lib/data/suggestions'; // Added
 
 const LOCAL_STORAGE_BOOKMARKED_ARTICLES_KEY = 'govtrackr_bookmarked_articles';
 
@@ -31,9 +34,10 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false);
-  const [suggestionFieldName, setSuggestionFieldName] = useState('');
-  const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>('');
+  // const [isSuggestEditModalOpen, setIsSuggestEditModalOpen] = useState(false); // Old form state - Removed
+  // const [suggestionFieldName, setSuggestionFieldName] = useState(''); // Old form state - Removed
+  // const [suggestionOldValue, setSuggestionOldValue] = useState<string | any>(''); // Old form state - Removed
+  const [isNewsSuggestEntityEditModalOpen, setIsNewsSuggestEntityEditModalOpen] = useState(false); // New form state
 
   useEffect(() => {
     if (article) {
@@ -64,32 +68,73 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
     );
   }
 
-  const handleSuggestEditClick = (fieldName: string, oldValue: any) => {
+  // const handleSuggestEditClick = (fieldName: string, oldValue: any) => { // Old form handler - Removed
+  //   if (!isUserLoggedIn()) {
+  //     router.push('/auth/login');
+  //     return;
+  //   }
+  //   setSuggestionFieldName(fieldName);
+  //   setSuggestionOldValue(oldValue);
+  //   setIsSuggestEditModalOpen(true);
+  // };
+
+  // const handleNewsArticleSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => { // Old form handler - Removed
+  //   console.log("News Article Edit Suggestion:", {
+  //     entityType: "NewsArticle",
+  //     entityName: article?.title,
+  //     fieldName: suggestionFieldName,
+  //     oldValue: suggestionOldValue,
+  //     ...suggestion,
+  //   });
+  //   toast({
+  //     title: "Suggestion Submitted",
+  //     description: `Edit suggestion for ${suggestionFieldName} on article '${article?.title}' submitted for review.`,
+  //     duration: 5000,
+  //   });
+  //   setIsSuggestEditModalOpen(false);
+  // };
+
+  const openSuggestNewsEditModal = () => { // New form handler
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
     }
-    setSuggestionFieldName(fieldName);
-    setSuggestionOldValue(oldValue);
-    setIsSuggestEditModalOpen(true);
+    if (!article) return;
+    if (article.isAggregated) {
+        toast({
+            title: "Editing Not Allowed",
+            description: "Aggregated articles cannot be edited directly. Please refer to the original source.",
+            variant: "destructive"
+        });
+        return;
+    }
+    setIsNewsSuggestEntityEditModalOpen(true);
   };
 
-  const handleNewsArticleSuggestionSubmit = (suggestion: { suggestedValue: string; reason: string; evidenceUrl: string }) => {
-    console.log("News Article Edit Suggestion:", {
-      entityType: "NewsArticle",
-      entityName: article?.title,
-      fieldName: suggestionFieldName,
-      oldValue: suggestionOldValue,
-      ...suggestion,
+  const handleFullNewsArticleEditSuggestionSubmit = (submission: { // New form handler
+    formData: Record<string, any>;
+    reason: string;
+    evidenceUrl: string;
+  }) => {
+    if (!article) return;
+
+    console.log("Full News Article edit suggestion submitted:", {
+      entityType: "News" as EntityType,
+      entityId: article.id,
+      suggestedData: submission.formData,
+      reason: submission.reason,
+      evidenceUrl: submission.evidenceUrl,
+      submittedAt: new Date().toISOString(),
+      status: "PendingEntityUpdate"
     });
+
     toast({
-      title: "Suggestion Submitted",
-      description: `Edit suggestion for ${suggestionFieldName} on article '${article?.title}' submitted for review.`,
+      title: "Changes Suggested",
+      description: `Your proposed changes for article "${article.title}" have been submitted for review. Thank you!`,
       duration: 5000,
     });
-    setIsSuggestEditModalOpen(false);
+    setIsNewsSuggestEntityEditModalOpen(false);
   };
-
 
   const handleBookmarkToggle = () => {
     if (!article) return;
@@ -238,9 +283,9 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
               null
             )}
             {/* Suggest Edit, Export, and Delete buttons */}
-            {!article.isAggregated && ( // Assuming suggest edit is not for aggregated articles
-                 <Button variant="outline" onClick={() => handleSuggestEditClick('Full Content', article.fullContent || article.summary || '')} >
-                    <Edit className="mr-2 h-4 w-4" /> Suggest Edit
+            {!article.isAggregated && (
+                 <Button variant="outline" onClick={openSuggestNewsEditModal} >
+                    <Edit className="mr-2 h-4 w-4" /> Propose Changes to Article
                  </Button>
             )}
             <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
@@ -255,7 +300,7 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
         }
       />
 
-      <SuggestEditForm
+      {/* <SuggestEditForm // Old form instance - Removed
         isOpen={isSuggestEditModalOpen}
         onOpenChange={setIsSuggestEditModalOpen}
         entityType="NewsArticle"
@@ -263,7 +308,18 @@ export default function NewsArticlePage({ params: paramsPromise }: { params: Pro
         fieldName={suggestionFieldName}
         oldValue={suggestionOldValue}
         onSubmit={handleNewsArticleSuggestionSubmit}
-      />
+      /> */}
+
+      {article && !article.isAggregated && isNewsSuggestEntityEditModalOpen && entitySchemas.News && ( // New form instance
+        <SuggestEntityEditForm
+          isOpen={isNewsSuggestEntityEditModalOpen}
+          onOpenChange={setIsNewsSuggestEntityEditModalOpen}
+          entityType="News"
+          entitySchema={entitySchemas.News}
+          currentEntityData={article}
+          onSubmit={handleFullNewsArticleEditSuggestionSubmit}
+        />
+      )}
 
       <div id="news-article-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
