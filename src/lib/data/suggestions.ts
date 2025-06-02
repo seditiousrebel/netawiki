@@ -1,26 +1,27 @@
 // src/lib/data/suggestions.ts
 import type {
+  EditSuggestion, // Added import for EditSuggestion
   PendingEdit,
   EntityRevision,
   Politician,
   Party,
-  // Bill, // Keep if needed for other examples or future use
+  // Bill,
   // Committee,
   // Constituency,
   // Election,
   // NewsArticleLink,
   // PromiseItem,
-  ContactInfo,     // Imported for Politician data structure
-  PartyAffiliation, // Imported for Politician data structure
-  PoliticalJourneyEvent, // Imported for Politician data structure
-  EducationEntry, // Imported for Politician data structure
-  // AssetDeclaration, // Keep if needed for Politician structure
-  // CriminalRecord, // Keep if needed for Politician structure
-  // CommitteeMembership, // Keep if needed for Politician structure
-  // StatementQuote, // Keep if needed for Politician structure
-  // LeadershipMember, // Imported for Party data structure
+  ContactInfo,
+  PartyAffiliation,
+  PoliticalJourneyEvent,
+  EducationEntry,
+  // AssetDeclaration,
+  // CriminalRecord,
+  // CommitteeMembership,
+  // StatementQuote,
+  // LeadershipMember,
 } from '@/types/gov';
-import { mockPoliticians, mockParties } from '../mock-data'; // Assuming mockParties will be used
+import { mockPoliticians, mockParties, mockBills } from '../mock-data'; // Added mockBills
 
 // String literal union for entity types that PendingEdit might refer to.
 // This can be expanded as more entity types support pending edits.
@@ -56,9 +57,60 @@ export let mockEditSuggestions: EditSuggestion[] = [ ... ]; // Removed
 export let mockNewEntrySuggestions: NewEntrySuggestion[] = [ ... ]; // Removed
 */
 
+*/
+
+// Mock data for Edit Suggestions
+export let mockEditSuggestions: EditSuggestion[] = [
+  {
+    id: 'es-p1-bio',
+    contentType: 'politician',
+    contentId: 'p1', // Alice Democratia
+    fieldName: 'bio',
+    oldValue: mockPoliticians.find(p => p.id === 'p1')?.bio,
+    suggestedValue: 'Alice Democratia is a dedicated public servant with over a decade of experience in governance, championing transparency, citizen engagement, and has recently launched a new initiative for digital literacy.',
+    reason: 'Updated bio to include new digital literacy initiative.',
+    evidenceUrl: 'https://example.com/news/alice-digital-literacy',
+    status: 'Approved',
+    submittedBy: 'user123', // User making the suggestion
+    submittedAt: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
+    reviewedBy: 'admin001',
+    reviewedAt: new Date(Date.now() - 86400000 * 4).toISOString(), // 4 days ago
+    adminFeedback: 'Great addition. Verified with the press release.',
+  },
+  {
+    id: 'es-p2-contact',
+    contentType: 'politician',
+    contentId: 'p2', // Bob Republicanus
+    fieldName: 'contactInfo.phone',
+    oldValue: mockPoliticians.find(p => p.id === 'p2')?.contactInfo.phone,
+    suggestedValue: '555-0205',
+    reason: 'Bob changed his primary contact number.',
+    evidenceUrl: 'https://example.com/bob-republicanus-website-update',
+    status: 'Pending',
+    submittedBy: 'user-staffer-br-001',
+    submittedAt: new Date(Date.now() - 86400000 * 1).toISOString(), // 1 day ago
+    adminFeedback: '', // No feedback yet
+  },
+  {
+    id: 'es-b1-summary',
+    contentType: 'bill',
+    contentId: 'b1', // Clean Energy Act 2024
+    fieldName: 'summary',
+    oldValue: mockBills.find(b => b.id === 'b1')?.summary,
+    suggestedValue: 'A comprehensive bill aimed at promoting renewable energy sources, setting new targets for carbon emission reduction, and providing incentives for green technology adoption. This version clarifies the scope for solar panel subsidies.',
+    reason: 'Added clarification on solar panel subsidies based on recent amendment discussion.',
+    status: 'Rejected',
+    submittedBy: 'user123',
+    submittedAt: new Date(Date.now() - 86400000 * 10).toISOString(), // 10 days ago
+    reviewedBy: 'admin002',
+    reviewedAt: new Date(Date.now() - 86400000 * 8).toISOString(), // 8 days ago
+    adminFeedback: 'The amendment regarding solar panel subsidies was not approved in the committee. Sticking to the original summary.',
+  },
+];
+
 export let mockPendingEdits: PendingEdit[] = [
   {
-    id: 'pe-new-p1',
+    id: 'pe-new-p1', // This was already here, ensuring fields are aligned
     entityType: 'Politician',
     // entityId is undefined for new entities
     proposedData: {
@@ -81,11 +133,12 @@ export let mockPendingEdits: PendingEdit[] = [
       isActiveInPolitics: true,
       revisionHistory: [], // Initialize revision history
     } as Politician, // Type assertion
-    reasonForChange: 'New prominent local political figure.',
+    reasonForChange: 'New prominent local political figure with significant community backing.',
     evidenceUrl: 'https://example.com/news/jqp-emerges',
-    submittedByUserId: 'user-citizen-journalist-001',
+    submittedByUserId: 'user123', // Changed to user123
     submittedAt: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
     status: 'PENDING',
+    adminFeedback: 'Under review. Please provide additional sources for claimed support levels.', // Added feedback
   },
   {
     id: 'pe-edit-p1',
@@ -105,11 +158,14 @@ export let mockPendingEdits: PendingEdit[] = [
       // Ensure all required fields of Politician are present if ...spread doesn't guarantee it or if it's partial
       // For this mock, we assume the spread of a full Politician object is sufficient
     } as Politician,
-    reasonForChange: 'Updated biography with recent achievements and new contact information.',
+    reasonForChange: 'Updated biography with recent achievements and new contact information. Also corrected spelling of an award.',
     evidenceUrl: 'https://example.com/news/alice-democratia-achievements-2024',
-    submittedByUserId: 'user-campaign-manager-002',
+    submittedByUserId: 'user-campaign-manager-002', // Not user123
     submittedAt: new Date(Date.now() - 86400000 * 1).toISOString(), // 1 day ago
-    status: 'PENDING',
+    status: 'APPROVED', // Changed status for variety
+    approvedByUserId: 'admin001',
+    reviewedAt: new Date(Date.now() - 86400000 * 0.5).toISOString(), // 12 hours ago
+    adminFeedback: 'Excellent update. All changes verified and approved.',
   },
   {
     id: 'pe-new-party1',
@@ -127,11 +183,14 @@ export let mockPendingEdits: PendingEdit[] = [
       leadership: [{name: 'Jane Doe', role: 'Interim Leader'}],
       revisionHistory: [], // Initialize revision history
     } as Party,
-    reasonForChange: 'Newly formed political party with growing support.',
+    reasonForChange: 'Newly formed political party with growing support. Their manifesto is now available.',
     evidenceUrl: 'https://example.com/news/progressive-union-launch',
-    submittedByUserId: 'user-political-analyst-003',
+    submittedByUserId: 'user123', // Changed to user123
     submittedAt: new Date(Date.now() - 86400000 * 3).toISOString(), // 3 days ago
-    status: 'PENDING',
+    status: 'DENIED', // Changed status for variety
+    deniedByUserId: 'admin002',
+    reviewedAt: new Date(Date.now() - 86400000 * 1).toISOString(), // 1 day ago
+    adminFeedback: 'Party registration still pending with the election commission. Cannot add at this time.',
   },
 ];
 

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { Loader2, RefreshCw, Rss } from 'lucide-react'; // Added Rss icon
 import Link from 'next/link';
 // Removed direct imports from mock-data as activities are now self-contained or resolved by mock-activity
 import { getFollowedItems, FollowableEntityType } from '@/lib/user';
@@ -106,7 +106,16 @@ export default function FeedPage() {
           ))}
         </div>
       ) : (
-        <p className="text-center text-muted-foreground py-10">No new updates based on your followed items. Explore and follow more content!</p>
+        <div className="text-center py-10">
+          <Rss className="mx-auto h-12 w-12 text-muted-foreground" />
+          <h3 className="mt-2 text-lg font-medium">Your Feed is Empty</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            No new updates based on your followed items. Explore and follow content to see updates here.
+          </p>
+          <Button asChild className="mt-4">
+            <Link href="/explore">Explore Content</Link>
+          </Button>
+        </div>
       )}
     </div>
   );

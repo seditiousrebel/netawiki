@@ -108,12 +108,21 @@ export interface Politician {
   lastActivityDate?: string; // New: ISO date string
   overallRating?: number; // e.g., 1-5 stars (User Rating Average)
   userRatingCount?: number; // New
+  committeeIds?: string[]; // New: For filtering by committee membership
   voteScore?: number; // e.g., 0-100% (hypothetical or derived)
   promiseFulfillmentRate?: number; // e.g., 0-100%
   popularityScore?: number; // New field for popularity
   dataAiHint?: string;
   controversyIds?: string[]; // New: Link to controversies
   revisionHistory?: EntityRevision[]; // New: For tracking changes
+  votingRecords?: Array<{ // New: For politician's voting history
+    billId: string;
+    billSlug?: string; // Optional: for easier linking
+    billTitle: string;
+    vote: 'Yea' | 'Nay' | 'Abstain' | 'Not Voting';
+    date?: string; // Date of the vote
+    summary?: string; // Optional summary of the bill or vote context
+  }>;
 }
 
 // --- Entity Revision ---
@@ -269,6 +278,17 @@ export interface Party {
   dataAiHint?: string;
   controversyIds?: string[];
   tags?: string[];
+  electionHistory?: Array<{ // New: For party's performance in past elections
+    electionId?: string; // Optional: link to an Election entity
+    electionName: string; // e.g., "General Election 2020"
+    year: number; // Year of the election
+    seatsContested?: number;
+    seatsWon: number;
+    votesGained?: number;
+    votePercentage?: number; // Percentage of total votes
+    changeInSeats?: number; // Difference from previous similar election
+    changeInPercentage?: number; // Difference from previous similar election
+  }>;
   revisionHistory?: EntityRevision[];
 }
 
@@ -366,6 +386,7 @@ export interface EditSuggestion {
   submittedAt: string; // ISO Date string
   reviewedBy?: string; // Admin User ID
   reviewedAt?: string; // ISO Date string
+  adminFeedback?: string; // New: Feedback from admin
 }
 
 // --- Pending Edit Suggestion ---

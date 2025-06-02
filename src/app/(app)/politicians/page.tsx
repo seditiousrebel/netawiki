@@ -4,12 +4,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/common/page-header';
 import { EntityCard } from '@/components/common/entity-card';
-import { mockPoliticians, mockParties } from '@/lib/mock-data';
+import { mockPoliticians, mockParties, mockCommittees } from '@/lib/mock-data'; // Updated mock-data import
+import { getAllCommittees } from '@/lib/data/committees'; // Import function to get committees
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Politician, Party } from '@/types/gov';
+import { Checkbox } from "@/components/ui/checkbox"; // For MultiSelect
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // For MultiSelect
+import type { Politician, Party, Committee } from '@/types/gov'; // Added Committee
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, UsersIcon } from 'lucide-react'; // Added UsersIcon
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
 import { entitySchemas } from '@/lib/schemas'; // Added
 import type { EntityType } from '@/lib/data/suggestions'; // Added
@@ -29,10 +32,12 @@ export default function PoliticiansPage() {
   const [selectedPosition, setSelectedPosition] = useState('');
   const [selectedGender, setSelectedGender] = useState('');
   const [selectedActivityStatus, setSelectedActivityStatus] = useState('');
+  const [selectedCommitteeIds, setSelectedCommitteeIds] = useState<string[]>([]); // New state for selected committees
   const [sortOption, setSortOption] = useState('default');
   const [filteredPoliticians, setFilteredPoliticians] = useState<Politician[]>(mockPoliticians);
 
   const parties: Party[] = mockParties;
+  const committees: Committee[] = useMemo(() => getAllCommittees(), []); // Fetch committees
 
   const handleSuggestNewPoliticianSubmit = (newEntryData: any) => {
     console.log("New Politician Suggestion:", newEntryData);
@@ -60,9 +65,64 @@ export default function PoliticiansPage() {
     Array.from(new Set(mockPoliticians.map(p => p.gender).filter(Boolean))) as string[]
   , []);
 
+  // Simple MultiSelect Component (can be moved to a separate file later)
+  interface MultiSelectProps {
+    options: { id: string; name: string }[];
+    selectedValues: string[];
+    onChange: (selected: string[]) => void;
+    placeholder?: string;
+  }
+
+  const MultiSelect: React.FC<MultiSelectProps> = ({ options, selectedValues, onChange, placeholder = "Select options" }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleSelect = (value: string) => {
+      const newSelectedValues = selectedValues.includes(value)
+        ? selectedValues.filter(v => v !== value)
+        : [...selectedValues, value];
+      onChange(newSelectedValues);
+    };
+
+    const selectedNames = options
+      .filter(opt => selectedValues.includes(opt.id))
+      .map(opt => opt.name)
+      .join(', ');
+
+    return (
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" role="combobox" aria-expanded={isOpen} className="w-full justify-between">
+            {selectedValues.length > 0 ? (selectedNames.length > 30 ? `${selectedValues.length} selected` : selectedNames) : placeholder}
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 h-4 w-4 shrink-0 opacity-50"><path d="m6 9 6 6 6-6"></path></svg>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-full p-0">
+          <div className="p-2 max-h-60 overflow-y-auto">
+            {options.map((option) => (
+              <div key={option.id} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-md">
+                <Checkbox
+                  id={`multiselect-${option.id}`}
+                  checked={selectedValues.includes(option.id)}
+                  onCheckedChange={() => handleSelect(option.id)}
+                />
+                <label
+                  htmlFor={`multiselect-${option.id}`}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1"
+                  onClick={(e) => e.stopPropagation()} // Prevent popover from closing when clicking label
+                >
+                  {option.name}
+                </label>
+              </div>
+            ))}
+          </div>
+          {options.length === 0 && <p className="p-2 text-sm text-muted-foreground">No options available.</p>}
+        </PopoverContent>
+      </Popover>
+    );
+  };
 
   useEffect(() => {
-    let updatedPoliticians = [...mockPoliticians]; 
+    let updatedPoliticians = [...mockPoliticians];
 
     // Apply filters
     if (searchTerm) {
@@ -92,6 +152,12 @@ export default function PoliticiansPage() {
       updatedPoliticians = updatedPoliticians.filter(p => p.isActiveInPolitics === isActive);
     }
 
+    // Filter by selected committees
+    if (selectedCommitteeIds.length > 0) {
+      updatedPoliticians = updatedPoliticians.filter(p =>
+        p.committeeIds && p.committeeIds.some(committeeId => selectedCommitteeIds.includes(committeeId))
+      );
+    }
 
     // Apply sorting
     switch (sortOption) {
@@ -133,7 +199,7 @@ export default function PoliticiansPage() {
     }
 
     setFilteredPoliticians(updatedPoliticians);
-  }, [searchTerm, selectedParty, selectedProvince, selectedConstituency, selectedPosition, selectedGender, selectedActivityStatus, sortOption]);
+  }, [searchTerm, selectedParty, selectedProvince, selectedConstituency, selectedPosition, selectedGender, selectedActivityStatus, selectedCommitteeIds, sortOption, committees]); // Added selectedCommitteeIds and committees
 
   return (
     <div>
@@ -236,6 +302,13 @@ export default function PoliticiansPage() {
             <SelectItem value="inactive">Inactive</SelectItem>
           </SelectContent>
         </Select>
+        {/* Committee MultiSelect Filter */}
+        <MultiSelect
+          options={committees.map(c => ({ id: c.id, name: c.name }))}
+          selectedValues={selectedCommitteeIds}
+          onChange={setSelectedCommitteeIds}
+          placeholder="Filter by committees"
+        />
         <Select value={sortOption} onValueChange={setSortOption}>
           <SelectTrigger>
             <SelectValue placeholder="Sort by..." />
@@ -270,7 +343,13 @@ export default function PoliticiansPage() {
           ))}
         </div>
       ) : (
-        <p className="text-muted-foreground">No politicians found matching your criteria.</p>
+        <div className="text-center py-10">
+          <UsersIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+          <h3 className="mt-2 text-lg font-medium">No Politicians Found</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            No politicians match your current search or filter criteria. Try adjusting your filters.
+          </p>
+        </div>
       )}
     </div>
   );

@@ -63,14 +63,23 @@ const bupHistoricalManifestos: HistoricalManifesto[] = [
 ];
 
 const bupElectionHistory: ElectionPerformanceRecord[] = [
-  { electionYear: '2019', electionType: 'General', seatsContested: 150, seatsWon: 65, votePercentage: 35.5, notes: 'Formed a coalition government.' },
-  { electionYear: '2020', electionType: 'Local', seatsWon: 320, notes: 'Gained majority in 5 key municipalities.' },
-  { electionYear: '2024', electionType: 'General', seatsContested: 160, seatsWon: 72, votePercentage: 38.2, notes: 'Increased seat share.' },
+  // electionId could be added if linking to specific Election entities
+  { electionName: 'General Election 2024', year: 2024, seatsContested: 160, seatsWon: 72, votesPercentage: 38.2, changeInSeats: 7, changeInPercentage: 2.7, notes: 'Increased seat share.' },
+  { electionName: 'Local Elections 2022', year: 2022, seatsWon: 350, notes: 'Maintained strong local presence.' },
+  { electionName: 'General Election 2019', year: 2019, seatsContested: 150, seatsWon: 65, votesPercentage: 35.5, changeInSeats: -5, changeInPercentage: -1.5, notes: 'Formed a coalition government.' },
+  { electionName: 'General Election 2014', year: 2014, seatsContested: 145, seatsWon: 70, votesPercentage: 37.0, notes: 'Secured a clear majority.' },
 ];
 
 const ragElectionHistory: ElectionPerformanceRecord[] = [
-  { electionYear: '2019', electionType: 'General', seatsContested: 140, seatsWon: 55, votePercentage: 30.1 },
-  { electionYear: '2024', electionType: 'General', seatsContested: 155, seatsWon: 60, votePercentage: 32.5, notes: 'Main opposition party.' },
+  { electionName: 'General Election 2024', year: 2024, seatsContested: 155, seatsWon: 60, votesPercentage: 32.5, changeInSeats: 5, changeInPercentage: 2.4, notes: 'Main opposition party.' },
+  { electionName: 'General Election 2019', year: 2019, seatsContested: 140, seatsWon: 55, votesPercentage: 30.1, changeInSeats: 2, changeInPercentage: 1.1 },
+  { electionName: 'General Election 2014', year: 2014, seatsContested: 135, seatsWon: 53, votesPercentage: 29.0 },
+];
+
+const gfpElectionHistory: ElectionPerformanceRecord[] = [
+  { electionName: 'General Election 2024', year: 2024, seatsWon: 5, votesPercentage: 3.5, changeInSeats: 2, changeInPercentage: 0.8 },
+  { electionName: 'General Election 2019', year: 2019, seatsWon: 3, votesPercentage: 2.7, changeInSeats: 1, changeInPercentage: 0.5 },
+  { electionName: 'General Election 2014', year: 2014, seatsWon: 2, votesPercentage: 2.2 },
 ];
 
 
@@ -199,6 +208,7 @@ export const mockParties: Party[] = [
     ideology: ['Environmentalism', 'Green Politics'],
     isActive: true,
     isNationalParty: false,
+    electionHistory: gfpElectionHistory,
     dataAiHint: 'party logo green',
     tags: ['eco-socialism', 'sustainability', 'climate-action'],
   },

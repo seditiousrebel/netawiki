@@ -130,7 +130,15 @@ export const mockPoliticians: Politician[] = [
     voteScore: 78,
     promiseFulfillmentRate: 50,
     popularityScore: 85,
+    committeeIds: ['com1', 'com2', 'com3', 'com4'],
     controversyIds: ['c1', 'c3'],
+    votingRecords: [
+      { billId: 'b1', billSlug: 'clean-energy-act-2024', billTitle: 'Clean Energy Act 2024', vote: 'Yea', date: '2024-03-20', summary: 'Voted in favor of promoting renewable energy.' },
+      { billId: 'b2', billSlug: 'digital-literacy-for-all-act', billTitle: 'Digital Literacy For All Act', vote: 'Yea', date: '2023-10-15', summary: 'Supported the bill for digital education.' },
+      { billId: 'b3', billSlug: 'national-infrastructure-bond-act', billTitle: 'National Infrastructure Bond Act', vote: 'Nay', date: '2024-05-10', summary: 'Opposed due to fiscal concerns.' },
+      { billId: 'b4', billSlug: 'universal-healthcare-reform-bill', billTitle: 'Universal Healthcare Reform Bill', vote: 'Abstain', date: '2023-11-25', summary: 'Abstained citing need for more community consultation.' },
+      { billId: 'b5', billSlug: 'agricultural-subsidy-increase-act', billTitle: 'Agricultural Subsidy Increase Act', vote: 'Yea', date: '2024-06-01' },
+    ],
     revisionHistory: [
       { id: 'rh1_p1', date: '2024-03-15T10:00:00Z', author: 'Admin', event: 'Bio updated from suggestion', details: 'Expanded on experience in governance.', suggestionId: 'sugg_bio_p1_abc' },
       { id: 'rh2_p1', date: '2024-02-01T14:30:00Z', author: 'User:AliceD_Staff', event: 'Contact email updated', details: 'Email changed to alice.democratia.official@example.com' },
@@ -188,7 +196,15 @@ export const mockPoliticians: Politician[] = [
     voteScore: 65,
     promiseFulfillmentRate: 0,
     popularityScore: 72,
+    committeeIds: ['com1', 'com2', 'com5'],
     controversyIds: ['c2'],
+    votingRecords: [
+      { billId: 'b1', billSlug: 'clean-energy-act-2024', billTitle: 'Clean Energy Act 2024', vote: 'Nay', date: '2024-03-20', summary: 'Opposed due to concerns about economic impact on traditional energy sectors.' },
+      { billId: 'b2', billSlug: 'digital-literacy-for-all-act', billTitle: 'Digital Literacy For All Act', vote: 'Yea', date: '2023-10-15', summary: 'Supported to enhance workforce skills.' },
+      { billId: 'b3', billSlug: 'national-infrastructure-bond-act', billTitle: 'National Infrastructure Bond Act', vote: 'Yea', date: '2024-05-10', summary: 'Supported for national development.' },
+      { billId: 'b6', billSlug: 'small-business-tax-relief-act', billTitle: 'Small Business Tax Relief Act', vote: 'Yea', date: '2024-02-15' },
+      { billId: 'b7', billSlug: 'environmental-protection-enhancement-act', billTitle: 'Environmental Protection Enhancement Act', vote: 'Nay', date: '2023-09-05' },
+    ],
     revisionHistory: [
       { id: 'rh1_p2', date: '2024-01-20T11:00:00Z', author: 'User:CampaignTeamBob', event: 'Photo URL updated', details: 'New official portrait added.' },
       { id: 'rh2_p2', date: '2018-01-15T09:00:00Z', author: 'System', event: 'Politician profile created' }

@@ -72,6 +72,12 @@ export default function BillsPage() {
       case 'last_action_asc':
         updatedBills.sort((a, b) => getDateVal(a.lastActionDate) - getDateVal(b.lastActionDate));
         break;
+      case 'sponsors_desc':
+        updatedBills.sort((a, b) => (b.sponsors?.length || 0) - (a.sponsors?.length || 0));
+        break;
+      case 'sponsors_asc':
+        updatedBills.sort((a, b) => (a.sponsors?.length || 0) - (b.sponsors?.length || 0));
+        break;
       default:
         updatedBills.sort((a, b) => getDateVal(b.introducedDate, false) - getDateVal(a.introducedDate, false)); // Default to newest introduced
         break;
@@ -175,6 +181,8 @@ export default function BillsPage() {
                 <SelectItem value="introduced_asc">Introduced Date (Oldest)</SelectItem>
                 <SelectItem value="last_action_desc">Last Action (Newest)</SelectItem>
                 <SelectItem value="last_action_asc">Last Action (Oldest)</SelectItem>
+                <SelectItem value="sponsors_desc">Number of Sponsors (Most to Least)</SelectItem>
+                <SelectItem value="sponsors_asc">Number of Sponsors (Least to Most)</SelectItem>
               </SelectContent>
             </Select>
           </div>
