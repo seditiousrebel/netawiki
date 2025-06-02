@@ -17,7 +17,7 @@ interface TimelineItem {
   date: string;
   title: string;
   description?: string;
-  actor?: string; 
+  actor?: string;
   relatedDocumentUrl?: string;
   iconType?: string; // Added for icon differentiation
 }
@@ -65,7 +65,7 @@ export function TimelineDisplay({ items, title }: TimelineDisplayProps) {
     setSelectedIconTypes([]);
     setSearchTerm("");
   };
-  
+
   const sortedItems = useMemo(() => {
     return [...items].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [items]);
