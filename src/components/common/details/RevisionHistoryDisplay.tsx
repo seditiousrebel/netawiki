@@ -2,7 +2,7 @@
 import React, { memo } from 'react'; // Import memo
 import { History } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { format } from 'date-fns'; // Added import
+import { format, parseISO } from 'date-fns'; // Added parseISO and ensured format is imported
 
 interface RevisionHistoryItem {
   id: string;
@@ -20,15 +20,16 @@ interface RevisionHistoryDisplayProps {
 const formatDateTime = (dateString: string | undefined): string => {
   if (!dateString) return '';
   try {
-    const date = new Date(dateString);
+    const date = parseISO(dateString); // Use parseISO for consistent parsing
     if (isNaN(date.getTime())) {
-      return dateString;
+      console.warn("Invalid date string for parseISO:", dateString);
+      return dateString; // Fallback for truly unparsable strings
     }
-    // Using date-fns format for consistency
+    // Using a common, less locale-sensitive format
     return format(date, 'MM/dd/yyyy, hh:mm a');
   } catch (error) {
     console.error("Error formatting date-time:", dateString, error);
-    return dateString;
+    return dateString; // Fallback to original string in case of error
   }
 };
 
@@ -48,8 +49,8 @@ const RevisionHistoryDisplay: React.FC<RevisionHistoryDisplayProps> = ({ history
       <CardContent>
         <ul className="space-y-4">
           {historyItems.map((item) => (
-            <li 
-              key={item.id} 
+            <li
+              key={item.id}
               className="text-sm border-b border-border/80 pb-3 last:border-b-0 last:pb-0"
             >
               <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-1">
@@ -78,4 +79,3 @@ const RevisionHistoryDisplay: React.FC<RevisionHistoryDisplayProps> = ({ history
 };
 
 export default memo(RevisionHistoryDisplay);
-
