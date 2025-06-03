@@ -7,9 +7,10 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Users, Tag, CalendarDays, Landmark, MapPin, Star, BarChart3, ListChecks, Languages, CheckCircle, XCircle, MessageSquare, CircleHelp, Quote, Trash2, UserCircle, ExternalLink, History } from 'lucide-react';
+import { Edit, Users, Tag, CalendarDays, Landmark, MapPin, Star, BarChart3, ListChecks, Languages, CheckCircle, XCircle, MessageSquare, CircleHelp, Quote, Trash2, UserCircle, ExternalLink, History, PlusCircle } from 'lucide-react';
 import { TimelineDisplay } from '@/components/common/timeline-display';
 import Link from 'next/link';
+import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent, NewsArticleLink, PendingEdit } from '@/types/gov';
 
 import ContactInfoDisplay from '@/components/common/details/ContactInfoDisplay';
@@ -102,6 +103,8 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   const [hoverRating, setHoverRating] = useState(0);
   const [commentText, setCommentText] = useState("");
   const [isSuggestEntityEditModalOpen, setIsSuggestEntityEditModalOpen] = useState(false);
+  const [isSuggestNewPromiseModalOpen, setIsSuggestNewPromiseModalOpen] = useState(false);
+  const [isSuggestNewControversyModalOpen, setIsSuggestNewControversyModalOpen] = useState(false);
   const [formattedDateOfBirth, setFormattedDateOfBirth] = useState<string | null>(null);
   const [formattedDateOfDeath, setFormattedDateOfDeath] = useState<string | null>(null);
   const { addNotification } = useNotificationStore();
@@ -185,6 +188,37 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
         });
       });
     setIsSuggestEntityEditModalOpen(false);
+  };
+
+  const handleSuggestNewPromiseSubmit = (formData: Record<string, any>) => {
+    if (!politician || !currentUser) return;
+    const submissionData = {
+      ...formData, // This will include the pre-filled politicianId
+      // Potentially add other default fields for a new promise suggestion if needed
+    };
+    console.log("New Promise Suggestion for Politician:", politician.name, submissionData);
+    // Here you would typically call a service to save the suggestion
+    // For demo, we just show a toast and log it.
+    // Example: await saveNewPromiseSuggestion(submissionData);
+    toast({
+      title: "Promise Suggestion Submitted",
+      description: `Your new promise suggestion for ${politician.name} has been submitted.`,
+    });
+    setIsSuggestNewPromiseModalOpen(false);
+  };
+
+  const handleSuggestNewControversySubmit = (formData: Record<string, any>) => {
+    if (!politician || !currentUser) return;
+    const submissionData = {
+      ...formData, // This will include the pre-filled primaryPoliticianId
+    };
+    console.log("New Controversy Suggestion for Politician:", politician.name, submissionData);
+    // Example: await saveNewControversySuggestion(submissionData);
+    toast({
+      title: "Controversy Suggestion Submitted",
+      description: `Your new controversy suggestion regarding ${politician.name} has been submitted.`,
+    });
+    setIsSuggestNewControversyModalOpen(false);
   };
 
   const handleRatingSubmit = () => {
@@ -320,6 +354,30 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
           entitySchema={entitySchemas.Politician}
           currentEntityData={politician}
           onSubmit={handleEntityEditSuggestionSubmit}
+        />
+      )}
+
+      {politician && entitySchemas.Promise && (
+        <SuggestNewEntryForm
+          isOpen={isSuggestNewPromiseModalOpen}
+          onOpenChange={setIsSuggestNewPromiseModalOpen}
+          entityType="Promise"
+          entitySchema={entitySchemas.Promise}
+          onSubmit={handleSuggestNewPromiseSubmit}
+          linkedEntityId={politician.id}
+          linkedEntityField="politicianId" // Key name in Promise schema
+        />
+      )}
+
+      {politician && entitySchemas.Controversy && (
+        <SuggestNewEntryForm
+          isOpen={isSuggestNewControversyModalOpen}
+          onOpenChange={setIsSuggestNewControversyModalOpen}
+          entityType="Controversy"
+          entitySchema={entitySchemas.Controversy}
+          onSubmit={handleSuggestNewControversySubmit}
+          linkedEntityId={politician.id}
+          linkedEntityField="primaryPoliticianId" // Key name in Controversy schema
         />
       )}
 
@@ -515,8 +573,44 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             <CriminalRecordsDisplay criminalRecords={politician.criminalRecords} />
           )}
           <RelatedNewsDisplay newsItems={relatedNews} />
-          <AssociatedControversiesDisplay controversies={relatedControversies} />
-          <PromisesDisplay promises={promises} />
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center justify-between">
+                Associated Controversies
+                {politician && (
+                  <Button variant="outline" size="sm" onClick={() => {
+                    if (!isUserLoggedIn()) { router.push('/auth/login'); return; }
+                    setIsSuggestNewControversyModalOpen(true);
+                  }}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Controversy
+                  </Button>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AssociatedControversiesDisplay controversies={relatedControversies} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center justify-between">
+                Promises
+                {politician && (
+                  <Button variant="outline" size="sm" onClick={() => {
+                    if (!isUserLoggedIn()) { router.push('/auth/login'); return; }
+                    setIsSuggestNewPromiseModalOpen(true);
+                  }}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Promise
+                  </Button>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+               <PromisesDisplay promises={promises} />
+            </CardContent>
+          </Card>
           
           <Card>
             <CardHeader>

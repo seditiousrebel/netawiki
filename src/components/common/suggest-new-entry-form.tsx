@@ -24,20 +24,37 @@ interface SuggestNewEntryFormProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   entityType: string;
-  entitySchema: FormFieldSchema[]; // Changed from hardcoded fields
-  onSubmit: (formData: Record<string, any>) => void; // Changed to accept generic formData
+  entitySchema: FormFieldSchema[];
+  onSubmit: (formData: Record<string, any>) => void;
+  linkedEntityId?: string; // Optional: ID of the entity this new entry is linked to
+  linkedEntityField?: string; // Optional: The field name in the schema that holds the link (e.g., 'politicianId')
 }
 
 export const SuggestNewEntryForm: React.FC<SuggestNewEntryFormProps> = ({
   isOpen,
   onOpenChange,
   entityType,
-  entitySchema, // Added
+  entitySchema,
   onSubmit,
+  linkedEntityId, // New prop
+  linkedEntityField, // New prop
 }) => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [reason, setReason] = useState('');
   const [evidenceUrl, setEvidenceUrl] = useState('');
+
+  React.useEffect(() => {
+    if (isOpen) {
+      if (linkedEntityId && linkedEntityField) {
+        setFormData({ [linkedEntityField]: linkedEntityId });
+      } else {
+        setFormData({}); // Reset if not linked
+      }
+      setReason('');
+      setEvidenceUrl('');
+    }
+  }, [isOpen, linkedEntityId, linkedEntityField]);
+
 
   // Helper to get value from formData using a path string
   const getValueByPath = (obj: Record<string, any>, path: string): any => {
@@ -132,16 +149,23 @@ export const SuggestNewEntryForm: React.FC<SuggestNewEntryFormProps> = ({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           {/* Dynamic form fields will be rendered here */}
-          {entitySchema.map((field) => (
-            <DynamicFormRenderer
-              key={field.name}
-              fieldSchema={field}
-              basePath=""
-              dataForPath={formData}
-              onInputChange={handleInputChange}
-              // isSingleFieldRoot is false by default for SNEF
-            />
-          ))}
+          {entitySchema.map((field) => {
+            const isLinkedField = field.name === linkedEntityField && linkedEntityId;
+            const fieldSchemaForRenderer = isLinkedField
+              ? { ...field, disabled: true, placeholder: 'Pre-linked (cannot be changed)' }
+              : field;
+
+            return (
+              <DynamicFormRenderer
+                key={field.name}
+                fieldSchema={fieldSchemaForRenderer}
+                basePath=""
+                dataForPath={formData}
+                onInputChange={handleInputChange}
+                // isSingleFieldRoot is false by default for SNEF
+              />
+            );
+          })}
 
           {/* Fixed fields for reason and evidence */}
           <div className="grid grid-cols-4 items-start gap-4 pt-4 border-t mt-4">

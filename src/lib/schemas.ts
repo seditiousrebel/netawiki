@@ -78,7 +78,21 @@ export const criminalRecordSchema: FormFieldSchema[] = [
   { name: 'caseNumber', label: 'Case Number (optional)', type: 'text', placeholder: 'Case ID' },
   { name: 'offense', label: 'Offense', type: 'text', required: true, placeholder: 'Nature of the offense' },
   { name: 'court', label: 'Court (optional)', type: 'text', placeholder: 'Court Name' },
-  { name: 'status', label: 'Status', type: 'text', required: true, placeholder: 'e.g., Alleged, Convicted, Acquitted' }, // TODO: Convert to select with options from CriminalRecord['status']
+  {
+    name: 'status',
+    label: 'Status',
+    type: 'select',
+    required: true,
+    options: [
+        { value: 'Alleged', label: 'Alleged' },
+        { value: 'Charged', label: 'Charged' },
+        { value: 'Convicted', label: 'Convicted' },
+        { value: 'Acquitted', label: 'Acquitted' },
+        { value: 'Appealed', label: 'Appealed' },
+        { value: 'Pardoned', label: 'Pardoned' }
+    ],
+    placeholder: 'Select status',
+  },
   { name: 'summary', label: 'Summary (optional)', type: 'textarea', placeholder: 'Brief summary of the case' },
   { name: 'sourceUrl', label: 'Source URL (optional)', type: 'url', placeholder: 'Link to relevant document' },
 ];
@@ -104,7 +118,17 @@ export const politicianSchema: FormFieldSchema[] = [
   { name: 'name', label: 'Full Name', type: 'text', required: true, placeholder: 'Enter full name' },
   { name: 'nepaliName', label: 'Nepali Name (Optional)', type: 'text', placeholder: 'नाम नेपालीमा' },
   { name: 'slug', label: 'Slug (URL friendly name)', type: 'text', placeholder: 'e.g., john-doe' },
-  { name: 'gender', label: 'Gender', type: 'text', placeholder: 'Male, Female, Other' }, // TODO: Convert to select
+  {
+    name: 'gender',
+    label: 'Gender',
+    type: 'select',
+    options: [
+      { value: 'male', label: 'Male' },
+      { value: 'female', label: 'Female' },
+      { value: 'other', label: 'Other' },
+      { value: 'prefer_not_to_say', label: 'Prefer not to say' },
+    ],
+  },
   { name: 'dateOfBirth', label: 'Date of Birth', type: 'date' },
   { name: 'dateOfDeath', label: 'Date of Death (Optional)', type: 'date' },
   {
@@ -116,8 +140,15 @@ export const politicianSchema: FormFieldSchema[] = [
       { name: 'address', label: 'Address Detail', type: 'text', placeholder: 'Village/Town/City' },
     ],
   },
-  { name: 'partyId', label: 'Primary Party ID (Optional)', type: 'text', placeholder: 'ID of their current party' },
-  { name: 'partyName', label: 'Primary Party Name (Optional)', type: 'text', placeholder: 'Name of their current party' },
+  {
+    name: 'partyId',
+    label: 'Primary Party',
+    type: 'entity-selector',
+    referencedEntityType: 'Party',
+    placeholder: 'Select their current party', // Adjusted placeholder
+    required: false, // Explicitly stating it's optional
+  },
+  // partyName field is removed
   { name: 'photoUrl', label: 'Photo URL (Optional)', type: 'url', placeholder: 'Link to a profile photo' },
   { name: 'bio', label: 'Biography (Optional)', type: 'textarea', placeholder: 'A brief biography...' },
   { name: 'province', label: 'Province (Optional)', type: 'text', placeholder: 'e.g., Bagmati' },
@@ -272,18 +303,53 @@ export const partyAllianceItemSchema: FormFieldSchema[] = [ // For Party.allianc
   { name: 'startDate', label: 'Start Date', type: 'date', required: true },
   { name: 'endDate', label: 'End Date (or "Ongoing")', type: 'text', placeholder: 'YYYY-MM-DD or Ongoing' },
   { name: 'purpose', label: 'Purpose (Optional)', type: 'textarea' },
-  { name: 'status', label: 'Status', type: 'text', placeholder: 'e.g., Active, Dissolved' }, // TODO: Select: Active | Dissolved | Inactive
+  {
+    name: 'status',
+    label: 'Status',
+    type: 'select',
+    options: [
+        { value: 'Active', label: 'Active' },
+        { value: 'Dissolved', label: 'Dissolved' },
+        { value: 'Inactive', label: 'Inactive' },
+    ],
+    placeholder: 'Select alliance status',
+  },
 ];
 
 export const partySplitMergerInvolvedPartySchema: FormFieldSchema[] = [
     { name: 'id', label: 'Party ID (Optional)', type: 'text'},
     { name: 'name', label: 'Party Name', type: 'text', required: true },
-    { name: 'role', label: 'Role in Event', type: 'text', required: true, placeholder: 'e.g., MergedInto, SplitFrom' }, // TODO: Select
+    {
+        name: 'role',
+        label: 'Role in Event',
+        type: 'select',
+        required: true,
+        options: [
+            { value: 'MergedInto', label: 'Merged Into (this party)' },
+            { value: 'MergedFrom', label: 'Merged From (other party joined this)' },
+            { value: 'SplitFrom', label: 'Split From (this party was parent)' },
+            { value: 'SplitTo', label: 'Split To (this party was new entity)' },
+            { value: 'Dissolved', label: 'Dissolved' },
+        ],
+        placeholder: 'Select role in event',
+    },
 ];
 
 export const partySplitMergerItemSchema: FormFieldSchema[] = [ // For Party.splitMergerHistory
   { name: 'date', label: 'Date', type: 'date', required: true },
-  { name: 'type', label: 'Event Type', type: 'text', required: true, placeholder: 'e.g., Split, Merger' }, // TODO: Select
+  {
+    name: 'type',
+    label: 'Event Type',
+    type: 'select',
+    required: true,
+    options: [
+        { value: 'Split', label: 'Split' },
+        { value: 'Merger', label: 'Merger' },
+        { value: 'Dissolution', label: 'Dissolution' },
+        { value: 'Reformation', label: 'Reformation' },
+    ],
+    placeholder: 'Select event type',
+  },
   { name: 'description', label: 'Description', type: 'textarea', required: true },
   {
     name: 'involvedParties',
@@ -296,7 +362,20 @@ export const partySplitMergerItemSchema: FormFieldSchema[] = [ // For Party.spli
 export const partyStanceItemSchema: FormFieldSchema[] = [ // For Party.stancesOnIssues
   { name: 'issueId', label: 'Issue ID/Slug', type: 'text', required: true },
   { name: 'issueTitle', label: 'Issue Title', type: 'text', required: true },
-  { name: 'stance', label: 'Stance', type: 'text', required: true, placeholder: 'e.g., Supports, Opposes, Neutral' }, // TODO: Select
+  {
+    name: 'stance',
+    label: 'Stance',
+    type: 'select',
+    required: true,
+    options: [
+        { value: 'Supports', label: 'Supports' },
+        { value: 'Opposes', label: 'Opposes' },
+        { value: 'Neutral', label: 'Neutral' },
+        { value: 'Mixed', label: 'Mixed/Nuanced' },
+        { value: 'NoStance', label: 'No Stance' },
+    ],
+    placeholder: 'Select stance on issue',
+  },
   { name: 'statement', label: 'Statement (Optional)', type: 'textarea' },
   { name: 'statementUrl', label: 'Statement URL (Optional)', type: 'url' },
   { name: 'dateOfStance', label: 'Date of Stance (Optional)', type: 'date' },
@@ -307,7 +386,22 @@ export const fundingSourceItemSchema: FormFieldSchema[] = [ // For Party.funding
   { name: 'year', label: 'Year', type: 'text', required: true, placeholder: 'e.g., 2023' },
   { name: 'sourceName', label: 'Source Name', type: 'text', required: true },
   { name: 'amount', label: 'Amount (Optional)', type: 'text', placeholder: 'e.g., $10,000 or Major Contributor' },
-  { name: 'type', label: 'Funding Type', type: 'text', required: true, placeholder: 'e.g., Donation, Grant' }, // TODO: Select
+  {
+    name: 'type',
+    label: 'Funding Type',
+    type: 'select',
+    required: true,
+    options: [
+        { value: 'Donation', label: 'Donation' },
+        { value: 'Grant', label: 'Grant' },
+        { value: 'MembershipFees', label: 'Membership Fees' },
+        { value: 'StateFunding', label: 'State Funding' },
+        { value: 'CorporateSponsorship', label: 'Corporate Sponsorship' },
+        { value: 'Loan', label: 'Loan' },
+        { value: 'Other', label: 'Other' },
+    ],
+    placeholder: 'Select funding type',
+  },
   { name: 'description', label: 'Description (Optional)', type: 'textarea' },
   { name: 'sourceUrl', label: 'Source URL (Optional)', type: 'url' },
 ];
@@ -322,7 +416,23 @@ export const intraPartyElectionItemSchema: FormFieldSchema[] = [ // For Party.in
 
 export const electionPerformanceRecordItemSchema: FormFieldSchema[] = [ // For Party.electionHistory
   { name: 'electionYear', label: 'Election Year', type: 'text', required: true, placeholder: 'e.g., 2018' },
-  { name: 'electionType', label: 'Election Type', type: 'text', required: true, placeholder: 'e.g., General, Local' }, // TODO: Select
+  {
+    name: 'electionType',
+    label: 'Election Type',
+    type: 'select', // Same options as electionSchema.electionType
+    required: true,
+    options: [
+        { value: 'General', label: 'General Election' },
+        { value: 'Midterm', label: 'Mid-term Election' },
+        { value: 'ByElection', label: 'By-Election' },
+        { value: 'Local', label: 'Local Election' },
+        { value: 'Provincial', label: 'Provincial Election' },
+        { value: 'NationalAssembly', label: 'National Assembly Election' },
+        { value: 'Presidential', label: 'Presidential Election' },
+        { value: 'Referendum', label: 'Referendum' }
+    ],
+    placeholder: 'Select election type',
+  },
   { name: 'seatsContested', label: 'Seats Contested (Optional)', type: 'number' },
   { name: 'seatsWon', label: 'Seats Won', type: 'number', required: true },
   { name: 'votePercentage', label: 'Vote Percentage (Optional)', type: 'number', placeholder: 'e.g., 45.5' },
@@ -346,9 +456,18 @@ export const fullPartySchema: FormFieldSchema[] = [
 
 
 const billSponsorSchema: FormFieldSchema[] = [
-    { name: 'id', label: 'Sponsor Politician ID', type: 'text', required: true },
-    { name: 'name', label: 'Sponsor Name', type: 'text', required: true },
-    { name: 'type', label: 'Sponsor Type', type: 'text', placeholder: 'Primary or Co-Sponsor', required: true }, // TODO: Select
+    { name: 'id', label: 'Sponsor', type: 'entity-selector', referencedEntityType: 'Politician', required: true },
+    // { name: 'name', label: 'Sponsor Name', type: 'text', required: true }, // Removed
+    {
+        name: 'type',
+        label: 'Sponsor Type',
+        type: 'select',
+        options: [
+            { value: 'Primary', label: 'Primary' },
+            { value: 'CoSponsor', label: 'Co-Sponsor' },
+        ],
+        required: true,
+    },
 ];
 
 export const billSchema: FormFieldSchema[] = [
@@ -356,8 +475,35 @@ export const billSchema: FormFieldSchema[] = [
   { name: 'billNumber', label: 'Bill Number', type: 'text', required: true, placeholder: 'e.g., HR-123, S-456' },
   { name: 'summary', label: 'Summary', type: 'textarea', required: true },
   { name: 'purpose', label: 'Purpose (Optional)', type: 'textarea' },
-  { name: 'billType', label: 'Bill Type', type: 'text', placeholder: 'e.g., Government, Private Member' }, // TODO: Select
-  { name: 'status', label: 'Current Status', type: 'text', required: true, placeholder: 'e.g., Introduced, Passed' }, // TODO: Select
+  {
+    name: 'billType',
+    label: 'Bill Type',
+    type: 'select',
+    options: [
+        { value: 'GovernmentBill', label: 'Government Bill' },
+        { value: 'PrivateMembersBill', label: 'Private Member\'s Bill' },
+        { value: 'ConstitutionalAmendment', label: 'Constitutional Amendment' }
+    ],
+    placeholder: 'Select bill type',
+  },
+  {
+    name: 'status',
+    label: 'Current Status',
+    type: 'select',
+    required: true,
+    options: [
+        { value: 'Introduced', label: 'Introduced' },
+        { value: 'InCommittee', label: 'In Committee' },
+        { value: 'ReportedByCommittee', label: 'Reported by Committee' },
+        { value: 'PassedHouse1', label: 'Passed First House' },
+        { value: 'PassedHouse2', label: 'Passed Second House' },
+        { value: 'PendingAssent', label: 'Pending Assent' },
+        { value: 'BecameLaw', label: 'Became Law' },
+        { value: 'Failed', label: 'Failed' },
+        { value: 'Withdrawn', label: 'Withdrawn' }
+    ],
+    placeholder: 'Select current status',
+  },
   { name: 'introducedDate', label: 'Date Introduced', type: 'date', required: true },
   { name: 'fullTextUrl', label: 'Full Text URL (Optional)', type: 'url' },
   {
@@ -368,7 +514,17 @@ export const billSchema: FormFieldSchema[] = [
   },
   { name: 'slug', label: 'Slug', type: 'text', placeholder: 'URL-friendly identifier' },
   { name: 'responsibleMinistry', label: 'Responsible Ministry', type: 'text', placeholder: 'e.g., Ministry of Finance' },
-  { name: 'houseOfIntroduction', label: 'House of Introduction', type: 'text', placeholder: 'e.g., Lower, Upper' }, // TODO: Select
+  {
+    name: 'houseOfIntroduction',
+    label: 'House of Introduction',
+    type: 'select',
+    options: [
+        { value: 'LowerHouse', label: 'Lower House / House of Representatives' },
+        { value: 'UpperHouse', label: 'Upper House / Senate' },
+        { value: 'Unicameral', label: 'Unicameral Parliament' }
+    ],
+    placeholder: 'Select house of introduction',
+  },
   { name: 'parliamentarySession', label: 'Parliamentary Session', type: 'text', placeholder: 'e.g., 42nd Parliament, 2nd Session' },
   { name: 'lastActionDate', label: 'Last Action Date', type: 'date' },
   { name: 'lastActionDescription', label: 'Last Action Description', type: 'textarea' },
@@ -400,9 +556,22 @@ export const billTimelineEventItemSchema: FormFieldSchema[] = [
 ];
 
 export const voteRecordItemSchema: FormFieldSchema[] = [
-  { name: 'politicianId', label: 'Politician ID', type: 'text', required: true },
-  { name: 'politicianName', label: 'Politician Name', type: 'text', required: true },
-  { name: 'vote', label: 'Vote', type: 'text', required: true, placeholder: 'Yea, Nay, Abstain, Not Voting' }, // TODO: Select
+  { name: 'politicianId', label: 'Politician ID', type: 'text', required: true }, // Could be entity-selector if needed later
+  { name: 'politicianName', label: 'Politician Name', type: 'text', required: true }, // Could be derived from ID
+  {
+    name: 'vote',
+    label: 'Vote',
+    type: 'select',
+    required: true,
+    options: [
+        { value: 'Yea', label: 'Yea' },
+        { value: 'Nay', label: 'Nay' },
+        { value: 'Abstain', label: 'Abstain' },
+        { value: 'NotVoting', label: 'Not Voting' },
+        { value: 'Present', label: 'Present' }, // Some systems use this
+    ],
+    placeholder: 'Select vote',
+  },
 ];
 
 export const billVotingResultsChamberSchema: FormFieldSchema[] = [
@@ -438,9 +607,22 @@ export const fullBillSchema: FormFieldSchema[] = [
 
 
 const committeeMemberSchema: FormFieldSchema[] = [
-    { name: 'politicianId', label: 'Politician ID', type: 'text', required: true },
-    { name: 'politicianName', label: 'Member Name', type: 'text', required: true },
-    { name: 'role', label: 'Role', type: 'text', required: true, placeholder: 'e.g., Chairperson, Member' }, // TODO: Select
+    { name: 'politicianId', label: 'Member', type: 'entity-selector', referencedEntityType: 'Politician', required: true },
+    // { name: 'politicianName', label: 'Member Name', type: 'text', required: true }, // Removed
+    {
+        name: 'role',
+        label: 'Role',
+        type: 'select',
+        required: true,
+        options: [
+            { value: 'Chairperson', label: 'Chairperson' },
+            { value: 'ViceChairperson', label: 'Vice-Chairperson' },
+            { value: 'Member', label: 'Member' },
+            { value: 'Secretary', label: 'Secretary' },
+            { value: 'Observer', label: 'Observer' }
+        ],
+        placeholder: 'Select member role',
+    },
     { name: 'startDate', label: 'Start Date', type: 'date' },
     { name: 'endDate', label: 'End Date (or Present)', type: 'date' },
 ];
@@ -448,8 +630,33 @@ const committeeMemberSchema: FormFieldSchema[] = [
 export const committeeSchema: FormFieldSchema[] = [
   { name: 'name', label: 'Committee Name', type: 'text', required: true },
   { name: 'nepaliName', label: 'Nepali Name (Optional)', type: 'text' },
-  { name: 'committeeType', label: 'Committee Type', type: 'text', required: true, placeholder: 'e.g., Thematic, Special' }, // TODO: Select
-  { name: 'house', label: 'House', type: 'text', placeholder: 'e.g., House of Representatives' }, // TODO: Select
+  {
+    name: 'committeeType',
+    label: 'Committee Type',
+    type: 'select',
+    required: true,
+    options: [
+        { value: 'Standing', label: 'Standing Committee' },
+        { value: 'Select', label: 'Select Committee' },
+        { value: 'Joint', label: 'Joint Committee' },
+        { value: 'Special', label: 'Special Committee' },
+        { value: 'Thematic', label: 'Thematic Committee' },
+        { value: 'Other', label: 'Other' }
+    ],
+    placeholder: 'Select committee type',
+  },
+  {
+    name: 'house',
+    label: 'House',
+    type: 'select',
+    options: [
+        { value: 'LowerHouse', label: 'Lower House / House of Representatives' },
+        { value: 'UpperHouse', label: 'Upper House / Senate' },
+        { value: 'Joint', label: 'Joint Session' },
+        { value: 'Unicameral', label: 'Unicameral Parliament' }
+    ],
+    placeholder: 'Select house',
+  },
   { name: 'mandate', label: 'Mandate/Terms of Reference (Optional)', type: 'textarea' },
   {
     name: 'members',
@@ -470,7 +677,20 @@ export const billReferredItemSchema: FormFieldSchema[] = [
   { name: 'billName', label: 'Bill Name', type: 'text', required: true },
   { name: 'billNumber', label: 'Bill Number (Optional)', type: 'text' },
   { name: 'referralDate', label: 'Referral Date', type: 'date', required: true },
-  { name: 'status', label: 'Status in Committee', type: 'text', placeholder: 'e.g., Under Review' }, // TODO: Select
+  {
+    name: 'status',
+    label: 'Status in Committee',
+    type: 'select',
+    options: [
+        { value: 'UnderReview', label: 'Under Review' },
+        { value: 'HearingScheduled', label: 'Hearing Scheduled' },
+        { value: 'Reported', label: 'Reported' },
+        { value: 'Amended', label: 'Amended' },
+        { value: 'Rejected', label: 'Rejected' },
+        { value: 'Other', label: 'Other' },
+    ],
+    placeholder: 'Select bill status in committee',
+  },
   { name: 'committeeReportId', label: 'Committee Report ID (Optional)', type: 'text' },
 ];
 
@@ -480,7 +700,20 @@ export const committeeReportItemSchema: FormFieldSchema[] = [
   { name: 'publicationDate', label: 'Publication Date', type: 'date', required: true },
   { name: 'reportUrl', label: 'Report URL', type: 'url', required: true },
   { name: 'summary', label: 'Summary (Optional)', type: 'textarea' },
-  { name: 'reportType', label: 'Report Type (Optional)', type: 'text', placeholder: 'e.g., Annual, Inquiry' }, // TODO: Select
+  {
+    name: 'reportType',
+    label: 'Report Type (Optional)',
+    type: 'select',
+    options: [
+        { value: 'Annual', label: 'Annual Report' },
+        { value: 'Inquiry', label: 'Inquiry Report' },
+        { value: 'Legislative', label: 'Legislative Report' },
+        { value: 'Oversight', label: 'Oversight Report' },
+        { value: 'Thematic', label: 'Thematic Report' },
+        { value: 'Other', label: 'Other' },
+    ],
+    placeholder: 'Select report type',
+  },
 ];
 
 export const committeeMeetingItemSchema: FormFieldSchema[] = [
@@ -516,7 +749,20 @@ export const fullCommitteeSchema: FormFieldSchema[] = [
 export const constituencySchema: FormFieldSchema[] = [
   { name: 'name', label: 'Constituency Name', type: 'text', required: true },
   { name: 'code', label: 'Code (Optional)', type: 'text', placeholder: 'e.g., KTM-1' },
-  { name: 'type', label: 'Type', type: 'text', required: true, placeholder: 'e.g., Federal, Provincial' }, // TODO: Select
+  {
+    name: 'type',
+    label: 'Type',
+    type: 'select',
+    required: true,
+    options: [
+        { value: 'Federal', label: 'Federal' },
+        { value: 'Provincial', label: 'Provincial' },
+        { value: 'Local', label: 'Local' },
+        { value: 'National', label: 'National (e.g., for proportional representation)' },
+        { value: 'Other', label: 'Other' }
+    ],
+    placeholder: 'Select constituency type',
+  },
   { name: 'district', label: 'District', type: 'text', required: true },
   { name: 'province', label: 'Province', type: 'text', required: true },
   { name: 'population', label: 'Population (Optional)', type: 'number' },
@@ -559,7 +805,21 @@ export const historicalElectionResultItemSchema: FormFieldSchema[] = [
 export const developmentProjectItemSchema: FormFieldSchema[] = [
   { name: 'id', label: 'Project ID', type: 'text', required: false }, // Often system generated
   { name: 'name', label: 'Project Name', type: 'text', required: true },
-  { name: 'status', label: 'Status', type: 'text', required: true, placeholder: 'e.g., Planned, Ongoing, Completed' }, // TODO: Select
+  {
+    name: 'status',
+    label: 'Status',
+    type: 'select',
+    required: true,
+    options: [
+        { value: 'Planned', label: 'Planned' },
+        { value: 'Ongoing', label: 'Ongoing' },
+        { value: 'Completed', label: 'Completed' },
+        { value: 'Delayed', label: 'Delayed' },
+        { value: 'Cancelled', label: 'Cancelled' },
+        { value: 'OnHold', label: 'On Hold' },
+    ],
+    placeholder: 'Select project status',
+  },
   { name: 'description', label: 'Description (Optional)', type: 'textarea' },
   { name: 'budget', label: 'Budget (Optional)', type: 'text', placeholder: 'e.g., NPR 500 Million' },
   { name: 'startDate', label: 'Start Date (Optional)', type: 'date' },
@@ -580,9 +840,32 @@ export const localIssueItemSchema: FormFieldSchema[] = [
   { name: 'description', label: 'Description (Optional)', type: 'textarea' },
   { name: 'reportedBy', label: 'Reported By (Optional)', type: 'text' },
   { name: 'dateReported', label: 'Date Reported (Optional)', type: 'date' },
-  { name: 'status', label: 'Status', type: 'text', placeholder: 'e.g., Open, Addressed' }, // TODO: Select
+  {
+    name: 'status',
+    label: 'Status',
+    type: 'select',
+    options: [
+        { value: 'Open', label: 'Open' },
+        { value: 'InProgress', label: 'In Progress' },
+        { value: 'Addressed', label: 'Addressed' },
+        { value: 'Closed', label: 'Closed' },
+        { value: 'Escalated', label: 'Escalated' },
+    ],
+    placeholder: 'Select issue status',
+  },
   { name: 'resolutionDetails', label: 'Resolution Details (Optional)', type: 'textarea' },
-  { name: 'severity', label: 'Severity (Optional)', type: 'text', placeholder: 'e.g., Low, Medium, High' }, // TODO: Select
+  {
+    name: 'severity',
+    label: 'Severity (Optional)',
+    type: 'select',
+    options: [
+        { value: 'Low', label: 'Low' },
+        { value: 'Medium', label: 'Medium' },
+        { value: 'High', label: 'High' },
+        { value: 'Critical', label: 'Critical' },
+    ],
+    placeholder: 'Select severity level',
+  },
   {
     name: 'relatedDocuments',
     label: 'Related Documents',
@@ -609,10 +892,39 @@ export const fullConstituencySchema: FormFieldSchema[] = [
 
 export const electionSchema: FormFieldSchema[] = [
   { name: 'name', label: 'Election Name', type: 'text', required: true, placeholder: 'e.g., General Election 2024' },
-  { name: 'electionType', label: 'Election Type', type: 'text', required: true, placeholder: 'e.g., General, Provincial' }, // TODO: Select
+  {
+    name: 'electionType',
+    label: 'Election Type',
+    type: 'select',
+    required: true,
+    options: [
+        { value: 'General', label: 'General Election' },
+        { value: 'Midterm', label: 'Mid-term Election' },
+        { value: 'ByElection', label: 'By-Election' },
+        { value: 'Local', label: 'Local Election' },
+        { value: 'Provincial', label: 'Provincial Election' },
+        { value: 'NationalAssembly', label: 'National Assembly Election' },
+        { value: 'Presidential', label: 'Presidential Election' },
+        { value: 'Referendum', label: 'Referendum' }
+    ],
+    placeholder: 'Select election type',
+  },
   { name: 'date', label: 'Election Date', type: 'date', required: true },
   { name: 'description', label: 'Description (Optional)', type: 'textarea' },
-  { name: 'status', label: 'Status', type: 'text', required: true, placeholder: 'e.g., Scheduled, Concluded' }, // TODO: Select
+  {
+    name: 'status',
+    label: 'Status',
+    type: 'select',
+    required: true,
+    options: [
+        { value: 'Scheduled', label: 'Scheduled' },
+        { value: 'Ongoing', label: 'Ongoing' },
+        { value: 'Concluded', label: 'Concluded' },
+        { value: 'Postponed', label: 'Postponed' },
+        { value: 'Cancelled', label: 'Cancelled' }
+    ],
+    placeholder: 'Select election status',
+  },
   // Voter turnout, timeline events etc. are results, typically admin-managed.
 ];
 
@@ -623,7 +935,21 @@ export const newsSchema: FormFieldSchema[] = [
   { name: 'sourceName', label: 'Source Name', type: 'text', required: true, placeholder: 'e.g., The Kathmandu Post, GovTrackr Internal' },
   { name: 'publicationDate', label: 'Publication Date', type: 'date', required: true },
   { name: 'summary', label: 'Summary/Abstract (Optional)', type: 'textarea' },
-  { name: 'category', label: 'Category', type: 'text', placeholder: 'e.g., Politics, Elections' }, // TODO: Select
+  {
+    name: 'category',
+    label: 'Category',
+    type: 'select',
+    options: [
+        { value: 'Politics', label: 'Politics' },
+        { value: 'Elections', label: 'Elections' },
+        { value: 'Legislation', label: 'Legislation' },
+        { value: 'Governance', label: 'Governance' },
+        { value: 'SocialIssues', label: 'Social Issues' },
+        { value: 'Economy', label: 'Economy' },
+        { value: 'Other', label: 'Other' }
+    ],
+    placeholder: 'Select category',
+  },
   { name: 'topics', label: 'Topics/Keywords (comma-separated)', type: 'textarea', placeholder: 'e.g., budget, healthcare' }, // Simple textarea for now
   // fullContent, author details, isFactCheck etc. for more detailed internal news management.
 ];
@@ -631,15 +957,57 @@ export const newsSchema: FormFieldSchema[] = [
 const promiseEvidenceLinkSchema: FormFieldSchema[] = [
     { name: 'url', label: 'Evidence URL', type: 'url', required: true },
     { name: 'description', label: 'Description (Optional)', type: 'text' },
-    { name: 'type', label: 'Type (Optional)', type: 'text', placeholder: 'e.g., document, article'}, // TODO: Select
+    {
+        name: 'type',
+        label: 'Type (Optional)',
+        type: 'select',
+        options: [
+            { value: 'document', label: 'Document' },
+            { value: 'article', label: 'Article' },
+            { value: 'video', label: 'Video' },
+            { value: 'official_statement', label: 'Official Statement' },
+            { value: 'other', label: 'Other' },
+        ],
+        placeholder: 'Select evidence type',
+    },
 ];
 
 // PromiseSchema (for PromiseItem)
 export const promiseSchema: FormFieldSchema[] = [
   { name: 'title', label: 'Promise Title', type: 'text', required: true },
   { name: 'description', label: 'Detailed Description', type: 'textarea', required: true },
+  {
+    name: 'politicianId',
+    label: 'Associated Politician',
+    type: 'entity-selector',
+    referencedEntityType: 'Politician',
+    required: true,
+    placeholder: 'Select the politician who made the promise',
+  },
+  {
+    name: 'partyId',
+    label: 'Promising Party (if applicable)',
+    type: 'entity-selector',
+    referencedEntityType: 'Party',
+    required: false,
+    placeholder: 'Select the party, if it\'s a party promise',
+  },
   { name: 'category', label: 'Category (Optional)', type: 'text', placeholder: 'e.g., Infrastructure, Education' },
-  { name: 'status', label: 'Current Status', type: 'text', required: true, placeholder: 'e.g., Pending, In Progress, Fulfilled' }, // TODO: Select
+  {
+    name: 'status',
+    label: 'Current Status',
+    type: 'select',
+    required: true,
+    options: [
+        { value: 'Pending', label: 'Pending' },
+        { value: 'InProgress', label: 'In Progress' },
+        { value: 'Fulfilled', label: 'Fulfilled' },
+        { value: 'PartiallyFulfilled', label: 'Partially Fulfilled' },
+        { value: 'Broken', label: 'Broken' },
+        { value: 'Stalled', label: 'Stalled' }
+    ],
+    placeholder: 'Select current status',
+  },
   { name: 'datePromised', label: 'Date Promised (Optional)', type: 'date' },
   { name: 'expectedFulfillmentDate', label: 'Expected Fulfillment Date (Optional)', type: 'date' },
   {
@@ -653,9 +1021,20 @@ export const promiseSchema: FormFieldSchema[] = [
 
 // --- Controversy Schema ---
 export const involvedEntitySchema: FormFieldSchema[] = [
-  { name: 'type', label: 'Type', type: 'text', required: true, placeholder: 'politician, party, or organization' },
+  {
+    name: 'type',
+    label: 'Type',
+    type: 'select', // Changed from text to select
+    required: true,
+    options: [
+        { value: 'Politician', label: 'Politician' },
+        { value: 'Party', label: 'Party' },
+        { value: 'Organization', label: 'Organization' },
+    ],
+    placeholder: 'Select entity type'
+  },
   { name: 'id', label: 'Entity ID', type: 'text', required: true, placeholder: 'ID of the entity' },
-  { name: 'name', label: 'Entity Name', type: 'text', required: true },
+  { name: 'name', label: 'Entity Name', type: 'text', required: true }, // Name might be derived if ID is for a known entity
   { name: 'role', label: 'Role in Controversy (Optional)', type: 'text' },
 ];
 
@@ -663,18 +1042,39 @@ export const controversySchema: FormFieldSchema[] = [
   { name: 'title', label: 'Controversy Title', type: 'text', required: true },
   { name: 'description', label: 'Description', type: 'textarea', required: true },
   {
+    name: 'primaryPoliticianId',
+    label: 'Primary Politician Involved (optional)',
+    type: 'entity-selector',
+    referencedEntityType: 'Politician',
+    required: false,
+    placeholder: 'Select primary politician if applicable',
+  },
+  {
     name: 'severityIndicator',
     label: 'Severity Indicator',
-    type: 'text', // Ideally 'select' with options: 'Low', 'Medium', 'High', 'Critical'
+    type: 'select',
     required: true,
-    placeholder: 'Low, Medium, High, or Critical',
+    options: [
+        { value: 'Low', label: 'Low' },
+        { value: 'Medium', label: 'Medium' },
+        { value: 'High', label: 'High' },
+        { value: 'Critical', label: 'Critical' }
+    ],
+    placeholder: 'Select severity',
   },
   {
     name: 'status',
     label: 'Current Status',
-    type: 'text', // Ideally 'select' with options from ControversyStatus
+    type: 'select',
     required: true,
-    placeholder: 'e.g., Alleged, Under Investigation',
+    options: [
+        { value: 'Alleged', label: 'Alleged' },
+        { value: 'UnderInvestigation', label: 'Under Investigation' },
+        { value: 'FindingReached', label: 'Finding Reached' },
+        { value: 'Resolved', label: 'Resolved' },
+        { value: 'Dismissed', label: 'Dismissed' }
+    ],
+    placeholder: 'Select current status',
   },
   { name: 'period', label: 'Period (e.g., Mid-2023 or YYYY-MM-DD)', type: 'text', placeholder: 'General timeframe of the controversy' },
   { name: 'dates.started', label: 'Date Started (Optional)', type: 'date'},

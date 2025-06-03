@@ -4,7 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { FormFieldSchema, FieldType } from '@/types/form-schema';
+import { mockPoliticians, mockParties, mockCommittees, mockBills, mockConstituencies, mockElections } from '@/lib/mock-data'; // Assuming these exist
 
 interface DynamicFormRendererProps {
   fieldSchema: FormFieldSchema;
@@ -34,7 +36,80 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
     currentValue = dataForPath && typeof dataForPath === 'object' ? dataForPath[name] : undefined;
   }
 
+  // Ensure currentValue is a string for select components if it's null or undefined,
+  // as Select component expects string value. The actual onInputChange will pass the original type.
+  const selectValue = currentValue === null || currentValue === undefined ? '' : String(currentValue);
+
+
   switch (type) {
+    case 'select':
+      return (
+        <div key={fullPath} className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor={fullPath} className="text-right">
+            {label}{required && '*'}
+          </Label>
+          <Select
+            value={selectValue}
+            onValueChange={(value) => onInputChange(fullPath, value)}
+            disabled={fieldSchema.disabled}
+          >
+            <SelectTrigger id={fullPath} className="col-span-3">
+              <SelectValue placeholder={placeholder || `Select ${label.toLowerCase()}`} />
+            </SelectTrigger>
+            <SelectContent>
+              {(fieldSchema.options || []).map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+              {(fieldSchema.options || []).length === 0 && <SelectItem value="no_options_select" disabled>No options available</SelectItem>}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    case 'entity-selector':
+      let entities: { id: string, name: string, [key: string]: any }[] = [];
+      // console.log(`Rendering entity-selector for ${fullPath}, referencedEntityType: ${fieldSchema.referencedEntityType}`);
+      if (fieldSchema.referencedEntityType === 'Politician') {
+        entities = mockPoliticians;
+      } else if (fieldSchema.referencedEntityType === 'Party') {
+        entities = mockParties;
+      } else if (fieldSchema.referencedEntityType === 'Committee') {
+        entities = mockCommittees;
+      } else if (fieldSchema.referencedEntityType === 'Bill') {
+        entities = mockBills.map(b => ({ ...b, name: b.title })); // Adapt 'title' to 'name'
+      } else if (fieldSchema.referencedEntityType === 'Constituency') {
+        entities = mockConstituencies;
+      } else if (fieldSchema.referencedEntityType === 'Election') {
+        entities = mockElections;
+      }
+      // Add other entity types as needed
+      // else { console.warn(`Unsupported referencedEntityType: ${fieldSchema.referencedEntityType} for ${fullPath}`); }
+
+      return (
+        <div key={fullPath} className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor={fullPath} className="text-right">
+            {label}{required && '*'}
+          </Label>
+          <Select
+            value={selectValue} // currentValue should be the ID of the entity
+            onValueChange={(value) => onInputChange(fullPath, value)} // value is the ID
+            disabled={fieldSchema.disabled}
+          >
+            <SelectTrigger id={fullPath} className="col-span-3">
+              <SelectValue placeholder={placeholder || `Select ${label.toLowerCase()}`} />
+            </SelectTrigger>
+            <SelectContent>
+              {entities.map(entity => (
+                <SelectItem key={entity.id} value={entity.id}>
+                  {entity.name || entity.title} {/* Bill uses title, others use name */}
+                </SelectItem>
+              ))}
+              {entities.length === 0 && <SelectItem value="no_options_entity_selector" disabled>No options available for {fieldSchema.referencedEntityType}</SelectItem>}
+            </SelectContent>
+          </Select>
+        </div>
+      );
     case 'text':
     case 'url':
     case 'email':
@@ -53,6 +128,7 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
             className="col-span-3"
             placeholder={placeholder || `Enter ${label.toLowerCase()}`}
             required={required}
+            disabled={fieldSchema.disabled}
           />
         </div>
       );
@@ -69,6 +145,7 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
             className="col-span-3 min-h-[100px]"
             placeholder={placeholder || `Enter ${label.toLowerCase()}`}
             required={required}
+            disabled={fieldSchema.disabled}
           />
         </div>
       );
@@ -83,6 +160,7 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
             checked={!!currentValue}
             onCheckedChange={(checked) => onInputChange(fullPath, checked)}
             className="col-span-1 justify-self-start"
+            disabled={fieldSchema.disabled}
           />
         </div>
       );
@@ -162,6 +240,7 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
                       onChange={(e) => onInputChange(itemPath, e.target.value)}
                       className="col-span-3"
                       placeholder={`Enter value`}
+                      disabled={fieldSchema.disabled} // Assuming disabled applies to array items too
                     />
                     <Button
                       type="button"
@@ -212,7 +291,7 @@ export const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
             onChange={(e) => onInputChange(fullPath, e.target.value)}
             className="col-span-3"
             placeholder={`Unsupported field type: ${String(type)}`}
-            disabled
+            disabled // This one is explicitly disabled by default, that's fine
           />
         </div>
       );

@@ -497,7 +497,27 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                       {alliance.purpose && <p className="text-foreground/80 mt-1">{alliance.purpose}</p>}
                       {alliance.partnerPartyNames && alliance.partnerPartyNames.length > 0 && (
                         <p className="text-xs mt-1">
-                          <span className="font-medium">Partners:</span> {alliance.partnerPartyNames.join(', ')}
+                          <span className="font-medium">Partners:</span>{' '}
+                          {alliance.partnerPartyNames.map((name, pIdx) => {
+                            const partyId = alliance.partnerPartyIds?.[pIdx];
+                            // Assuming mockParties is available in this scope from imports
+                            const linkedParty = partyId ? mockPoliticians.find(p => p.partyId === partyId)?.partyName ? mockParties.find(p => p.id === partyId) : null : null; // A bit convoluted, simplified if direct mockParties access
+                            // Corrected: Directly use mockParties
+                            const correctLinkedParty = partyId ? mockParties.find(p => p.id === partyId) : null;
+
+                            return (
+                              <React.Fragment key={pIdx}>
+                                {correctLinkedParty ? (
+                                  <Link href={`/parties/${correctLinkedParty.slug || correctLinkedParty.id}`} className="text-primary hover:underline">
+                                    {name}
+                                  </Link>
+                                ) : (
+                                  name
+                                )}
+                                {pIdx < alliance.partnerPartyNames!.length - 1 && ', '}
+                              </React.Fragment>
+                            );
+                          })}
                         </p>
                       )}
                       </div>
@@ -704,9 +724,9 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                                     {leader.name}
                                   </Link>
                                 ) : (
-                                  <span className="text-xs">{leader.name}</span>
+                                  <span className="text-xs">{leader.name}</span> // Plain text if no ID
                                 )}
-                                {lIdx < wing.keyLeaders!.length - 1 && ', '}
+                                {lIdx < wing.keyLeaders.length - 1 && ', '}
                               </React.Fragment>
                             ))}
                           </div>

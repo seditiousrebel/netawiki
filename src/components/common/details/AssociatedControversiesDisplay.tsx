@@ -1,7 +1,6 @@
 import Link from 'next/link';
-import { ShieldAlert } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge, BadgeProps } from '@/components/ui/badge';
+import { ShieldAlert } from 'lucide-react'; // Keep if used for list items
+import { Badge, type BadgeProps } from '@/components/ui/badge'; // Ensure BadgeProps is imported as type
 
 interface ControversyItem {
   id: string;
@@ -20,61 +19,57 @@ const getSeverityBadgeVariant = (severity: ControversyItem['severityIndicator'])
   const lowerSeverity = typeof severity === 'string' ? severity.toLowerCase() : '';
   switch (lowerSeverity) {
     case 'critical':
-    case 'high':
       return 'destructive';
+    case 'high':
+      return 'destructive'; // Also destructive for high
     case 'medium':
-      return 'secondary'; // Or 'warning' if available and preferred
+      return 'secondary'; // Consider 'warning' if a yellow/orange variant exists
     case 'low':
-      return 'outline'; // Or a less prominent variant like 'default' or 'info'
+      return 'outline';
     default:
       return 'outline';
   }
 };
 
+const getControversyStatusVariant = (status?: string): BadgeVariant => {
+  if (!status) return 'outline';
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus.includes('resolved') || lowerStatus.includes('dismissed')) return 'default'; // Consider 'success'
+  if (lowerStatus.includes('investigation') || lowerStatus.includes('finding')) return 'secondary'; // Consider 'info' or 'warning'
+  if (lowerStatus.includes('alleged')) return 'outline';
+  return 'outline';
+};
+
+
 const AssociatedControversiesDisplay: React.FC<AssociatedControversiesDisplayProps> = ({ controversies }) => {
   if (!controversies || controversies.length === 0) {
-    return null; // Render nothing if there are no controversies
+    return <p className="text-muted-foreground">No controversies listed yet.</p>;
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-headline text-xl flex items-center gap-2">
-          <ShieldAlert className="h-5 w-5 text-primary" /> Associated Controversies
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ul className="space-y-3">
-          {controversies.map((item) => (
-            <li 
-              key={item.id} 
-              className="p-3 border rounded-md bg-card-foreground/5 hover:bg-card-foreground/10 transition-colors"
+    <ul className="space-y-3">
+      {controversies.map((item) => (
+        <li
+          key={item.id}
+          className="p-3 border rounded-md bg-card-foreground/5 hover:bg-card-foreground/10 transition-colors"
+        >
+          <Link href={`/controversies/${item.id}`} className="font-semibold text-primary hover:underline text-base block">
+            {item.title}
+          </Link>
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 gap-y-1 mt-1">
+            <Badge variant={getControversyStatusVariant(item.status)} className="text-xs whitespace-nowrap">
+              Status: {item.status}
+            </Badge>
+            <Badge
+              variant={getSeverityBadgeVariant(item.severityIndicator)}
+              className="text-xs whitespace-nowrap"
             >
-              <Link href={`/controversies/${item.id}`} className="font-semibold text-primary hover:underline text-base">
-                {item.title}
-              </Link>
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mt-1 space-y-1 sm:space-y-0">
-                <p className="text-xs text-muted-foreground">
-                  Status: {item.status}
-                </p>
-                <Badge 
-                  variant={getSeverityBadgeVariant(item.severityIndicator)} 
-                  className="text-xs whitespace-nowrap mt-1 sm:mt-0"
-                >
-                  Severity: {item.severityIndicator}
-                </Badge>
-              </div>
-            </li>
-          ))}
-        </ul>
-        {/* Optional: Link to view all controversies - can be added by the consuming page if needed */}
-        {/* Example:
-        <Link href="/controversies" className="mt-4 inline-block">
-           <Button variant="link" className="p-0 h-auto text-primary text-sm">View all controversies</Button>
-        </Link>
-        */}
-      </CardContent>
-    </Card>
+              Severity: {item.severityIndicator}
+            </Badge>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 };
 
