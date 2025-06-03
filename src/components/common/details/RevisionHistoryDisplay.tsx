@@ -1,12 +1,12 @@
 
-import React, { memo } from 'react'; // Import memo
+import React, { memo, useState, useEffect } from 'react'; // Added useState, useEffect
 import { History } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { format, parseISO } from 'date-fns'; // Added parseISO and ensured format is imported
+import { format, parseISO } from 'date-fns';
 
 interface RevisionHistoryItem {
   id: string;
-  date: string; // Date-parsable string, should also include time
+  date: string; // ISO Date string
   author: string;
   event: string;
   details?: string;
@@ -17,26 +17,54 @@ interface RevisionHistoryDisplayProps {
   historyItems?: RevisionHistoryItem[];
 }
 
-const formatDateTime = (dateString: string | undefined): string => {
+// Helper component to render time on client-side only
+const ClientRenderedTime: React.FC<{ isoDate: string }> = ({ isoDate }) => {
+  const [timeString, setTimeString] = useState<string>('');
+
+  useEffect(() => {
+    if (isoDate) {
+      try {
+        const date = parseISO(isoDate);
+        if (!isNaN(date.getTime())) {
+          setTimeString(format(date, 'hh:mm a'));
+        } else {
+          console.warn("Invalid date string for time formatting:", isoDate);
+          setTimeString(''); // Or some fallback
+        }
+      } catch (error) {
+        console.error("Error formatting time:", error);
+        setTimeString(''); // Or some fallback
+      }
+    }
+  }, [isoDate]);
+
+  // Render nothing on the server and during initial client render
+  // The time will be filled in by useEffect on the client
+  if (typeof window === 'undefined' || !timeString) {
+    return null;
+  }
+
+  return <>{`, ${timeString}`}</>;
+};
+
+const formatDatePart = (dateString: string | undefined): string => {
   if (!dateString) return '';
   try {
-    const date = parseISO(dateString); // Use parseISO for consistent parsing
+    const date = parseISO(dateString);
     if (isNaN(date.getTime())) {
-      console.warn("Invalid date string for parseISO:", dateString);
-      return dateString; // Fallback for truly unparsable strings
+      console.warn("Invalid date string for parseISO in formatDatePart:", dateString);
+      return dateString;
     }
-    // Using a common, less locale-sensitive format
-    return format(date, 'MM/dd/yyyy, hh:mm a');
+    return format(date, 'MM/dd/yyyy');
   } catch (error) {
-    console.error("Error formatting date-time:", dateString, error);
-    return dateString; // Fallback to original string in case of error
+    console.error("Error formatting date part:", dateString, error);
+    return dateString;
   }
 };
 
 const RevisionHistoryDisplay: React.FC<RevisionHistoryDisplayProps> = ({ historyItems }) => {
   if (!historyItems || historyItems.length === 0) {
-    return null; // Render nothing if there is no history
-    // Or: return <p className="text-muted-foreground">No revision history available.</p>; if a message is preferred
+    return null;
   }
 
   return (
@@ -56,7 +84,8 @@ const RevisionHistoryDisplay: React.FC<RevisionHistoryDisplayProps> = ({ history
               <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-1">
                 <span className="font-semibold text-foreground/90 text-base">{item.event}</span>
                 <span className="text-xs text-muted-foreground mt-0.5 sm:mt-0">
-                  {formatDateTime(item.date)}
+                  {formatDatePart(item.date)}
+                  <ClientRenderedTime isoDate={item.date} />
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">Author: <span className="font-medium text-foreground/80">{item.author}</span></p>
