@@ -21,7 +21,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             - overflow-y-auto: Enables vertical scrolling within the main content if it exceeds viewport height.
             - Centering and padding are now handled by a nested div.
           */}
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto flex justify-center">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
               {children}
             </div>
