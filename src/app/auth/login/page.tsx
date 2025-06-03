@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from 'next/link';
@@ -6,12 +7,42 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react'; // Added useState
+import { useRouter } from 'next/navigation'; // Added useRouter
+import { useToast } from "@/hooks/use-toast"; // Added useToast
+import { simulateLoginByEmail } from '@/lib/auth'; // Added simulateLoginByEmail
 
 export default function LoginPage() {
-  const handleSubmit = (event: React.FormEvent) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    // Handle login logic
-    alert("Login functionality not implemented yet.");
+    setIsLoading(true);
+
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    if (simulateLoginByEmail(email)) {
+      toast({
+        title: "Login Successful",
+        description: "Welcome back! Redirecting to your feed...",
+        duration: 3000,
+      });
+      router.push('/feed');
+    } else {
+      toast({
+        title: "Login Failed",
+        description: "Invalid email or password (mock). Please try one of the test accounts: seditiousrebel@gmail.com or bhup0004@gmail.com (password: sachinn1)",
+        variant: "destructive",
+        duration: 6000,
+      });
+      setIsLoading(false);
+    }
+    // No need to setIsLoading(false) on success because of redirect.
   };
 
   return (
@@ -29,24 +60,40 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="you@example.com" required />
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="you@example.com" 
+                required 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="••••••••" required />
+              <Input 
+                id="password" 
+                type="password" 
+                placeholder="•••••••• (sachinn1)" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+              />
             </div>
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-              Log In
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isLoading}>
+              {isLoading ? 'Logging in...' : 'Log In'}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex flex-col items-center text-sm">
           <Link href="/auth/forgot-password">
-            <Button variant="link" className="p-0 h-auto text-primary">Forgot password?</Button>
+            <Button variant="link" className="p-0 h-auto text-primary" disabled={isLoading}>Forgot password?</Button>
           </Link>
           <p className="mt-4 text-muted-foreground">
             Don't have an account?{' '}
-            <Link href="/auth/signup" className="font-medium text-primary hover:underline">
+            <Link href="/auth/signup" className={cn("font-medium text-primary hover:underline", isLoading && "pointer-events-none opacity-50")}>
               Sign up
             </Link>
           </p>

@@ -25,6 +25,11 @@ export const canAccess = (userRole: string, requiredRoles: string[]): boolean =>
 //    - Password: sachinn1 (Note: Password is not used by this mock system)
 //    - Intended Role: Admin
 
+const MOCK_USER_DETAILS: Record<string, { id: string; name: string; role: string }> = {
+  'seditiousrebel@gmail.com': { id: 'memberUser_seditiousrebel', name: 'Seditious Rebel', role: 'Member' },
+  'bhup0004@gmail.com': { id: 'adminUser_bhup0004', name: 'Bhup Admin', role: 'Admin' },
+};
+
 // Mock current user for development purposes
 // In a real application, this would come from your authentication system
 export const getCurrentUser = () => {
@@ -33,11 +38,9 @@ export const getCurrentUser = () => {
   if (typeof window !== 'undefined') {
     const simulatedEmail = localStorage.getItem('simulatedUserEmail');
 
-    if (simulatedEmail === 'bhup0004@gmail.com') {
-      return { id: 'adminUser_bhup0004', name: 'Bhup Admin', email: 'bhup0004@gmail.com', role: 'Admin' };
-    }
-    if (simulatedEmail === 'seditiousrebel@gmail.com') {
-      return { id: 'memberUser_seditiousrebel', name: 'Seditious Rebel', email: 'seditiousrebel@gmail.com', role: 'Member' };
+    if (simulatedEmail && MOCK_USER_DETAILS[simulatedEmail]) {
+      const userDetail = MOCK_USER_DETAILS[simulatedEmail];
+      return { ...userDetail, email: simulatedEmail };
     }
 
     const roleFromStorage = localStorage.getItem('currentUserRole');
@@ -69,6 +72,27 @@ export const setCurrentUserRole = (newRole: 'Guest' | 'Member' | 'Editor' | 'Adm
 };
 
 /**
+ * Simulates logging in a user by setting their email in localStorage.
+ * @param email The email of the user to simulate logging in.
+ * @returns True if the email corresponds to a known mock user, false otherwise.
+ */
+export const simulateLoginByEmail = (email: string): boolean => {
+  if (typeof window !== 'undefined') {
+    if (MOCK_USER_DETAILS[email.toLowerCase()]) {
+      localStorage.setItem('simulatedUserEmail', email.toLowerCase());
+      localStorage.removeItem('currentUserRole'); // Email simulation takes precedence
+      window.dispatchEvent(new Event('userRoleChanged')); // Existing event should suffice
+      console.log(`Simulated login for: ${email}`);
+      return true;
+    }
+    console.log(`No mock user found for email: ${email}`);
+    return false;
+  }
+  return false;
+};
+
+
+/**
  * Checks if the current user is logged in.
  * @returns True if the user's role is not 'Guest', false otherwise.
  */
@@ -84,7 +108,8 @@ export const logout = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('currentUserRole');
     localStorage.removeItem('simulatedUserEmail');
-    window.dispatchEvent(new Event('userLoggedOut')); // To help components react
+    window.dispatchEvent(new Event('userLoggedOut')); // Dispatch specific logout event
+    window.dispatchEvent(new Event('userRoleChanged')); // Also dispatch role change to update UI immediately
     console.log('User logged out (simulated).');
   }
 };
