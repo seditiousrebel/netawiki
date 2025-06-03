@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -7,19 +8,17 @@ import { useNotificationStore } from "@/lib/notifications";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Users, CalendarDays, CheckSquare, XSquare, ExternalLink, Landmark, FileText, ListCollapse, BookOpen, Info, Tag, Layers, Building, Clock, GitBranch, ShieldCheck, Newspaper, Star, UserPlus, CheckCircle, History, Download, Trash2 } from 'lucide-react';
+import { Edit, Users, CalendarDays, CheckSquare, XSquare, ExternalLink, Landmark, FileText, ListCollapse, BookOpen, Info, Tag, Layers, Building, Clock, GitBranch, ShieldCheck, Newspaper, Star, UserPlus, CheckCircle, History, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { TimelineDisplay, formatBillTimelineEventsForTimeline } from '@/components/common/timeline-display';
 import type { VoteRecord, BillTimelineEvent, NewsArticleLink, Bill } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
-import { exportElementAsPDF } from '@/lib/utils';
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-// import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
-import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; // Added
-import { entitySchemas } from '@/lib/schemas'; // Added
-import type { EntityType } from '@/lib/data/suggestions'; // Added
+import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; 
+import { entitySchemas } from '@/lib/schemas'; 
+import type { EntityType } from '@/lib/data/suggestions'; 
 
 const LOCAL_STORAGE_FOLLOWED_BILLS_KEY = 'govtrackr_followed_bills';
 
@@ -32,7 +31,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
   const { toast } = useToast();
   const currentUser = getCurrentUser();
   const router = useRouter();
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const [relatedNews, setRelatedNews] = useState<NewsArticleLink[]>([]);
   const [isFollowingBill, setIsFollowingBill] = useState(false);
@@ -41,7 +39,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
   const { addNotification } = useNotificationStore();
   const notificationTriggered = useRef(false);
 
-  const [isSuggestEntityEditModalOpen, setIsSuggestEntityEditModalOpen] = useState(false); // New form state
+  const [isSuggestEntityEditModalOpen, setIsSuggestEntityEditModalOpen] = useState(false); 
 
   useEffect(() => {
     if (bill && !notificationTriggered.current) {
@@ -87,7 +85,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
     );
   }
 
-  const openSuggestBillEditModal = () => { // New form handler
+  const openSuggestBillEditModal = () => { 
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
@@ -96,7 +94,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
     setIsSuggestEntityEditModalOpen(true);
   };
 
-  const handleBillEntityEditSuggestionSubmit = (submission: { // New form handler
+  const handleBillEntityEditSuggestionSubmit = (submission: { 
     formData: Record<string, any>;
     reason: string;
     evidenceUrl: string;
@@ -175,12 +173,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
 
   const timelineItems = bill.timelineEvents ? formatBillTimelineEventsForTimeline(bill.timelineEvents) : [];
 
-  async function handleExportPdf() {
-    if (!bill) return;
-    const fileName = `bill-${bill.billNumber.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
-    await exportElementAsPDF('bill-details-export-area', fileName, setIsGeneratingPdf);
-  }
-
   function handleDeleteBill() { 
     if (!bill) return;
     alert(`Mock delete action for bill: ${bill.title} (${bill.billNumber})`);
@@ -214,9 +206,6 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
             </Button>
             <Button variant="outline" onClick={openSuggestBillEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Bill
-            </Button>
-            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
-              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Bill Details'}
             </Button>
             {canAccess(currentUser.role, ADMIN_ROLES) && (
               <Button variant="destructive" onClick={handleDeleteBill}>
