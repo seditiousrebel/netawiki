@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Check, X, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea'; // Added for admin feedback
+import { Label } from '@/components/ui/label'; // Added import for Label
 import type { PendingEdit } from '@/types/gov';
 import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth';
 import {
