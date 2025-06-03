@@ -1,6 +1,7 @@
+import React, { memo } from 'react'; // Import memo
 import { Gavel, ExternalLink } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge, BadgeProps } from '@/components/ui/badge'; // Assuming Badge and BadgeProps are available
+import { Badge, type BadgeProps } from '@/components/ui/badge';
 
 interface CriminalRecordItem {
   id?: string; // Optional ID for stable keys
@@ -105,4 +106,4 @@ const CriminalRecordsDisplay: React.FC<CriminalRecordsDisplayProps> = ({ crimina
   );
 };
 
-export default CriminalRecordsDisplay;
+export default memo(CriminalRecordsDisplay);

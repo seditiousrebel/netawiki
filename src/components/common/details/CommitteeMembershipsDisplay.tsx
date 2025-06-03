@@ -1,15 +1,15 @@
-
+import React, { memo } from 'react'; // Import memo
 import { Landmark } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import Link from 'next/link'; // Added Link
+import Link from 'next/link';
 
 interface CommitteeMembershipRecord {
-  committeeId?: string; // Added for linking
-  committeeSlug?: string; // Added for linking
+  committeeId?: string;
+  committeeSlug?: string;
   committeeName: string;
   role?: string;
-  startDate: string; // Expecting ISO date string or a parsable date string
-  endDate?: string; // Can be 'Present' or a date string
+  startDate: string;
+  endDate?: string;
 }
 
 interface CommitteeMembershipsDisplayProps {
@@ -21,7 +21,7 @@ const formatDate = (dateString: string | undefined): string => {
   try {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
-      return dateString; // Return original if not a valid parsable date
+      return dateString;
     }
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -29,13 +29,28 @@ const formatDate = (dateString: string | undefined): string => {
     });
   } catch (error) {
     console.error("Error formatting date:", dateString, error);
-    return dateString; // Fallback to original string
+    return dateString;
   }
 };
 
 const CommitteeMembershipsDisplay: React.FC<CommitteeMembershipsDisplayProps> = ({ committeeMemberships }) => {
   if (!committeeMemberships || committeeMemberships.length === 0) {
-    return null; // Render nothing if there are no committee memberships
+    // If it's intended to be a card even when empty, return the card with a message.
+    // For now, returning null as per previous logic if not wrapped by parent card.
+    // However, if it's a standalone card, it should show "No memberships".
+    // Let's assume it should be a card, so we provide the structure.
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="font-headline text-xl flex items-center gap-2">
+            <Landmark className="h-5 w-5 text-primary" /> Committee Memberships
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">No committee memberships listed yet.</p>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -72,4 +87,4 @@ const CommitteeMembershipsDisplay: React.FC<CommitteeMembershipsDisplayProps> = 
   );
 };
 
-export default CommitteeMembershipsDisplay;
+export default memo(CommitteeMembershipsDisplay);

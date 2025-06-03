@@ -1,7 +1,7 @@
 
 import type { PoliticalJourneyEvent, BillTimelineEvent, PromiseStatusUpdate, ControversyUpdate, ElectionTimelineEvent, CommitteeActivityEvent } from '@/types/gov';
 import { Briefcase, FileText, ListChecks, ShieldAlert, Vote, Landmark, CalendarDays, LucideIcon, ListFilter, X } from 'lucide-react';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo } from 'react'; // Import memo
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,8 +45,8 @@ const formatIconTypeName = (iconType: string) => {
     .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize first letter of each word
 };
 
-
-export function TimelineDisplay({ items, title }: TimelineDisplayProps) {
+// Renamed original component
+const TimelineDisplayComponent: React.FC<TimelineDisplayProps> = ({ items, title }) => {
   const [selectedIconTypes, setSelectedIconTypes] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
@@ -163,6 +163,8 @@ export function formatPoliticalJourneyForTimeline(journeyEvents: PoliticalJourne
   }));
 }
 
+// Export the memoized version as the primary TimelineDisplay
+export const TimelineDisplay = memo(TimelineDisplayComponent);
 export function formatBillTimelineEventsForTimeline(events: BillTimelineEvent[]): TimelineItem[] {
   return events.map(event => ({
     date: event.date,

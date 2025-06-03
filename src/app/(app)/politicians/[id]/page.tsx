@@ -7,9 +7,10 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Users, Tag, CalendarDays, Landmark, MapPin, Star, BarChart3, ListChecks, Languages, CheckCircle, XCircle, MessageSquare, CircleHelp, Quote, Trash2, UserCircle, ExternalLink, History } from 'lucide-react';
+import { Edit, Users, Tag, CalendarDays, Landmark, MapPin, Star, BarChart3, ListChecks, Languages, CheckCircle, XCircle, MessageSquare, CircleHelp, Quote, Trash2, UserCircle, ExternalLink, History, PlusCircle } from 'lucide-react';
 import { TimelineDisplay } from '@/components/common/timeline-display';
 import Link from 'next/link';
+import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent, NewsArticleLink, PendingEdit } from '@/types/gov';
 
 import ContactInfoDisplay from '@/components/common/details/ContactInfoDisplay';
@@ -26,7 +27,7 @@ import AssociatedControversiesDisplay from '@/components/common/details/Associat
 import PromisesDisplay from '@/components/common/details/PromisesDisplay';
 import RevisionHistoryDisplay from '@/components/common/details/RevisionHistoryDisplay';
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'; // Import useMemo, useCallback
 import { Textarea } from '@/components/ui/textarea';
 import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm';
 import FollowButton from '@/components/common/FollowButton';
@@ -102,19 +103,21 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   const [hoverRating, setHoverRating] = useState(0);
   const [commentText, setCommentText] = useState("");
   const [isSuggestEntityEditModalOpen, setIsSuggestEntityEditModalOpen] = useState(false);
+  const [isSuggestNewPromiseModalOpen, setIsSuggestNewPromiseModalOpen] = useState(false);
+  const [isSuggestNewControversyModalOpen, setIsSuggestNewControversyModalOpen] = useState(false);
   const [formattedDateOfBirth, setFormattedDateOfBirth] = useState<string | null>(null);
   const [formattedDateOfDeath, setFormattedDateOfDeath] = useState<string | null>(null);
   const { addNotification } = useNotificationStore();
   const notificationTriggered = useRef(false);
 
-  const openSuggestEntityEditModal = () => {
+  const openSuggestEntityEditModal = useCallback(() => {
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
     }
     if (!politician) return;
     setIsSuggestEntityEditModalOpen(true);
-  };
+  }, [router, politician]);
 
   useEffect(() => {
     if (politician && !notificationTriggered.current) {
@@ -130,20 +133,34 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     }
   }, [politician, addNotification]);
 
-  useEffect(() => {
+  // Replace useEffect for formatted dates with useMemo
+  const formattedDateOfBirthMemo = useMemo(() => {
     if (politician?.dateOfBirth) {
-      setFormattedDateOfBirth(new Date(politician.dateOfBirth).toLocaleDateString());
-    } else {
-      setFormattedDateOfBirth(null);
+      return new Date(politician.dateOfBirth).toLocaleDateString();
     }
-    if (politician?.dateOfDeath) {
-      setFormattedDateOfDeath(new Date(politician.dateOfDeath).toLocaleDateString());
-    } else {
-      setFormattedDateOfDeath(null);
-    }
-  }, [politician?.dateOfBirth, politician?.dateOfDeath]);
+    return null;
+  }, [politician?.dateOfBirth]);
 
-  const handleEntityEditSuggestionSubmit = (submission: {
+  const formattedDateOfDeathMemo = useMemo(() => {
+    if (politician?.dateOfDeath) {
+      return new Date(politician.dateOfDeath).toLocaleDateString();
+    }
+    return null;
+  }, [politician?.dateOfDeath]);
+
+  // Update state with memoized values (optional, can use memoized values directly in JSX)
+  // For this refactor, we'll keep the state for now and update it if the memoized value changes.
+  // A more advanced refactor might remove these useState calls entirely if not needed for other effects.
+  useEffect(() => {
+    setFormattedDateOfBirth(formattedDateOfBirthMemo);
+  }, [formattedDateOfBirthMemo]);
+
+  useEffect(() => {
+    setFormattedDateOfDeath(formattedDateOfDeathMemo);
+  }, [formattedDateOfDeathMemo]);
+
+
+  const handleEntityEditSuggestionSubmit = useCallback((submission: {
     formData: Record<string, any>;
     reason: string;
     evidenceUrl: string;
@@ -151,7 +168,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     if (!politician || !currentUser) return;
 
     const proposedData = {
-      ...JSON.parse(JSON.stringify(politician)),
+      ...JSON.parse(JSON.stringify(politician)), // Deep copy politician data
       ...submission.formData,
     };
 
@@ -185,9 +202,35 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
         });
       });
     setIsSuggestEntityEditModalOpen(false);
-  };
+  }, [politician, currentUser, toast]);
 
-  const handleRatingSubmit = () => {
+  const handleSuggestNewPromiseSubmit = useCallback((formData: Record<string, any>) => {
+    if (!politician || !currentUser) return;
+    const submissionData = {
+      ...formData,
+    };
+    console.log("New Promise Suggestion for Politician:", politician.name, submissionData);
+    toast({
+      title: "Promise Suggestion Submitted",
+      description: `Your new promise suggestion for ${politician.name} has been submitted.`,
+    });
+    setIsSuggestNewPromiseModalOpen(false);
+  }, [politician, currentUser, toast]);
+
+  const handleSuggestNewControversySubmit = useCallback((formData: Record<string, any>) => {
+    if (!politician || !currentUser) return;
+    const submissionData = {
+      ...formData,
+    };
+    console.log("New Controversy Suggestion for Politician:", politician.name, submissionData);
+    toast({
+      title: "Controversy Suggestion Submitted",
+      description: `Your new controversy suggestion regarding ${politician.name} has been submitted.`,
+    });
+    setIsSuggestNewControversyModalOpen(false);
+  }, [politician, currentUser, toast]);
+
+  const handleRatingSubmit = useCallback(() => {
     if (currentRating === 0) {
       toast({
         title: "Rating Required",
@@ -200,15 +243,15 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     console.log("Rating Submitted:", { rating: currentRating, comment: commentText });
     toast({
       title: "Review Submitted (Demo)",
-      description: `You rated ${politician.name} ${currentRating} star(s). Comment: ${commentText || 'No comment provided.'}`,
+      description: `You rated ${politician?.name} ${currentRating} star(s). Comment: ${commentText || 'No comment provided.'}`,
       duration: 5000,
     });
-  };
+  }, [currentRating, commentText, politician?.name, toast]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (!politician) return;
     alert(`Mock delete action for politician: ${politician.name}`);
-  };
+  }, [politician]);
 
   if (!politician) {
     return (
@@ -225,49 +268,60 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     );
   }
 
-  const promises = getPromisesByPolitician(params.id);
-  const party = politician.partyId ? mockParties.find(p => p.id === politician.partyId) : null;
-  const sponsoredBillsData = getBillsBySponsor(politician.id);
-  const relatedControversies = getControversiesByPoliticianId(politician.id);
-  const careerTimelineItems = formatCombinedCareerTimeline(politician.politicalJourney, politician.partyAffiliations);
-  const relatedNews = getNewsByPoliticianId(politician.id);
+  const promises = getPromisesByPolitician(params.id); // Assume this is stable or memoized if it's expensive
+  const party = politician.partyId ? mockParties.find(p => p.id === politician.partyId) : null; // mockParties is stable
+  const sponsoredBillsData = getBillsBySponsor(politician.id); // Assume stable or memoized
+  const relatedControversies = getControversiesByPoliticianId(politician.id); // Assume stable or memoized
+  const relatedNews = getNewsByPoliticianId(politician.id); // Assume stable or memoized
 
-  const sponsoredBillsForDisplay = sponsoredBillsData.map(bill => ({
-    ...bill,
-    sponsorshipType: bill.sponsors?.find(s => s.id === politician.id)?.type
-      ? `${bill.sponsors.find(s => s.id === politician.id)?.type} Sponsor`
-      : undefined
-  }));
+  const careerTimelineItems = useMemo(() =>
+    politician ? formatCombinedCareerTimeline(politician.politicalJourney, politician.partyAffiliations) : [],
+    [politician?.politicalJourney, politician?.partyAffiliations]
+  );
 
-  const politicianVotes: PoliticianVote[] = [];
-  mockBills.forEach(bill => {
-    if (bill.votingResults?.house?.records) {
-      const houseVote = bill.votingResults.house.records.find(record => record.politicianId === politician.id);
-      if (houseVote) {
-        politicianVotes.push({
-          ...houseVote,
-          billId: bill.id,
-          billTitle: bill.title,
-          billNumber: bill.billNumber,
-          chamber: 'House',
-          voteDate: bill.votingResults.house.date,
-        });
+  const sponsoredBillsForDisplay = useMemo(() => {
+    if (!politician) return [];
+    return sponsoredBillsData.map(bill => ({
+      ...bill,
+      sponsorshipType: bill.sponsors?.find(s => s.id === politician.id)?.type
+        ? `${bill.sponsors.find(s => s.id === politician.id)?.type} Sponsor`
+        : undefined
+    }));
+  }, [sponsoredBillsData, politician?.id]);
+
+  const politicianVotes = useMemo(() => {
+    if (!politician) return [];
+    const votes: PoliticianVote[] = [];
+    mockBills.forEach(bill => { // mockBills is a global import, considered stable
+      if (bill.votingResults?.house?.records) {
+        const houseVote = bill.votingResults.house.records.find(record => record.politicianId === politician.id);
+        if (houseVote) {
+          votes.push({
+            ...houseVote,
+            billId: bill.id,
+            billTitle: bill.title,
+            billNumber: bill.billNumber,
+            chamber: 'House',
+            voteDate: bill.votingResults.house.date,
+          });
+        }
       }
-    }
-    if (bill.votingResults?.senate?.records) {
-      const senateVote = bill.votingResults.senate.records.find(record => record.politicianId === politician.id);
-      if (senateVote) {
-        politicianVotes.push({
-          ...senateVote,
-          billId: bill.id,
-          billTitle: bill.title,
-          billNumber: bill.billNumber,
-          chamber: 'Senate',
-          voteDate: bill.votingResults.senate.date,
-        });
+      if (bill.votingResults?.senate?.records) {
+        const senateVote = bill.votingResults.senate.records.find(record => record.politicianId === politician.id);
+        if (senateVote) {
+          votes.push({
+            ...senateVote,
+            billId: bill.id,
+            billTitle: bill.title,
+            billNumber: bill.billNumber,
+            chamber: 'Senate',
+            voteDate: bill.votingResults.senate.date,
+          });
+        }
       }
-    }
-  });
+    });
+    return votes;
+  }, [politician?.id]); // mockBills is stable
 
   return (
     <div>
@@ -320,6 +374,30 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
           entitySchema={entitySchemas.Politician}
           currentEntityData={politician}
           onSubmit={handleEntityEditSuggestionSubmit}
+        />
+      )}
+
+      {politician && entitySchemas.Promise && (
+        <SuggestNewEntryForm
+          isOpen={isSuggestNewPromiseModalOpen}
+          onOpenChange={setIsSuggestNewPromiseModalOpen}
+          entityType="Promise"
+          entitySchema={entitySchemas.Promise}
+          onSubmit={handleSuggestNewPromiseSubmit}
+          linkedEntityId={politician.id}
+          linkedEntityField="politicianId" // Key name in Promise schema
+        />
+      )}
+
+      {politician && entitySchemas.Controversy && (
+        <SuggestNewEntryForm
+          isOpen={isSuggestNewControversyModalOpen}
+          onOpenChange={setIsSuggestNewControversyModalOpen}
+          entityType="Controversy"
+          entitySchema={entitySchemas.Controversy}
+          onSubmit={handleSuggestNewControversySubmit}
+          linkedEntityId={politician.id}
+          linkedEntityField="primaryPoliticianId" // Key name in Controversy schema
         />
       )}
 
@@ -515,8 +593,44 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             <CriminalRecordsDisplay criminalRecords={politician.criminalRecords} />
           )}
           <RelatedNewsDisplay newsItems={relatedNews} />
-          <AssociatedControversiesDisplay controversies={relatedControversies} />
-          <PromisesDisplay promises={promises} />
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center justify-between">
+                Associated Controversies
+                {politician && (
+                  <Button variant="outline" size="sm" onClick={() => {
+                    if (!isUserLoggedIn()) { router.push('/auth/login'); return; }
+                    setIsSuggestNewControversyModalOpen(true);
+                  }}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Controversy
+                  </Button>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AssociatedControversiesDisplay controversies={relatedControversies} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-xl flex items-center justify-between">
+                Promises
+                {politician && (
+                  <Button variant="outline" size="sm" onClick={() => {
+                    if (!isUserLoggedIn()) { router.push('/auth/login'); return; }
+                    setIsSuggestNewPromiseModalOpen(true);
+                  }}>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Suggest New Promise
+                  </Button>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+               <PromisesDisplay promises={promises} />
+            </CardContent>
+          </Card>
           
           <Card>
             <CardHeader>

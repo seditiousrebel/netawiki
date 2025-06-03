@@ -1,3 +1,4 @@
+import React, { memo } from 'react'; // Import memo
 import { History } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
@@ -81,4 +82,4 @@ const RevisionHistoryDisplay: React.FC<RevisionHistoryDisplayProps> = ({ history
   );
 };
 
-export default RevisionHistoryDisplay;
+export default memo(RevisionHistoryDisplay);

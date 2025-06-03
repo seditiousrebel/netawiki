@@ -1,3 +1,4 @@
+import React, { memo } from 'react'; // Import memo
 import { ScrollText, ExternalLink } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
@@ -58,4 +59,4 @@ const AssetDeclarationsDisplay: React.FC<AssetDeclarationsDisplayProps> = ({ ass
   );
 };
 
-export default AssetDeclarationsDisplay;
+export default memo(AssetDeclarationsDisplay);

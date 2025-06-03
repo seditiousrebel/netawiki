@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { memo } from 'react'; // Import memo
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
@@ -109,4 +109,4 @@ export const ElectionPerformanceChart: React.FC<ElectionPerformanceChartProps> =
   );
 };
 
-export default ElectionPerformanceChart;
+export default memo(ElectionPerformanceChart);

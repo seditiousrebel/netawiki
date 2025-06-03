@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { memo } from 'react'; // Import memo
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface ScoreBarChartProps {
@@ -33,4 +33,4 @@ const ScoreBarChart: React.FC<ScoreBarChartProps> = ({ data }) => {
   );
 };
 
-export default ScoreBarChart;
+export default memo(ScoreBarChart);

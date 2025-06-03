@@ -1,21 +1,22 @@
-
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import React, { memo } from 'react'; // Import memo
 
 interface EntityCardProps {
   id: string;
   name: string;
-  imageUrl?: string; // Made optional
+  imageUrl?: string;
   imageAiHint?: string;
   description?: string;
   viewLink: string;
   category?: string;
 }
 
-export function EntityCard({ id, name, imageUrl, imageAiHint, description, viewLink, category }: EntityCardProps) {
+// Original component function (renamed to avoid conflict, or could be anonymous in memo)
+const EntityCardComponent: React.FC<EntityCardProps> = ({ id, name, imageUrl, imageAiHint, description, viewLink, category }) => {
   // Determine the image source explicitly
   const imageToDisplay = (typeof imageUrl === 'string' && imageUrl.trim() !== '')
     ? imageUrl
@@ -52,4 +53,7 @@ export function EntityCard({ id, name, imageUrl, imageAiHint, description, viewL
       </CardFooter>
     </Card>
   );
-}
+};
+
+// Export the memoized version
+export const EntityCard = memo(EntityCardComponent);

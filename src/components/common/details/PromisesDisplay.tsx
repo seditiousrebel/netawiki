@@ -1,6 +1,7 @@
+import React, { memo } from 'react'; // Import memo
 import Link from 'next/link';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ListChecks } from 'lucide-react'; // Added a relevant icon
+import { ListChecks } from 'lucide-react';
+import { Badge, type BadgeProps } from '@/components/ui/badge';
 
 interface PromiseItemDisplay {
   id: string;
@@ -18,7 +19,7 @@ const formatDate = (dateString: string | undefined): string => {
   try {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
-      return dateString;
+      return dateString; // Return original string if it's not a valid date
     }
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -27,45 +28,50 @@ const formatDate = (dateString: string | undefined): string => {
     });
   } catch (error) {
     console.error("Error formatting date:", dateString, error);
-    return dateString;
+    return dateString; // Return original string on error
   }
 };
 
+type PromiseStatusBadgeVariant = BadgeProps['variant'];
+
+const getPromiseStatusVariant = (status: string): PromiseStatusBadgeVariant => {
+  if (!status) return 'outline';
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus.includes('fulfilled')) return 'default'; // Consider this 'success' if you have a green badge
+  if (lowerStatus.includes('progress')) return 'secondary'; // Consider 'info' or 'warning'
+  if (lowerStatus.includes('broken') || lowerStatus.includes('failed')) return 'destructive';
+  if (lowerStatus.includes('pending') || lowerStatus.includes('stalled')) return 'outline';
+  return 'outline';
+};
+
 const PromisesDisplay: React.FC<PromisesDisplayProps> = ({ promises }) => {
+  if (!promises || promises.length === 0) {
+    return <p className="text-muted-foreground">No promises listed yet.</p>;
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-headline text-xl flex items-center gap-2">
-          <ListChecks className="h-5 w-5 text-primary" /> Promises
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {!promises || promises.length === 0 ? (
-          <p className="text-muted-foreground">No promises listed yet.</p>
-        ) : (
-          <ul className="space-y-3">
-            {promises.map((promise) => (
-              <li 
-                key={promise.id} 
-                className="p-3 border rounded-md bg-card-foreground/5 hover:bg-card-foreground/10 transition-colors"
-              >
-                <Link href={`/promises#${promise.id}`} className="font-semibold text-primary hover:underline text-base">
-                  {promise.title}
-                </Link>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Status: {promise.status}
-                  {promise.dueDate && (
-                    <span className="ml-2">(Due: {formatDate(promise.dueDate)})</span>
-                  )}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-        {/* Optional: Link to view all promises can be added by the consuming page */}
-      </CardContent>
-    </Card>
+    <ul className="space-y-3">
+      {promises.map((promise) => (
+        <li
+          key={promise.id}
+          className="p-3 border rounded-md bg-card-foreground/5 hover:bg-card-foreground/10 transition-colors"
+        >
+          <Link href={`/promises#${promise.id}`} className="font-semibold text-primary hover:underline text-base block">
+            {promise.title}
+          </Link>
+          <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
+            <span>Status:</span>
+            <Badge variant={getPromiseStatusVariant(promise.status)} className="text-xs">
+              {promise.status}
+            </Badge>
+            {promise.dueDate && (
+              <span>(Due: {formatDate(promise.dueDate)})</span>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 };
 
-export default PromisesDisplay;
+export default memo(PromisesDisplay);
