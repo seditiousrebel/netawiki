@@ -18,6 +18,52 @@ import {
 } from '@/lib/data/suggestions';
 import Link from 'next/link';
 
+// Helper component to display JSON data in a more readable format
+const JsonDisplay = ({ data, level = 0 }: { data: any; level?: number }) => {
+  if (data === null || data === undefined) {
+    return <span className="text-muted-foreground italic">N/A</span>;
+  }
+
+  // Handle arrays
+  if (Array.isArray(data)) {
+    if (data.length === 0) {
+      return <span className="text-muted-foreground italic">[Empty Array]</span>;
+    }
+    return (
+      <ul style={{ paddingLeft: `${level > 0 ? 20 : 0}px` }} className="list-none space-y-1 mt-1">
+        {data.map((item, index) => (
+          <li key={index} className="p-1 rounded-md bg-muted/30">
+            <JsonDisplay data={item} level={level + 1} />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  // Handle simple types (strings, numbers, booleans)
+  if (typeof data !== 'object') {
+    return <span className="break-all">{String(data)}</span>;
+  }
+
+  // Handle empty objects
+  if (Object.keys(data).length === 0) {
+    return <span className="text-muted-foreground italic">{'{ Empty Object }'}</span>;
+  }
+
+  // Handle objects
+  return (
+    <div style={{ marginLeft: `${level > 0 ? 20 : 0}px` }} className="space-y-2 pt-1">
+      {Object.entries(data).map(([key, value]) => (
+        <div key={key} className="flex flex-col">
+          <strong className="mr-2 shrink-0 text-sm text-foreground/90">{key}:</strong>
+          <div className="break-all text-sm text-foreground/80 pl-2 border-l-2 border-muted">
+            <JsonDisplay data={value} level={level + 1} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export default function AdminSuggestionsPage() {
   const [isClient, setIsClient] = useState(false);
@@ -147,9 +193,9 @@ export default function AdminSuggestionsPage() {
                   <div className="space-y-4 text-sm">
                     <div>
                       <h4 className="font-semibold mb-1">Proposed Data:</h4>
-                      <pre className="p-2 bg-muted rounded-md text-xs whitespace-pre-wrap break-all">
-                        {JSON.stringify(suggestion.proposedData, null, 2)}
-                      </pre>
+                      <div className="p-2 bg-muted rounded-md text-xs">
+                        <JsonDisplay data={suggestion.proposedData} />
+                      </div>
                     </div>
 
                     {suggestion.reasonForChange && (

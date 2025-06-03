@@ -769,6 +769,9 @@ import {
   SettingsIcon,
   PanelLeftOpen,
   ShieldCheck,
+  ScrollText,
+  Database,
+  UserCog,
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { entityNavItems } from "@/lib/navigation";
@@ -846,6 +849,42 @@ export function AppEntitySidebar() {
                   <Link href="/admin/suggestions">
                     <Gavel />
                     <span>Suggestions</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith("/admin/audit-log")}
+                  tooltip={{ children: "Audit Log", side: "right", align: "center", sideOffset: 8 }}
+                >
+                  <Link href="/admin/audit-log">
+                    <ScrollText />
+                    <span>Audit Log</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith("/admin/data-management")}
+                  tooltip={{ children: "Data Management", side: "right", align: "center", sideOffset: 8 }}
+                >
+                  <Link href="/admin/data-management">
+                    <Database />
+                    <span>Data Management</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith("/admin/users")}
+                  tooltip={{ children: "User Management", side: "right", align: "center", sideOffset: 8 }}
+                >
+                  <Link href="/admin/users">
+                    <UserCog />
+                    <span>User Management</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
