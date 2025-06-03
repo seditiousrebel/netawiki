@@ -12,6 +12,7 @@ import { TimelineDisplay } from '@/components/common/timeline-display';
 import Link from 'next/link';
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
 import type { PromiseItem, AssetDeclaration, CriminalRecord, CommitteeMembership, Bill, VoteRecord, Politician, StatementQuote, Controversy, PartyAffiliation, PoliticalJourneyEvent, NewsArticleLink, PendingEdit } from '@/types/gov';
+import { format } from 'date-fns'; // Added import
 
 import ContactInfoDisplay from '@/components/common/details/ContactInfoDisplay';
 import TagsDisplay from '@/components/common/details/TagsDisplay';
@@ -136,21 +137,19 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   // Replace useEffect for formatted dates with useMemo
   const formattedDateOfBirthMemo = useMemo(() => {
     if (politician?.dateOfBirth) {
-      return new Date(politician.dateOfBirth).toLocaleDateString();
+      return format(new Date(politician.dateOfBirth), 'MM/dd/yyyy');
     }
     return null;
   }, [politician?.dateOfBirth]);
 
   const formattedDateOfDeathMemo = useMemo(() => {
     if (politician?.dateOfDeath) {
-      return new Date(politician.dateOfDeath).toLocaleDateString();
+      return format(new Date(politician.dateOfDeath), 'MM/dd/yyyy');
     }
     return null;
   }, [politician?.dateOfDeath]);
 
   // Update state with memoized values (optional, can use memoized values directly in JSX)
-  // For this refactor, we'll keep the state for now and update it if the memoized value changes.
-  // A more advanced refactor might remove these useState calls entirely if not needed for other effects.
   useEffect(() => {
     setFormattedDateOfBirth(formattedDateOfBirthMemo);
   }, [formattedDateOfBirthMemo]);
@@ -268,11 +267,11 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     );
   }
 
-  const promises = getPromisesByPolitician(params.id); // Assume this is stable or memoized if it's expensive
-  const party = politician.partyId ? mockParties.find(p => p.id === politician.partyId) : null; // mockParties is stable
-  const sponsoredBillsData = getBillsBySponsor(politician.id); // Assume stable or memoized
-  const relatedControversies = getControversiesByPoliticianId(politician.id); // Assume stable or memoized
-  const relatedNews = getNewsByPoliticianId(politician.id); // Assume stable or memoized
+  const promises = getPromisesByPolitician(params.id);
+  const party = politician.partyId ? mockParties.find(p => p.id === politician.partyId) : null;
+  const sponsoredBillsData = getBillsBySponsor(politician.id);
+  const relatedControversies = getControversiesByPoliticianId(politician.id);
+  const relatedNews = getNewsByPoliticianId(politician.id);
 
   const careerTimelineItems = useMemo(() =>
     politician ? formatCombinedCareerTimeline(politician.politicalJourney, politician.partyAffiliations) : [],
@@ -292,7 +291,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   const politicianVotes = useMemo(() => {
     if (!politician) return [];
     const votes: PoliticianVote[] = [];
-    mockBills.forEach(bill => { // mockBills is a global import, considered stable
+    mockBills.forEach(bill => {
       if (bill.votingResults?.house?.records) {
         const houseVote = bill.votingResults.house.records.find(record => record.politicianId === politician.id);
         if (houseVote) {
@@ -321,7 +320,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
       }
     });
     return votes;
-  }, [politician?.id]); // mockBills is stable
+  }, [politician?.id]);
 
   return (
     <div>
@@ -547,7 +546,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
                       "{sq.quoteText}"
                     </blockquote>
                     <footer className="mt-2 text-xs text-muted-foreground">
-                      &mdash; {politician.name}, {sq.sourceName} ({new Date(sq.dateOfStatement).toLocaleDateString()})
+                      &mdash; {politician.name}, {sq.sourceName} ({format(new Date(sq.dateOfStatement), 'MM/dd/yyyy')})
                       {sq.sourceUrl && (
                         <a href={sq.sourceUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-primary hover:underline inline-flex items-center gap-1">
                           Source <ExternalLink className="h-3 w-3"/>
@@ -684,3 +683,4 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     </div>
   );
 }
+

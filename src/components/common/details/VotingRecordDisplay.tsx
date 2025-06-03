@@ -1,7 +1,9 @@
+
 import React, { memo } from 'react'; // Import memo
 import Link from 'next/link';
 import { ClipboardList } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { format } from 'date-fns'; // Added import
 
 interface VoteRecordItem {
   id?: string; // Optional ID for stable keys
@@ -24,11 +26,8 @@ const formatDate = (dateString: string | undefined): string => {
     if (isNaN(date.getTime())) {
       return dateString;
     }
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    // Using date-fns format for consistency
+    return format(date, 'MMM dd, yyyy');
   } catch (error) {
     console.error("Error formatting date:", dateString, error);
     return dateString;
@@ -90,3 +89,4 @@ const VotingRecordDisplay: React.FC<VotingRecordDisplayProps> = ({ votingRecords
 };
 
 export default memo(VotingRecordDisplay);
+

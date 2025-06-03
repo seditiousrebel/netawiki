@@ -1,6 +1,8 @@
+
 import React, { memo } from 'react'; // Import memo
 import { History } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { format } from 'date-fns'; // Added import
 
 interface RevisionHistoryItem {
   id: string;
@@ -22,15 +24,8 @@ const formatDateTime = (dateString: string | undefined): string => {
     if (isNaN(date.getTime())) {
       return dateString;
     }
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      // second: '2-digit', // Optional: uncomment if seconds are needed
-      hour12: true,
-    });
+    // Using date-fns format for consistency
+    return format(date, 'MM/dd/yyyy, hh:mm a');
   } catch (error) {
     console.error("Error formatting date-time:", dateString, error);
     return dateString;
@@ -83,3 +78,4 @@ const RevisionHistoryDisplay: React.FC<RevisionHistoryDisplayProps> = ({ history
 };
 
 export default memo(RevisionHistoryDisplay);
+
