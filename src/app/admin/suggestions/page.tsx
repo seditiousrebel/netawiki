@@ -1,8 +1,9 @@
+
 "use client"; // Add this line
 
 import React, { useState, useEffect } from 'react'; // Add useState and useEffect
 import { PageHeader } from '@/components/common/page-header';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Added CardFooter
 import { Button } from '@/components/ui/button';
 import { Check, X, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
