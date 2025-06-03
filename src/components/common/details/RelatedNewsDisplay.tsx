@@ -1,4 +1,5 @@
-import { Newspaper, ExternalLink } from 'lucide-react'; // ExternalLink might be good for the URL
+import React, { memo } from 'react'; // Import memo
+import { Newspaper, ExternalLink } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 interface NewsItem {
@@ -74,4 +75,4 @@ const RelatedNewsDisplay: React.FC<RelatedNewsDisplayProps> = ({ newsItems }) =>
   );
 };
 
-export default RelatedNewsDisplay;
+export default memo(RelatedNewsDisplay);

@@ -1,6 +1,7 @@
+import React, { memo } from 'react'; // Import memo
 import Link from 'next/link';
-import { ShieldAlert } from 'lucide-react'; // Keep if used for list items
-import { Badge, type BadgeProps } from '@/components/ui/badge'; // Ensure BadgeProps is imported as type
+import { ShieldAlert } from 'lucide-react';
+import { Badge, type BadgeProps } from '@/components/ui/badge';
 
 interface ControversyItem {
   id: string;
@@ -73,4 +74,4 @@ const AssociatedControversiesDisplay: React.FC<AssociatedControversiesDisplayPro
   );
 };
 
-export default AssociatedControversiesDisplay;
+export default memo(AssociatedControversiesDisplay);

@@ -1,7 +1,7 @@
+import React, { memo } from 'react'; // Import memo
 import Link from 'next/link';
-// Card components removed as they will be handled by the parent page
-import { ListChecks } from 'lucide-react'; // Keep if used for list items, otherwise can remove if title is gone
-import { Badge, type BadgeProps } from '@/components/ui/badge'; // Ensure Badge is imported
+import { ListChecks } from 'lucide-react';
+import { Badge, type BadgeProps } from '@/components/ui/badge';
 
 interface PromiseItemDisplay {
   id: string;
@@ -74,4 +74,4 @@ const PromisesDisplay: React.FC<PromisesDisplayProps> = ({ promises }) => {
   );
 };
 
-export default PromisesDisplay;
+export default memo(PromisesDisplay);

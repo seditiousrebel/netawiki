@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Mail, Phone, Globe, Edit, Users, CalendarDays, Landmark, Info, Tag, Building, CheckCircle, XCircle, Scale, Link as LinkIcon, FlagIcon, Palette, Group, Milestone, ExternalLink, Briefcase, UserCheck, ListChecks, ClipboardList, History, Award, UserPlus, Handshake, GitMerge, GitPullRequest, ShieldAlert, ClipboardCheck, Megaphone, DollarSign, VoteIcon, BookOpen, BarChart3, Newspaper, TrendingUp, Star, Trash2 } from 'lucide-react'; // Removed Download
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react'; // Import useMemo, useCallback
 import type { PromiseItem, LeadershipEvent, Party, PartyAlliance, PartySplitMergerEvent, PartyStance, FundingSource, IntraPartyElection, HistoricalManifesto, ElectionPerformanceRecord, NewsArticleLink, Controversy } from '@/types/gov';
 import { TimelineDisplay } from '@/components/common/timeline-display';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -72,32 +72,29 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   // const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // Removed
 
   const [isPartySuggestEntityEditModalOpen, setIsPartySuggestEntityEditModalOpen] = useState(false);
-
-  const [formattedFoundedDate, setFormattedFoundedDate] = useState<string | null>(null);
-  const [formattedDissolvedDate, setFormattedDissolvedDate] = useState<string | null>(null);
-  const [leadershipTimelineItems, setLeadershipTimelineItems] = useState<TimelineItem[]>([]);
-  const [splitMergerTimelineItems, setSplitMergerTimelineItems] = useState<TimelineItem[]>([]);
+  // Removed useState for formattedDates and timelineItems, will use useMemo instead
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  useEffect(() => {
-    if (party?.foundedDate) {
-      setFormattedFoundedDate(new Date(party.foundedDate).toLocaleDateString());
-    } else {
-      setFormattedFoundedDate(null);
-    }
-    if (party?.dissolvedDate) {
-      setFormattedDissolvedDate(new Date(party.dissolvedDate).toLocaleDateString());
-    } else {
-      setFormattedDissolvedDate(null);
-    }
-    if (party?.leadershipHistory) {
-      setLeadershipTimelineItems(formatLeadershipHistoryForTimeline(party.leadershipHistory));
-    }
-     if (party?.splitMergerHistory) {
-      setSplitMergerTimelineItems(formatSplitMergerHistoryForTimeline(party.splitMergerHistory));
-    }
-  }, [party]);
+  const formattedFoundedDate = useMemo(() =>
+    party?.foundedDate ? new Date(party.foundedDate).toLocaleDateString() : null,
+    [party?.foundedDate]
+  );
+
+  const formattedDissolvedDate = useMemo(() =>
+    party?.dissolvedDate ? new Date(party.dissolvedDate).toLocaleDateString() : null,
+    [party?.dissolvedDate]
+  );
+
+  const leadershipTimelineItems = useMemo(() =>
+    party?.leadershipHistory ? formatLeadershipHistoryForTimeline(party.leadershipHistory) : [],
+    [party?.leadershipHistory]
+  );
+
+  const splitMergerTimelineItems = useMemo(() =>
+    party?.splitMergerHistory ? formatSplitMergerHistoryForTimeline(party.splitMergerHistory) : [],
+    [party?.splitMergerHistory]
+  );
 
   if (!party) {
     return (
@@ -115,20 +112,21 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   }
 
   const partyMembers = mockPoliticians.filter(p => p.partyId === party.id);
-  const partyPromises = getPromisesByPartyId(party.id);
-  const relatedControversies = getControversiesByPartyId(party.id);
-  const relatedNews = getNewsByPartyId(party.id);
+  const partyMembers = mockPoliticians.filter(p => p.partyId === party.id); // mockPoliticians is stable
+  const partyPromises = getPromisesByPartyId(party.id); // Assume stable or memoized if expensive
+  const relatedControversies = getControversiesByPartyId(party.id); // Assume stable or memoized
+  const relatedNews = getNewsByPartyId(party.id); // Assume stable or memoized
 
-  const openSuggestPartyEditModal = () => {
+  const openSuggestPartyEditModal = useCallback(() => {
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
     }
     if (!party) return;
     setIsPartySuggestEntityEditModalOpen(true);
-  };
+  }, [router, party]);
 
-  const handlePartyEntityEditSuggestionSubmit = (submission: {
+  const handlePartyEntityEditSuggestionSubmit = useCallback((submission: {
     formData: Record<string, any>;
     reason: string;
     evidenceUrl: string;
@@ -151,9 +149,9 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
       duration: 5000,
     });
     setIsPartySuggestEntityEditModalOpen(false);
-  };
+  }, [party, toast]);
 
-  const handleRatingSubmit = () => {
+  const handleRatingSubmit = useCallback(() => {
     if (currentRating === 0) {
       toast({
         title: "Rating Required",
@@ -169,19 +167,12 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
       description: `You rated ${party.name} ${currentRating} star(s).`,
       duration: 5000,
     });
-  };
+  }, [currentRating, party?.id, party?.name, toast]);
 
-  // async function handleExportPdf() { // Removed
-  //   if (!party) return;
-  //   const fileName = `party-${party.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
-  //   // await exportElementAsPDF('party-details-export-area', fileName, setIsGeneratingPdf); // Removed call
-  //   alert("PDF Export functionality is currently disabled."); // Placeholder
-  // }
-
-  const handleDeleteParty = () => {
+  const handleDeleteParty = useCallback(() => {
     if (!party) return;
     alert(`Mock delete action for party: ${party.name}`);
-  };
+  }, [party]);
 
   return (
     <div>

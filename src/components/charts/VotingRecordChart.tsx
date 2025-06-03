@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { memo } from 'react'; // Import memo
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { VoteOption } from '@/types/gov'; // Assuming VoteOption is 'Yea', 'Nay', 'Abstain', 'Not Voting'
@@ -127,4 +127,4 @@ export const VotingRecordChart: React.FC<VotingRecordChartProps> = ({ votingData
   );
 };
 
-export default VotingRecordChart;
+export default memo(VotingRecordChart);

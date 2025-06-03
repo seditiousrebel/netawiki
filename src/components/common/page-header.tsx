@@ -1,12 +1,14 @@
+import React, { memo } from 'react'; // Import memo
 import type { ReactNode } from 'react';
 
 interface PageHeaderProps {
-  title: string;
+  title: string | ReactNode; // Title can also be a ReactNode
   description?: string | ReactNode;
   actions?: ReactNode;
 }
 
-export function PageHeader({ title, description, actions }: PageHeaderProps) {
+// Original component function
+const PageHeaderComponent: React.FC<PageHeaderProps> = ({ title, description, actions }) => {
   return (
     <div className="mb-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -23,4 +25,7 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
       </div>
     </div>
   );
-}
+};
+
+// Export the memoized version
+export const PageHeader = memo(PageHeaderComponent);

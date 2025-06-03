@@ -1,7 +1,8 @@
+import React, { memo } from 'react'; // Import memo
 import Link from 'next/link';
 import { FileText } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge'; // Assuming Badge component is available
+import { Badge } from '@/components/ui/badge';
 
 interface SponsoredBill {
   id: string;
@@ -55,4 +56,4 @@ const SponsoredBillsDisplay: React.FC<SponsoredBillsDisplayProps> = ({ sponsored
   );
 };
 
-export default SponsoredBillsDisplay;
+export default memo(SponsoredBillsDisplay);

@@ -1,3 +1,4 @@
+import React, { memo } from 'react'; // Import memo
 import { GraduationCap } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
@@ -49,4 +50,4 @@ const EducationHistoryDisplay: React.FC<EducationHistoryDisplayProps> = ({ educa
   );
 };
 
-export default EducationHistoryDisplay;
+export default memo(EducationHistoryDisplay);

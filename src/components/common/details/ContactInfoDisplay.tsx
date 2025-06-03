@@ -1,3 +1,4 @@
+import React, { memo } from 'react'; // Import memo
 import { Mail, Phone, Globe, Twitter, Facebook, Linkedin, Instagram, Building, Home } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
@@ -125,4 +126,4 @@ const ContactInfoDisplay: React.FC<ContactInfoDisplayProps> = ({ contactInfo }) 
   );
 };
 
-export default ContactInfoDisplay;
+export default memo(ContactInfoDisplay);

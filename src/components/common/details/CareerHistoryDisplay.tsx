@@ -1,3 +1,4 @@
+import React, { memo } from 'react'; // Import memo
 import { Briefcase } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
@@ -67,4 +68,4 @@ const CareerHistoryDisplay: React.FC<CareerHistoryDisplayProps> = ({ careerHisto
   );
 };
 
-export default CareerHistoryDisplay;
+export default memo(CareerHistoryDisplay);

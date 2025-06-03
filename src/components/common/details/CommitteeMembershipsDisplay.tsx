@@ -1,3 +1,4 @@
+import React, { memo } from 'react'; // Import memo
 import { Landmark } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
@@ -86,4 +87,4 @@ const CommitteeMembershipsDisplay: React.FC<CommitteeMembershipsDisplayProps> = 
   );
 };
 
-export default CommitteeMembershipsDisplay;
+export default memo(CommitteeMembershipsDisplay);

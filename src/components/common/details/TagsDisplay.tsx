@@ -1,3 +1,4 @@
+import React, { memo } from 'react'; // Import memo
 import Link from 'next/link';
 import { Tag as TagIcon } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -32,4 +33,4 @@ const TagsDisplay: React.FC<TagsDisplayProps> = ({ tags }) => {
   );
 };
 
-export default TagsDisplay;
+export default memo(TagsDisplay);

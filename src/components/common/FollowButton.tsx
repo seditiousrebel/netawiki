@@ -1,5 +1,5 @@
 // src/components/common/FollowButton.tsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react'; // Import memo
 import { Button } from '@/components/ui/button';
 import { followEntity, unfollowEntity, isEntityFollowed } from '@/lib/user';
 import type { FollowableEntityType } from '@/lib/user';
@@ -94,4 +94,4 @@ const FollowButton: React.FC<FollowButtonProps> = ({ entityId, entityType, entit
   );
 };
 
-export default FollowButton;
+export default memo(FollowButton);

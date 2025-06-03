@@ -1,3 +1,4 @@
+import React, { memo } from 'react'; // Import memo
 import Link from 'next/link';
 import { ClipboardList } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -88,4 +89,4 @@ const VotingRecordDisplay: React.FC<VotingRecordDisplayProps> = ({ votingRecords
   );
 };
 
-export default VotingRecordDisplay;
+export default memo(VotingRecordDisplay);
