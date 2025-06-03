@@ -70,7 +70,7 @@ export default function HomePage() {
         </section>
 
         <section className="py-12 md:py-20">
-          <div className="container">
+          <div className="container flex flex-col items-center">
             <h2 className="font-headline text-3xl md:text-4xl font-bold text-center mb-12 flex items-center justify-center gap-3">
               <Star className="h-10 w-10 text-primary" /> Featured Content
             </h2>
