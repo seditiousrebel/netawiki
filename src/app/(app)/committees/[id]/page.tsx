@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -469,5 +470,3 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
 }
 
 export default CommitteeDetailPage;
-
-[end of src/app/(app)/committees/[id]/page.tsx]

@@ -45,18 +45,18 @@ const bobCriminalRecords: CriminalRecord[] = [
 ];
 
 const aliceCommitteeMemberships: CommitteeMembership[] = [
-  { committeeName: 'Senate Committee on Energy and Natural Resources', role: 'Member', startDate: '2021-01-20', endDate: 'Present' },
-  { committeeName: 'Joint Economic Committee', role: 'Member', startDate: '2022-03-10', endDate: 'Present' },
-  { committeeName: 'City Planning Oversight Committee', role: 'Chair', startDate: '2016-01-01', endDate: '2019-12-31'},
-  { committeeName: 'Education and Health Committee', role: 'Active Member', startDate: '2020-02-01', endDate: 'Present'},
+  { committeeId: 'com4', committeeSlug: 'committee-on-energy-and-natural-resources', committeeName: 'Senate Committee on Energy and Natural Resources', role: 'Member', startDate: '2021-01-20', endDate: 'Present' },
+  { committeeId: 'com-jec-fictional', committeeName: 'Joint Economic Committee', role: 'Member', startDate: '2022-03-10', endDate: 'Present' },
+  { committeeId: 'com-cpoc-fictional', committeeName: 'City Planning Oversight Committee', role: 'Chair', startDate: '2016-01-01', endDate: '2019-12-31'},
+  { committeeId: 'com3', committeeSlug: 'education-health-committee', committeeName: 'Education and Health Committee', role: 'Active Member', startDate: '2020-02-01', endDate: 'Present'},
   { committeeName: 'Subcommittee on Renewable Energy Transition', role: 'Chair', startDate: '2023-01-15', endDate: 'Present' }, // Fictional sub-committee
 ];
 
 const bobCommitteeMemberships: CommitteeMembership[] = [
-    { committeeName: 'House Committee on Ways and Means', role: 'Member', startDate: '2019-01-15', endDate: 'Present' },
-    { committeeName: 'House Committee on Small Business', role: 'Ranking Member', startDate: '2023-01-10', endDate: 'Present' },
-    { committeeName: 'Select Committee on Fiscal Responsibility', role: 'Co-Chair', startDate: '2022-05-01', endDate: '2023-05-01' }, // Fictional select committee
-    { committeeName: 'Finance Committee', role: 'Ex-officio Member', startDate: '2021-01-01', endDate: '2022-12-31' },
+    { committeeId: 'com-hwm-fictional', committeeName: 'House Committee on Ways and Means', role: 'Member', startDate: '2019-01-15', endDate: 'Present' },
+    { committeeId: 'com-hsb-fictional', committeeName: 'House Committee on Small Business', role: 'Ranking Member', startDate: '2023-01-10', endDate: 'Present' },
+    { committeeId: 'com-scfr-fictional', committeeName: 'Select Committee on Fiscal Responsibility', role: 'Co-Chair', startDate: '2022-05-01', endDate: '2023-05-01' }, // Fictional select committee
+    { committeeId: 'com1', committeeSlug: 'finance-committee', committeeName: 'Finance Committee', role: 'Ex-officio Member', startDate: '2021-01-01', endDate: '2022-12-31' },
 ];
 
 const aliceStatementsAndQuotes: StatementQuote[] = [
@@ -156,10 +156,10 @@ const evelynPartyAffiliations: PartyAffiliation[] = [
 ];
 
 const evelynCommitteeMemberships: CommitteeMembership[] = [
-  { committeeName: 'Senate Foreign Relations Committee', role: 'Member', startDate: '2010-05-10', endDate: '2018-01-01' },
-  { committeeName: 'State Assembly Judiciary Committee', role: 'Chair', startDate: '2003-01-10', endDate: '2006-03-01' },
-  { committeeName: 'Finance Committee', role: 'Member', startDate: '2007-01-15', endDate: '2009-01-01' },
-  { committeeName: 'Capital City Budget Oversight Task Force', role: 'Chair', startDate: '2023-01-01', endDate: 'Present' } // Local committee
+  { committeeId: 'com-sfrc-fictional', committeeName: 'Senate Foreign Relations Committee', role: 'Member', startDate: '2010-05-10', endDate: '2018-01-01' },
+  { committeeId: 'com-sajc-fictional', committeeName: 'State Assembly Judiciary Committee', role: 'Chair', startDate: '2003-01-10', endDate: '2006-03-01' },
+  { committeeId: 'com1', committeeSlug: 'finance-committee', committeeName: 'Finance Committee', role: 'Member', startDate: '2007-01-15', endDate: '2009-01-01' },
+  { committeeId: 'com-ccbotf-fictional', committeeName: 'Capital City Budget Oversight Task Force', role: 'Chair', startDate: '2023-01-01', endDate: 'Present' } // Local committee
 ];
 
 // Data for Marcus Thorne (p5)
@@ -241,7 +241,7 @@ export const mockPoliticians: Politician[] = [
     voteScore: 78,
     promiseFulfillmentRate: 50,
     popularityScore: 85,
-    committeeIds: ['com1', 'com2', 'com3', 'com4', 'subcom-renewable-alice'], // Added fictional subcommittee ID
+    committeeIds: ['com4', 'com3', 'com-jec-fictional', 'com-cpoc-fictional'], // From aliceCommitteeMemberships
     controversyIds: ['c1', 'c3', 'c-fictional-land-deal'], // Added a fictional controversy ID
     votingRecords: [
       { billId: 'b1', billSlug: 'clean-energy-act-2024', billTitle: 'Clean Energy Act 2024', vote: 'Yea', date: '2024-07-10', summary: 'Voted in favor of promoting renewable energy during final Senate passage.' }, // Date updated to match new bill data
@@ -325,7 +325,7 @@ export const mockPoliticians: Politician[] = [
     voteScore: 65,
     promiseFulfillmentRate: 0, // Assuming 0 means no promises tracked or all unfulfilled.
     popularityScore: 72,
-    committeeIds: ['com1', 'com2', 'com5', 'com-fictional-fiscal-resp'], // Added fictional committee ID
+    committeeIds: ['com1', 'com-hwm-fictional', 'com-hsb-fictional', 'com-scfr-fictional'], // From bobCommitteeMemberships
     controversyIds: ['c2', 'c-fictional-campaign-finance'], // Added a fictional controversy ID
     votingRecords: [
       { billId: 'b1', billSlug: 'clean-energy-act-2024', billTitle: 'Clean Energy Act 2024', vote: 'Nay', date: '2024-07-10', summary: 'Opposed Clean Energy Act in Senate due to concerns about economic impact on traditional energy sectors.' }, // Date updated
@@ -378,7 +378,7 @@ export const mockPoliticians: Politician[] = [
       { billId: 'local-bylaw-102', billSlug: 'zoning-change-main-st', billTitle: 'Main St. Zoning Change Bylaw 102', vote: 'Nay', date: '2023-02-15', summary: 'Opposed zoning change due to concerns about neighborhood character.'}
     ],
     committeeMemberships: [
-        { committeeName: 'City Planning Oversight Committee', role: 'Member', startDate: '2022-02-01', endDate: '2023-11-10' }
+        { committeeId: 'com-cpoc-fictional', committeeName: 'City Planning Oversight Committee', role: 'Member', startDate: '2022-02-01', endDate: '2023-11-10' }
     ]
   },
   // New Politician: Evelyn "Evie" Chang (p4) - Long Political Journey
@@ -437,7 +437,7 @@ export const mockPoliticians: Politician[] = [
     voteScore: 85, // Fictional score reflecting past senate career
     promiseFulfillmentRate: 70, // As Mayor
     popularityScore: 92,
-    committeeIds: ['com1', 'com-fictional-foreign-relations', 'com-fictional-state-judiciary'], // Using existing and fictional
+    committeeIds: ['com1', 'com-sfrc-fictional', 'com-sajc-fictional', 'com-ccbotf-fictional'], // From evelynCommitteeMemberships
     controversyIds: ['c-fictional-ethics-inquiry', 'c-fictional-healthcare-dispute'],
     votingRecords: [ 
       { billId: 'b1', billSlug: 'clean-energy-act-2024', billTitle: 'Clean Energy Act 2024', vote: 'Yea', date: '2024-07-10', summary: 'Supported Clean Energy Act in Senate as a co-sponsor.' }, // Date updated to match new bill data
@@ -499,8 +499,8 @@ export const mockPoliticians: Politician[] = [
     ],
     criminalRecords: marcusCriminalRecords,
     committeeMemberships: [
-      { committeeName: 'Public Accounts Committee', role: 'Member', startDate: '2022-02-01', endDate: 'Present' }, // Local version
-      { committeeName: 'City Planning Oversight Committee', role: 'Vice-Chair', startDate: '2023-01-15', endDate: 'Present' },
+      { committeeId: 'com2', committeeSlug: 'public-accounts-committee', committeeName: 'Public Accounts Committee', role: 'Member', startDate: '2022-02-01', endDate: 'Present' }, // Local version
+      { committeeId: 'com-cpoc-local-fictional', committeeName: 'City Planning Oversight Committee', role: 'Vice-Chair', startDate: '2023-01-15', endDate: 'Present' },
     ],
     statementsAndQuotes: [
       { id: 'sq-mt1', quoteText: "Labels shouldn't define us; our actions and solutions should. I'm here to work for the people, regardless of party lines.", sourceName: "Council Inaugural Speech", dateOfStatement: "2022-01-05" },
@@ -512,7 +512,7 @@ export const mockPoliticians: Politician[] = [
     overallRating: 4.0,
     userRatingCount: 65,
     popularityScore: 78,
-    committeeIds: ['com2-local', 'com3-local'], // Placeholder local committee IDs
+    committeeIds: ['com2', 'com-cpoc-local-fictional'], // From Marcus's memberships
     controversyIds: ['c-fictional-campaign-finance-centrist'], // Placeholder
     votingRecords: [
       { billId: 'local-bylaw-201', billSlug: 'community-policing-initiative', billTitle: 'Community Policing Initiative Funding', vote: 'Yea', date: '2023-03-10', summary: 'Supported increased funding for community policing programs.'},
@@ -530,5 +530,3 @@ export const mockPoliticians: Politician[] = [
 export function getPoliticianById(id: string): Politician | undefined {
   return mockPoliticians.find(p => p.id === id);
 }
-
-    

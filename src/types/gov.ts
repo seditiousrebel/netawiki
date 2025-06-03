@@ -58,6 +58,8 @@ export type CriminalRecord = {
 };
 
 export type CommitteeMembership = {
+  committeeId?: string; // Added ID for linking
+  committeeSlug?: string; // Added slug for linking
   committeeName: string;
   role?: string; // e.g., Chair, Member
   startDate?: string;
@@ -278,17 +280,17 @@ export interface Party {
   dataAiHint?: string;
   controversyIds?: string[];
   tags?: string[];
-  electionHistory?: Array<{ // New: For party's performance in past elections
-    electionId?: string; // Optional: link to an Election entity
-    electionName: string; // e.g., "General Election 2020"
-    year: number; // Year of the election
-    seatsContested?: number;
-    seatsWon: number;
-    votesGained?: number;
-    votePercentage?: number; // Percentage of total votes
-    changeInSeats?: number; // Difference from previous similar election
-    changeInPercentage?: number; // Difference from previous similar election
-  }>;
+  // electionHistory?: Array<{ // New: For party's performance in past elections - Duplicate, already defined above
+  //   electionId?: string; // Optional: link to an Election entity
+  //   electionName: string; // e.g., "General Election 2020"
+  //   year: number; // Year of the election
+  //   seatsContested?: number;
+  //   seatsWon: number;
+  //   votesGained?: number;
+  //   votePercentage?: number; // Percentage of total votes
+  //   changeInSeats?: number; // Difference from previous similar election
+  //   changeInPercentage?: number; // Difference from previous similar election
+  // }>;
   revisionHistory?: EntityRevision[];
 }
 
