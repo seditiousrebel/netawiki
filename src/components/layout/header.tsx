@@ -5,14 +5,14 @@ import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 // Removed Users, FileText, Landmark, MapPin, ShieldAlert, Vote, Newspaper, Shield, ClipboardList from here
-import { Menu, Search, UserCircle, ShieldCheck, LogOut, SettingsIcon, Compass, Home as HomeIcon } from 'lucide-react';
+import { Menu, Search, UserCircle, ShieldCheck, LogOut, SettingsIcon, Compass, HomeIcon, Gavel } from 'lucide-react'; // Added Gavel
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import type { UserProfile } from '@/types/gov';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import NotificationBell from './NotificationBell';
-import { getCurrentUser, logout } from '@/lib/auth';
+import { getCurrentUser, logout, canAccess, EDITOR_ROLES } from '@/lib/auth'; // Added canAccess, EDITOR_ROLES
 import { entityNavItems } from '@/lib/navigation'; // Import entityNavItems
 import {
   DropdownMenu,
@@ -63,7 +63,7 @@ export function AppHeader() {
       window.removeEventListener('userRoleChanged', updateUserData);
       window.removeEventListener('userLoggedOut', updateUserData);
     };
-  }, [pathname]);
+  }, [pathname]); // pathname dependency re-evaluates user on navigation for safety, though role changes are event-driven
 
   const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -82,6 +82,8 @@ export function AppHeader() {
   };
 
   const profileLink = user ? `/profile/${user.id}` : '/auth/login';
+  const currentUserForRoles = getCurrentUser(); // Get fresh value for role check in render
+  const showAdminLinksInMobile = user && canAccess(currentUserForRoles.role, EDITOR_ROLES);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -229,6 +231,25 @@ export function AppHeader() {
                         </Link>
                       ))}
                     </div>
+
+                    {showAdminLinksInMobile && (
+                      <div className="mt-3 pt-3 border-t">
+                        <p className="px-2.5 py-1.5 text-xs font-semibold text-muted-foreground">Admin</p>
+                        <Link
+                          href="/admin/suggestions"
+                          className={cn(
+                            'text-base transition-colors hover:bg-accent/50 p-2.5 rounded-md flex items-center gap-2.5',
+                            pathname.startsWith("/admin/suggestions") ? 'text-primary font-semibold bg-primary/10' : 'text-foreground/80 hover:text-primary'
+                          )}
+                          onClick={() => setIsSheetOpen(false)}
+                        >
+                          <Gavel className="h-5 w-5" />
+                          Suggestions
+                        </Link>
+                        {/* Add other admin links here if needed */}
+                      </div>
+                    )}
+
                     <div className="pt-3 border-t mt-2">
                        {user ? (
                          <>
