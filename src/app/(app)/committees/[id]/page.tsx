@@ -8,16 +8,14 @@ import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Landmark, Building, CalendarDays, FileText, ExternalLink, Mail, Phone, Globe, ListChecks, Newspaper, MessageSquare, Activity, Star, UserPlus, CheckCircle, History, Download, Trash2, Edit, Tag } from 'lucide-react';
+import { Users, Landmark, Building, CalendarDays, FileText, ExternalLink, Mail, Phone, Globe, ListChecks, Newspaper, MessageSquare, Activity, Star, UserPlus, CheckCircle, History, Trash2, Edit, Tag } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Committee, CommitteeMemberLink, CommitteeMeeting, CommitteeReport, BillReferredToCommittee, NewsArticleLink, CommitteeActivityEvent } from '@/types/gov';
 import { TimelineDisplay, formatCommitteeActivityForTimeline } from '@/components/common/timeline-display';
 import { useToast } from "@/hooks/use-toast";
-import { exportElementAsPDF } from '@/lib/utils';
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-// import { SuggestEditForm } from '@/components/common/suggest-edit-form'; // Removed
-import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; // Added
+import { SuggestEntityEditForm } from '@/components/common/SuggestEntityEditForm'; 
 import { entitySchemas } from '@/lib/schemas';
 import type { EntityType } from '@/lib/data/suggestions';
 
@@ -31,13 +29,12 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
   const { toast } = useToast();
   const currentUser = getCurrentUser();
   const router = useRouter();
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const [isFollowingCommittee, setIsFollowingCommittee] = useState(false);
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  const [isCommitteeSuggestEntityEditModalOpen, setIsCommitteeSuggestEntityEditModalOpen] = useState(false); // New form state
+  const [isCommitteeSuggestEntityEditModalOpen, setIsCommitteeSuggestEntityEditModalOpen] = useState(false); 
 
   useEffect(() => {
     if (committee) {
@@ -67,7 +64,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
     );
   }
 
-  const openSuggestCommitteeEditModal = () => { // New form handler
+  const openSuggestCommitteeEditModal = () => { 
     if (!isUserLoggedIn()) {
       router.push('/auth/login');
       return;
@@ -76,7 +73,7 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
     setIsCommitteeSuggestEntityEditModalOpen(true);
   };
 
-  const handleCommitteeEntityEditSuggestionSubmit = (submission: { // New form handler
+  const handleCommitteeEntityEditSuggestionSubmit = (submission: { 
     formData: Record<string, any>;
     reason: string;
     evidenceUrl: string;
@@ -155,12 +152,6 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
 
   const chairperson = committee.members?.find(m => m.role === 'Chairperson');
 
-  async function handleExportPdf() {
-    if (!committee) return;
-    const fileName = `committee-${committee.name.toLowerCase().replace(/\s+/g, '-')}-details.pdf`;
-    await exportElementAsPDF('committee-details-export-area', fileName, setIsGeneratingPdf);
-  }
-
   const handleDeleteCommittee = () => {
     if (!committee) return;
     alert(`Mock delete action for committee: ${committee.name}`);
@@ -197,9 +188,6 @@ function CommitteeDetailPage({ params: paramsPromise }: { params: Promise<{ id: 
             </Button>
             <Button variant="outline" onClick={openSuggestCommitteeEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Committee
-            </Button>
-            <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
-              <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Details'}
             </Button>
             {canAccess(currentUser.role, ADMIN_ROLES) && (
               <Button variant="destructive" onClick={handleDeleteCommittee}>
