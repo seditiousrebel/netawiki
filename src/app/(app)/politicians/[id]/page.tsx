@@ -110,6 +110,12 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
   const [formattedDateOfDeath, setFormattedDateOfDeath] = useState<string | null>(null);
   const { addNotification } = useNotificationStore();
   const notificationTriggered = useRef(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
 
   const openSuggestEntityEditModal = useCallback(() => {
     if (!isUserLoggedIn()) {
@@ -134,7 +140,6 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     }
   }, [politician, addNotification]);
 
-  // Replace useEffect for formatted dates with useMemo
   const formattedDateOfBirthMemo = useMemo(() => {
     if (politician?.dateOfBirth) {
       return format(new Date(politician.dateOfBirth), 'MM/dd/yyyy');
@@ -149,7 +154,6 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     return null;
   }, [politician?.dateOfDeath]);
 
-  // Update state with memoized values (optional, can use memoized values directly in JSX)
   useEffect(() => {
     setFormattedDateOfBirth(formattedDateOfBirthMemo);
   }, [formattedDateOfBirthMemo]);
@@ -167,7 +171,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
     if (!politician || !currentUser) return;
 
     const proposedData = {
-      ...JSON.parse(JSON.stringify(politician)), // Deep copy politician data
+      ...JSON.parse(JSON.stringify(politician)), 
       ...submission.formData,
     };
 
@@ -356,7 +360,7 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
             <Button variant="outline" onClick={openSuggestEntityEditModal}>
               <Edit className="mr-2 h-4 w-4" /> Propose Changes to Profile
             </Button>
-            {canAccess(currentUser.role, ADMIN_ROLES) && (
+            {isClient && canAccess(currentUser.role, ADMIN_ROLES) && (
               <Button variant="destructive" onClick={handleDelete}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete Politician
               </Button>
