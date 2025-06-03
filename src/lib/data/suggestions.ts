@@ -143,6 +143,7 @@ export let mockPendingEdits: PendingEdit[] = [
     id: 'pe-edit-p1',
     entityType: 'Politician',
     entityId: 'p1', // Editing Alice Democratia
+    originalData: JSON.parse(JSON.stringify(mockPoliticians.find(p => p.id === 'p1'))),
     proposedData: {
       // Start with a copy of Alice's data and modify it
       // In a real app, this would be a more sophisticated merge or specific field updates
@@ -193,7 +194,12 @@ export let mockPendingEdits: PendingEdit[] = [
   },
 ];
 
-export const approvePendingEdit = (id: string, adminId: string, adminFeedback?: string): boolean => {
+export const approvePendingEdit = (
+  id: string,
+  adminId: string,
+  adminFeedback?: string,
+  updatedProposedData?: any // New optional parameter
+): boolean => {
   const pendingEditIndex = mockPendingEdits.findIndex(pe => pe.id === id);
   if (pendingEditIndex === -1) {
     console.error(`PendingEdit with ID ${id} not found.`);
@@ -201,6 +207,7 @@ export const approvePendingEdit = (id: string, adminId: string, adminFeedback?: 
   }
 
   const pendingEdit = mockPendingEdits[pendingEditIndex];
+  const dataToSave = updatedProposedData !== undefined ? updatedProposedData : pendingEdit.proposedData;
 
   // Update PendingEdit status
   mockPendingEdits[pendingEditIndex] = {
@@ -209,6 +216,7 @@ export const approvePendingEdit = (id: string, adminId: string, adminFeedback?: 
     approvedByUserId: adminId,
     reviewedAt: new Date().toISOString(),
     adminFeedback: adminFeedback || pendingEdit.adminFeedback, // Preserve existing feedback if new one isn't provided
+    proposedData: dataToSave, // Store the actual approved data
   };
 
   let targetEntity: Politician | Party | undefined; // Add other entity types as needed
@@ -218,7 +226,7 @@ export const approvePendingEdit = (id: string, adminId: string, adminFeedback?: 
     if (pendingEdit.entityType === 'Politician') {
       const politicianIndex = mockPoliticians.findIndex(p => p.id === pendingEdit.entityId);
       if (politicianIndex !== -1) {
-        mockPoliticians[politicianIndex] = pendingEdit.proposedData as Politician;
+        mockPoliticians[politicianIndex] = dataToSave as Politician;
         targetEntity = mockPoliticians[politicianIndex];
       } else {
         console.error(`Politician with ID ${pendingEdit.entityId} not found in mockPoliticians.`);
@@ -228,7 +236,7 @@ export const approvePendingEdit = (id: string, adminId: string, adminFeedback?: 
     } else if (pendingEdit.entityType === 'Party') {
       const partyIndex = mockParties.findIndex(p => p.id === pendingEdit.entityId);
       if (partyIndex !== -1) {
-        mockParties[partyIndex] = pendingEdit.proposedData as Party;
+        mockParties[partyIndex] = dataToSave as Party;
         targetEntity = mockParties[partyIndex];
       } else {
         console.error(`Party with ID ${pendingEdit.entityId} not found in mockParties.`);
@@ -237,16 +245,16 @@ export const approvePendingEdit = (id: string, adminId: string, adminFeedback?: 
     }
     // Add else if blocks for other entity types (Bill, Committee, etc.)
   } else { // It's a NEW entity creation
-    if (!pendingEdit.proposedData.id) {
+    if (!dataToSave.id) { // Check dataToSave for ID
         console.error('New entity proposedData is missing an ID.');
         return false; // ID is crucial for linking and future edits
     }
     if (pendingEdit.entityType === 'Politician') {
-      mockPoliticians.push(pendingEdit.proposedData as Politician);
-      targetEntity = pendingEdit.proposedData as Politician;
+      mockPoliticians.push(dataToSave as Politician);
+      targetEntity = dataToSave as Politician; // Use dataToSave
     } else if (pendingEdit.entityType === 'Party') {
-      mockParties.push(pendingEdit.proposedData as Party);
-      targetEntity = pendingEdit.proposedData as Party;
+      mockParties.push(dataToSave as Party);
+      targetEntity = dataToSave as Party; // Use dataToSave
     }
     // Add else if blocks for other entity types
   }
@@ -260,7 +268,7 @@ export const approvePendingEdit = (id: string, adminId: string, adminFeedback?: 
       event: pendingEdit.entityId ? 'Entity Updated' : 'Entity Created',
       details: adminFeedback || `Approved suggestion ${pendingEdit.id}`,
       suggestionId: pendingEdit.id,
-      entitySnapshot: JSON.parse(JSON.stringify(pendingEdit.proposedData)), // Deep clone
+      entitySnapshot: JSON.parse(JSON.stringify(dataToSave)), // Deep clone using dataToSave
     };
 
     if (!targetEntity.revisionHistory) {

@@ -17,6 +17,9 @@ import {
   rejectPendingEdit,
 } from '@/lib/data/suggestions';
 import Link from 'next/link';
+import SideBySideDiffViewer from '@/components/ui/SideBySideDiffViewer';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Edit } from 'lucide-react'; // For the Edit button Icon
 
 // Helper component to display JSON data in a more readable format
 const JsonDisplay = ({ data, level = 0 }: { data: any; level?: number }) => {
@@ -65,11 +68,81 @@ const JsonDisplay = ({ data, level = 0 }: { data: any; level?: number }) => {
   );
 };
 
+// --- EditSuggestionModal Component ---
+interface EditSuggestionModalProps {
+  isOpen: boolean;
+  initialJsonString: string;
+  onClose: () => void;
+  onSubmit: (newJsonString: string) => void;
+  entityTitle?: string;
+}
+
+const EditSuggestionModal: React.FC<EditSuggestionModalProps> = ({
+  isOpen,
+  initialJsonString,
+  onClose,
+  onSubmit,
+  entityTitle,
+}) => {
+  const [currentJson, setCurrentJson] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentJson(initialJsonString);
+      setError(null); // Reset error when modal opens/initial string changes
+    }
+  }, [isOpen, initialJsonString]);
+
+  const handleSubmit = () => {
+    try {
+      JSON.parse(currentJson); // Validate JSON
+      onSubmit(currentJson);
+      // onClose is called by the parent component after successful submission
+    } catch (e) {
+      setError('Invalid JSON format. Please correct and try again.');
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>{entityTitle || 'Edit Suggestion Data'}</DialogTitle>
+          <DialogDescription>
+            Modify the JSON data below. Ensure the format is correct before saving.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <Textarea
+            value={currentJson}
+            onChange={(e) => setCurrentJson(e.target.value)}
+            rows={15}
+            className="font-mono text-xs"
+            placeholder="Enter valid JSON data..."
+          />
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSubmit}>Save Changes</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+// --- End EditSuggestionModal Component ---
+
 export default function AdminSuggestionsPage() {
   const [isClient, setIsClient] = useState(false);
   const [currentUserState, setCurrentUserState] = useState(getCurrentUser()); // Get user once on client
   const [pendingEdits, setPendingEdits] = useState<PendingEdit[]>([]);
   const [adminFeedback, setAdminFeedback] = useState<Record<string, string>>({});
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentEditingSuggestion, setCurrentEditingSuggestion] = useState<PendingEdit | null>(null);
+  const [modifiedProposedDataMap, setModifiedProposedDataMap] = useState<Record<string, any>>({});
 
   useEffect(() => {
     setIsClient(true);
@@ -82,9 +155,39 @@ export default function AdminSuggestionsPage() {
     setAdminFeedback(prev => ({ ...prev, [suggestionId]: feedback }));
   };
 
+  const handleOpenEditModal = (suggestion: PendingEdit) => {
+    setCurrentEditingSuggestion(suggestion);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setCurrentEditingSuggestion(null);
+    // Error state is internal to modal, reset by its useEffect on open
+  };
+
+  const handleEditModalSubmit = (newJsonString: string) => {
+    if (!currentEditingSuggestion) return;
+    try {
+      const parsedObject = JSON.parse(newJsonString);
+      setModifiedProposedDataMap(prev => ({
+        ...prev,
+        [currentEditingSuggestion.id]: parsedObject,
+      }));
+      handleCloseEditModal();
+    } catch (e) {
+      // This case should ideally be handled by the modal's own validation,
+      // but as a fallback, we can log or alert.
+      console.error("Error parsing JSON in submit handler:", e);
+      alert("Failed to save: Invalid JSON format submitted.");
+    }
+  };
+
   const handleApprove = (id: string) => {
     const feedback = adminFeedback[id] || '';
-    if (approvePendingEdit(id, currentUserState.id, feedback)) {
+    const updatedData = modifiedProposedDataMap[id]; // Will be undefined if not edited
+
+    if (approvePendingEdit(id, currentUserState.id, feedback, updatedData)) {
       setPendingEdits(prev =>
         prev.map(s =>
           s.id === id
@@ -92,7 +195,13 @@ export default function AdminSuggestionsPage() {
             : s
         )
       );
-      setAdminFeedback(prev => ({ ...prev, [id]: '' })); 
+      setAdminFeedback(prev => ({ ...prev, [id]: '' }));
+      // Clear the modified data from the map after successful approval
+      setModifiedProposedDataMap(prev => {
+        const newMap = { ...prev };
+        delete newMap[id];
+        return newMap;
+      });
       alert(`Approved suggestion: ${id}`);
     } else {
       alert(`Failed to approve suggestion: ${id}`);
@@ -192,9 +301,18 @@ export default function AdminSuggestionsPage() {
                 <CardContent>
                   <div className="space-y-4 text-sm">
                     <div>
-                      <h4 className="font-semibold mb-1">Proposed Data:</h4>
+                      <h4 className="font-semibold mb-1">
+                        {suggestion.originalData && suggestion.entityId ? "Proposed Changes:" : "Proposed Data:"}
+                      </h4>
                       <div className="p-2 bg-muted rounded-md text-xs">
-                        <JsonDisplay data={suggestion.proposedData} />
+                        {suggestion.originalData && suggestion.entityId ? (
+                          <SideBySideDiffViewer
+                            originalData={suggestion.originalData}
+                            proposedData={suggestion.proposedData}
+                          />
+                        ) : (
+                          <JsonDisplay data={suggestion.proposedData} />
+                        )}
                       </div>
                     </div>
 
@@ -257,6 +375,9 @@ export default function AdminSuggestionsPage() {
                     ) : (
                        <Button variant="outline" size="sm" disabled><Eye className="mr-1 h-4 w-4" /> View (New)</Button>
                     )}
+                    <Button variant="outline" size="sm" onClick={() => handleOpenEditModal(suggestion)}>
+                      <Edit className="mr-1 h-4 w-4" /> Edit Data
+                    </Button>
                     <Button variant="destructive" size="sm" onClick={() => handleReject(suggestion.id)}><X className="mr-1 h-4 w-4" /> Reject</Button>
                     <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleApprove(suggestion.id)}><Check className="mr-1 h-4 w-4" /> Approve</Button>
                   </CardFooter>
@@ -268,6 +389,25 @@ export default function AdminSuggestionsPage() {
           <p className="text-muted-foreground">No pending suggestions.</p>
         )}
       </section>
+
+      {currentEditingSuggestion && (
+        <EditSuggestionModal
+          isOpen={isEditModalOpen}
+          initialJsonString={JSON.stringify(
+            modifiedProposedDataMap[currentEditingSuggestion.id] || currentEditingSuggestion.proposedData,
+            null,
+            2
+          )}
+          onClose={handleCloseEditModal}
+          onSubmit={handleEditModalSubmit}
+          entityTitle={`Edit Suggestion for: ${
+            currentEditingSuggestion.entityId ||
+            (currentEditingSuggestion.proposedData as any)?.name ||
+            (currentEditingSuggestion.proposedData as any)?.title ||
+            currentEditingSuggestion.entityType
+          }`}
+        />
+      )}
     </div>
   );
 }

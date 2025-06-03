@@ -398,6 +398,7 @@ export interface PendingEdit {
   id: string; // Unique ID for this pending edit
   entityType: string; // e.g., 'Politician', 'Party', 'Bill'. Could be 'EntityType' from suggestions if available.
   entityId?: string; // ID of the entity being edited (null if creating a new entity)
+  originalData?: any; // Snapshot of the entity's data before the suggested edits
   proposedData: any; // Full JSON snapshot of the proposed new entity or changes for an existing one
   reasonForChange?: string; // User-provided reason for the suggested edit
   evidenceUrl?: string; // URL to evidence supporting the change
