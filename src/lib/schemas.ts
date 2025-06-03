@@ -1,3 +1,4 @@
+
 // src/lib/schemas.ts
 import type { FormFieldSchema, FieldType } from '@/types/form-schema'; // Updated import
 import type { EntityType } from '@/lib/data/suggestions'; // For the main Record key type
@@ -159,9 +160,7 @@ export const politicianSchema: FormFieldSchema[] = [
     name: 'aliases',
     label: 'Aliases (Nicknames)',
     type: 'array',
-    arrayItemSchema: { name: 'alias', label: 'Alias', type: 'text', placeholder: 'e.g., The People\'s Voice' } as FormFieldSchema,
-    // If arrayItemSchema is just a FieldType for simple string array:
-    // arrayItemSchema: 'text' // This would render simple text inputs for each alias
+    arrayItemSchema: 'text', // Corrected: Array of simple strings
   },
   {
     name: 'positions',
@@ -529,8 +528,8 @@ export const billSchema: FormFieldSchema[] = [
   { name: 'lastActionDate', label: 'Last Action Date', type: 'date' },
   { name: 'lastActionDescription', label: 'Last Action Description', type: 'textarea' },
   { name: 'impact', label: 'Impact Statement', type: 'textarea', placeholder: 'Briefly, what laws it amends/repeals' },
-  { name: 'tags', label: 'Tags', type: 'array', arrayItemSchema: { name: 'tag', label: 'Tag', type: 'text', placeholder: 'Enter a tag' } as FormFieldSchema },
-  { name: 'committees', label: 'Referred Committees', type: 'array', arrayItemSchema: { name: 'committee', label: 'Committee Name', type: 'text', placeholder: 'Name of committee' } as FormFieldSchema },
+  { name: 'tags', label: 'Tags', type: 'array', arrayItemSchema: 'text' }, // Corrected
+  { name: 'committees', label: 'Referred Committees', type: 'array', arrayItemSchema: 'text' }, // Corrected: array of committee names (strings)
 ];
 
 // --- Schemas for Bill's complex fields ---
@@ -587,7 +586,8 @@ export const billVotingResultsChamberSchema: FormFieldSchema[] = [
 
 // Update billSchema to include these complex types
 const existingBillSchemaFields = billSchema.slice(0, billSchema.findIndex(f => f.name === 'sponsors') +1); // Keep fields up to and including sponsors
-const remainingBillSchemaFields = billSchema.slice(billSchema.findIndex(f => f.name === 'sponsors') + 1);
+const remainingBillSchemaFields = billSchema.slice(billSchema.findIndex(f => f.name === 'sponsors') + 1)
+    .filter(f => !['tags', 'committees'].includes(f.name)); // Remove tags and committees from here as they are in the base
 
 export const fullBillSchema: FormFieldSchema[] = [
     ...existingBillSchemaFields, // title, billNumber, summary, purpose, billType, status, introducedDate, fullTextUrl, sponsors
@@ -602,7 +602,9 @@ export const fullBillSchema: FormFieldSchema[] = [
             { name: 'senate', label: 'Senate Voting Results', type: 'object', objectSchema: billVotingResultsChamberSchema, required: false },
         ]
     },
-    ...remainingBillSchemaFields, // slug, responsibleMinistry, etc. added earlier
+    ...remainingBillSchemaFields, // slug, responsibleMinistry, etc.
+    // Ensure 'tags' and 'committees' (as simple string arrays) are correctly defined once, either in base or here.
+    // Since they were corrected in base billSchema, they should be fine.
 ];
 
 
@@ -1153,3 +1155,4 @@ export const entitySchemas: Record<EntityType, FormFieldSchema[]> = {
 export const getEntitySchema = (entityType: EntityType): FormFieldSchema[] | undefined => {
   return entitySchemas[entityType];
 };
+
