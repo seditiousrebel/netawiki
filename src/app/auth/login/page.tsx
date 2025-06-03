@@ -11,6 +11,7 @@ import React, { useState } from 'react'; // Added useState
 import { useRouter } from 'next/navigation'; // Added useRouter
 import { useToast } from "@/hooks/use-toast"; // Added useToast
 import { simulateLoginByEmail } from '@/lib/auth'; // Added simulateLoginByEmail
+import { cn } from '@/lib/utils'; // Added missing import
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
