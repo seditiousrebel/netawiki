@@ -57,7 +57,6 @@ export let mockEditSuggestions: EditSuggestion[] = [ ... ]; // Removed
 export let mockNewEntrySuggestions: NewEntrySuggestion[] = [ ... ]; // Removed
 */
 
-*/
 
 // Mock data for Edit Suggestions
 export let mockEditSuggestions: EditSuggestion[] = [
