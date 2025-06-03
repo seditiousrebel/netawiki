@@ -29,22 +29,22 @@ export const canAccess = (userRole: string, requiredRoles: string[]): boolean =>
 // Mock current user for development purposes
 // In a real application, this would come from your authentication system
 export const getCurrentUser = () => {
-  const roles = ['Guest', 'Editor', 'Admin', 'SuperAdmin', 'Member']; // Added Member
+  const roles = ['Guest', 'Editor', 'Admin', 'SuperAdmin', 'Member'];
 
   if (typeof window !== 'undefined') {
     const simulatedEmail = localStorage.getItem('simulatedUserEmail');
 
     if (simulatedEmail === 'bhup0004@gmail.com') {
-      return { id: 'adminUser', name: 'Bhup Admin', email: 'bhup0004@gmail.com', role: 'Admin' };
+      return { id: 'adminUser_bhup0004', name: 'Bhup Admin', email: 'bhup0004@gmail.com', role: 'Admin' };
     }
     if (simulatedEmail === 'seditiousrebel@gmail.com') {
-      return { id: 'memberUser', name: 'Seditious Rebel', email: 'seditiousrebel@gmail.com', role: 'Member' };
+      return { id: 'memberUser_seditiousrebel', name: 'Seditious Rebel', email: 'seditiousrebel@gmail.com', role: 'Member' };
     }
 
     const roleFromStorage = localStorage.getItem('currentUserRole');
     if (roleFromStorage && roles.includes(roleFromStorage)) {
       const userName = roleFromStorage === 'Admin' ? 'Admin Mock User' : roleFromStorage === 'Editor' ? 'Editor Mock User' : 'Mock Member';
-      return { id: 'mockUser', name: userName, email: 'mockuser@example.com', role: roleFromStorage };
+      return { id: 'mockUser_role_based', name: userName, email: 'mockuser@example.com', role: roleFromStorage };
     }
   }
   // Default to Guest if no specific simulation or role is found
@@ -89,4 +89,3 @@ export const logout = () => {
     console.log('User logged out (simulated).');
   }
 };
-
