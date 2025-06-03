@@ -759,7 +759,7 @@ export {
   SidebarSeparator,
   SidebarTrigger,
   useSidebar,
-  AppEntitySidebar,
+  // AppEntitySidebar, // This will be defined below
 }
 
 // --- Application-specific Sidebar Component ---
@@ -777,10 +777,16 @@ import { entityNavItems } from "@/lib/navigation";
 export function AppEntitySidebar() {
   const pathname = usePathname();
   const { state, toggleSidebar, isMobile, open } = useSidebar();
+  const [isClientHydrated, setIsClientHydrated] = React.useState(false);
+  const [showAdminLinksClient, setShowAdminLinksClient] = React.useState(false);
+  const [showSettingsLinkClient, setShowSettingsLinkClient] = React.useState(false);
 
-  const currentUser = getCurrentUser();
-  const showSettingsLink = currentUser.role !== 'Guest';
-  const showAdminLinks = canAccess(currentUser.role, EDITOR_ROLES);
+  React.useEffect(() => {
+    setIsClientHydrated(true);
+    const currentUser = getCurrentUser();
+    setShowSettingsLinkClient(currentUser.role !== 'Guest');
+    setShowAdminLinksClient(canAccess(currentUser.role, EDITOR_ROLES));
+  }, []);
 
 
   if (isMobile) {
@@ -828,7 +834,7 @@ export function AppEntitySidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          {showAdminLinks && (
+          {isClientHydrated && showAdminLinksClient && (
             <>
               <SidebarSeparator />
               <SidebarMenuItem>
@@ -845,7 +851,7 @@ export function AppEntitySidebar() {
               </SidebarMenuItem>
             </>
           )}
-          {showSettingsLink && (
+          {isClientHydrated && showSettingsLinkClient && (
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
