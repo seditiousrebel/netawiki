@@ -1,14 +1,14 @@
 
-"use client"; // Add this line
+"use client";
 
-import React, { useState, useEffect } from 'react'; // Add useState and useEffect
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/common/page-header';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Added CardFooter
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, X, Eye } from 'lucide-react';
+import { Check, X, Eye, Loader2 } from 'lucide-react'; // Added Loader2
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea'; // Added for admin feedback
-import { Label } from '@/components/ui/label'; // Added import for Label
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import type { PendingEdit } from '@/types/gov';
 import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth';
 import {
@@ -16,18 +16,21 @@ import {
   approvePendingEdit,
   rejectPendingEdit,
 } from '@/lib/data/suggestions';
-import Link from 'next/link'; // Added for View Item button
+import Link from 'next/link';
 
 
 export default function AdminSuggestionsPage() {
-  const currentUser = getCurrentUser();
+  const [isClient, setIsClient] = useState(false);
+  const [currentUserState, setCurrentUserState] = useState(getCurrentUser()); // Get user once on client
+  const [pendingEdits, setPendingEdits] = useState<PendingEdit[]>([]);
+  const [adminFeedback, setAdminFeedback] = useState<Record<string, string>>({});
 
-  if (!canAccess(currentUser.role, EDITOR_ROLES)) {
-    return <div className="container mx-auto py-8 text-center">Access Denied. You do not have permission to view this page.</div>;
-  }
+  useEffect(() => {
+    setIsClient(true);
+    setCurrentUserState(getCurrentUser()); // Ensure currentUser is updated on client
+    setPendingEdits(mockPendingEdits); // Load mock suggestions on client
+  }, []);
 
-  const [pendingEdits, setPendingEdits] = useState<PendingEdit[]>(mockPendingEdits);
-  const [adminFeedback, setAdminFeedback] = useState<Record<string, string>>({}); // Stores feedback text for each suggestion ID
 
   const handleFeedbackChange = (suggestionId: string, feedback: string) => {
     setAdminFeedback(prev => ({ ...prev, [suggestionId]: feedback }));
@@ -35,15 +38,15 @@ export default function AdminSuggestionsPage() {
 
   const handleApprove = (id: string) => {
     const feedback = adminFeedback[id] || '';
-    if (approvePendingEdit(id, currentUser.id, feedback)) {
+    if (approvePendingEdit(id, currentUserState.id, feedback)) {
       setPendingEdits(prev =>
         prev.map(s =>
           s.id === id
-            ? { ...s, status: 'APPROVED', approvedByUserId: currentUser.id, reviewedAt: new Date().toISOString(), adminFeedback: feedback }
+            ? { ...s, status: 'APPROVED', approvedByUserId: currentUserState.id, reviewedAt: new Date().toISOString(), adminFeedback: feedback }
             : s
         )
       );
-      setAdminFeedback(prev => ({ ...prev, [id]: '' })); // Clear feedback for this item
+      setAdminFeedback(prev => ({ ...prev, [id]: '' })); 
       alert(`Approved suggestion: ${id}`);
     } else {
       alert(`Failed to approve suggestion: ${id}`);
@@ -59,15 +62,15 @@ export default function AdminSuggestionsPage() {
         return;
     }
 
-    if (rejectPendingEdit(id, currentUser.id, feedback)) {
+    if (rejectPendingEdit(id, currentUserState.id, feedback)) {
       setPendingEdits(prev =>
         prev.map(s =>
           s.id === id
-            ? { ...s, status: 'DENIED', deniedByUserId: currentUser.id, reviewedAt: new Date().toISOString(), adminFeedback: feedback }
+            ? { ...s, status: 'DENIED', deniedByUserId: currentUserState.id, reviewedAt: new Date().toISOString(), adminFeedback: feedback }
             : s
         )
       );
-      setAdminFeedback(prev => ({ ...prev, [id]: '' })); // Clear feedback for this item
+      setAdminFeedback(prev => ({ ...prev, [id]: '' })); 
       alert(`Rejected suggestion: ${id}`);
     } else {
       alert(`Failed to reject suggestion: ${id}`);
@@ -75,9 +78,8 @@ export default function AdminSuggestionsPage() {
   };
 
   const getEntityLink = (suggestion: PendingEdit): string | null => {
-    if (!suggestion.entityId) return null; // No link for new entities not yet created
+    if (!suggestion.entityId) return null; 
     
-    // Adjust these paths based on your application's routing structure
     switch (suggestion.entityType) {
       case 'Politician':
         return `/politicians/${suggestion.entityId}`;
@@ -85,12 +87,22 @@ export default function AdminSuggestionsPage() {
         return `/parties/${suggestion.entityId}`;
       case 'Bill':
         return `/bills/${suggestion.entityId}`;
-      // Add other entity types as needed
       default:
         return null;
     }
   };
 
+  if (!isClient) {
+    return (
+      <div className="container mx-auto py-8 flex justify-center items-center min-h-[calc(100vh-10rem)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!canAccess(currentUserState.role, EDITOR_ROLES)) {
+    return <div className="container mx-auto py-8 text-center">Access Denied. You do not have permission to view this page.</div>;
+  }
 
   return (
     <div className="container mx-auto py-8">
@@ -113,7 +125,7 @@ export default function AdminSuggestionsPage() {
                           ? `Edit for ${suggestion.entityType}: `
                           : `New ${suggestion.entityType}: `}
                         <span className="text-primary">
-                          {suggestion.entityId || (suggestion.proposedData as any)?.name || 'N/A'}
+                          {suggestion.entityId || (suggestion.proposedData as any)?.name || (suggestion.proposedData as any)?.title || 'N/A'}
                         </span>
                       </CardTitle>
                       <p className="text-xs text-muted-foreground">
@@ -170,13 +182,13 @@ export default function AdminSuggestionsPage() {
                             </div>
                         )}
                         <p className="text-xs text-muted-foreground mt-1">
-                          Reviewed by {suggestion.approvedByUserId || suggestion.deniedByUserId} on {new Date(suggestion.reviewedAt!).toLocaleDateString()}
+                          Reviewed by {suggestion.approvedByUserId || suggestion.deniedByUserId} on {suggestion.reviewedAt ? new Date(suggestion.reviewedAt).toLocaleDateString() : 'N/A'}
                         </p>
                       </div>
                     )}
                   </div>
                  
-                  {suggestion.status === 'PENDING' && canAccess(currentUser.role, EDITOR_ROLES) && (
+                  {suggestion.status === 'PENDING' && canAccess(currentUserState.role, EDITOR_ROLES) && (
                      <div className="mt-4 pt-4 border-t">
                         <Label htmlFor={`admin-feedback-${suggestion.id}`} className="font-semibold mb-1 block">Admin Feedback (Optional for Approve, Required for Reject):</Label>
                         <Textarea
@@ -190,11 +202,11 @@ export default function AdminSuggestionsPage() {
                     </div>
                   )}
                 </CardContent>
-                {suggestion.status === 'PENDING' && canAccess(currentUser.role, EDITOR_ROLES) && (
+                {suggestion.status === 'PENDING' && canAccess(currentUserState.role, EDITOR_ROLES) && (
                   <CardFooter className="flex justify-end gap-2">
                     {suggestion.entityId && getEntityLink(suggestion) ? (
                        <Link href={getEntityLink(suggestion)!} passHref legacyBehavior>
-                         <Button asChild variant="outline" size="sm"><a target="_blank"><Eye className="mr-1 h-4 w-4" /> View Item</a></Button>
+                         <Button asChild variant="outline" size="sm"><a target="_blank" rel="noopener noreferrer"><Eye className="mr-1 h-4 w-4" /> View Item</a></Button>
                        </Link>
                     ) : (
                        <Button variant="outline" size="sm" disabled><Eye className="mr-1 h-4 w-4" /> View (New)</Button>
@@ -213,3 +225,4 @@ export default function AdminSuggestionsPage() {
     </div>
   );
 }
+
