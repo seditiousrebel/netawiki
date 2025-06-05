@@ -216,10 +216,10 @@ export function AppHeader() {
             </Sheet>
           </div>
 
-          {/* Brand - Visible on all screen sizes */}
+          {/* Brand - Visible on all screen sizes, text controlled */}
           <Link href="/" className="flex items-center gap-2 text-lg sm:text-xl font-headline font-semibold text-primary">
             <ShieldCheck className="h-6 w-6 sm:h-7 sm:w-7" />
-            <span className={cn(isMobile ? "hidden sm:inline" : "")}>GovTrackr</span> {/* Hide text on very small mobile if menu icon is there */}
+            <span className="hidden lg:inline">GovTrackr</span>
           </Link>
         </div>
 
