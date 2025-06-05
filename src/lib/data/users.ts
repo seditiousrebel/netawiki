@@ -1,3 +1,4 @@
+
 export type ManagedUserRole = 'Guest' | 'Member' | 'Editor' | 'Admin' | 'SuperAdmin';
 
 export interface ManagedUser {
@@ -9,9 +10,9 @@ export interface ManagedUser {
 }
 
 export let mockManagedUsers: ManagedUser[] = [
-  { id: 'usr_001', name: 'Admin User', email: 'admin@example.com', role: 'Admin', joinDate: '2023-01-15' },
+  { id: 'adminUser_bhup0004', name: 'Bhup Admin', email: 'bhup0004@gmail.com', role: 'SuperAdmin', joinDate: '2023-01-15' }, // Updated user for bhup0004@gmail.com
   { id: 'usr_002', name: 'Editor Bob', email: 'editor.bob@example.com', role: 'Editor', joinDate: '2023-02-20' },
-  { id: 'usr_003', name: 'Member Alice', email: 'alice.m@example.com', role: 'Member', joinDate: '2023-03-10' },
+  { id: 'memberUser_seditiousrebel', name: 'Seditious Rebel', email: 'seditiousrebel@gmail.com', role: 'Member', joinDate: '2023-03-10' }, // Updated user for seditiousrebel@gmail.com
   { id: 'usr_004', name: 'Member Charlie', email: 'charlie@example.com', role: 'Member', joinDate: '2023-05-01' },
   { id: 'usr_005', name: 'Editor Eve', email: 'eve.editor@example.com', role: 'Editor', joinDate: '2023-06-15' },
   { id: 'usr_006', name: 'SuperAdmin Sue', email: 'sue.super@example.com', role: 'SuperAdmin', joinDate: '2022-12-01' },

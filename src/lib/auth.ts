@@ -1,3 +1,4 @@
+
 // src/lib/auth.ts
 
 export const ADMIN_ROLES = ['Admin', 'SuperAdmin'];
@@ -23,11 +24,11 @@ export const canAccess = (userRole: string, requiredRoles: string[]): boolean =>
 // 2. Admin User:
 //    - Email: bhup0004@gmail.com
 //    - Password: sachinn1 (Note: Password is not used by this mock system)
-//    - Intended Role: Admin
+//    - Intended Role: SuperAdmin (Updated from Admin)
 
 const MOCK_USER_DETAILS: Record<string, { id: string; name: string; role: string }> = {
   'seditiousrebel@gmail.com': { id: 'memberUser_seditiousrebel', name: 'Seditious Rebel', role: 'Member' },
-  'bhup0004@gmail.com': { id: 'adminUser_bhup0004', name: 'Bhup Admin', role: 'Admin' },
+  'bhup0004@gmail.com': { id: 'adminUser_bhup0004', name: 'Bhup Admin', role: 'SuperAdmin' }, // Updated role
 };
 
 // Mock current user for development purposes
