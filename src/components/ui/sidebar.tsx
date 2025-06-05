@@ -802,11 +802,7 @@ export function AppEntitySidebar() {
       collapsible="icon"
       className="hidden md:flex flex-col bg-card border-r border-border shadow-sm"
     >
-      <SidebarHeader className="flex items-center justify-between h-16">
-        <Link href="/feed" className={cn("flex items-center gap-2 text-xl font-headline font-semibold text-primary", state === "collapsed" && "hidden")}>
-          <ShieldCheck className="h-7 w-7" />
-          <span>GovTrackr</span>
-        </Link>
+      <SidebarHeader className="flex items-center justify-end h-16"> {/* Changed justify-between to justify-end */}
         <Button
           variant="ghost"
           size="icon"
