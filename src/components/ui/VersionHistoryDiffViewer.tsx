@@ -265,4 +265,3 @@ export const ExampleVersionHistoryViewer: React.FC = () => (
 );
 
 export default VersionHistoryDiffViewer;
-</code_block>

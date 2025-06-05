@@ -112,7 +112,6 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
   }
 
   const partyMembers = mockPoliticians.filter(p => p.partyId === party.id);
-  const partyMembers = mockPoliticians.filter(p => p.partyId === party.id); // mockPoliticians is stable
   const partyPromises = getPromisesByPartyId(party.id); // Assume stable or memoized if expensive
   const relatedControversies = getControversiesByPartyId(party.id); // Assume stable or memoized
   const relatedNews = getNewsByPartyId(party.id); // Assume stable or memoized
