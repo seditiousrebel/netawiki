@@ -288,7 +288,10 @@ export const ExampleDiffViewer: React.FC = () => (
         />
         For the purpose of this subtask, we are not fixing ExampleDiffViewer.
     */}
-    <SideBySideDiffViewerCorrected currentEntity={mockCurrentPolitician} pendingEdit={mockPendingEditPolitician} />
+    <SideBySideDiffViewerCorrected
+      originalData={mockCurrentPolitician}
+      proposedData={mockPendingEditPolitician.suggestedData as Record<string, any>}
+    />
   </div>
 );
 

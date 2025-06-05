@@ -255,7 +255,7 @@ export default function AdminSuggestionsPage() {
     );
   }
 
-  if (!canAccess(currentUserState.role, EDITOR_ROLES)) {
+  if (!currentUserState || typeof currentUserState.role === "undefined" || !canAccess(currentUserState.role, EDITOR_ROLES)) {
     return <div className="container mx-auto py-8 text-center">Access Denied. You do not have permission to view this page.</div>;
   }
 
