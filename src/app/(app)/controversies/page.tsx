@@ -168,13 +168,13 @@ export default function ControversiesPage() {
 
       <FilterBar title="Filters">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
-          <div className="sm:col-span-2 md:col-span-4">
+          <div>
             <Label htmlFor="search-controversy">Search Controversies</Label>
             <div className="relative">
               <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="search-controversy"
-                placeholder="Title, description, or involved entity..."
+                placeholder="Title, description, or entity..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8"
@@ -205,7 +205,7 @@ export default function ControversiesPage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-full sm:col-span-1 md:col-span-2">
+          <div>
             <Label htmlFor="sort-controversies">Sort By</Label>
             <Select value={sortOption} onValueChange={setSortOption}>
               <SelectTrigger id="sort-controversies"><SelectValue placeholder="Sort by..." /></SelectTrigger>
@@ -276,3 +276,5 @@ export default function ControversiesPage() {
 
 
       
+
+    

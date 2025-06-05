@@ -266,8 +266,8 @@ export default function PromisesPage() {
       />
 
       <FilterBar title="Filters">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
-          <div className="col-span-full md:col-span-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
+          <div>
             <Label htmlFor="search-promise">Search Promises</Label>
             <div className="relative">
               <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -280,63 +280,60 @@ export default function PromisesPage() {
               />
             </div>
           </div>
-          
-          <div className="col-span-full md:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
+          <div>
+            <Label htmlFor="filter-status">Status</Label>
+            <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value === 'all' ? '' : value)}>
+              <SelectTrigger id="filter-status"><SelectValue placeholder="All Statuses" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {allStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="filter-category">Category</Label>
+            <Select value={selectedCategory} onValueChange={(value) => setSelectedCategory(value === 'all' ? '' : value)}>
+              <SelectTrigger id="filter-category"><SelectValue placeholder="All Categories" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {allCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="filter-promiser">Promiser</Label>
+            <Select value={selectedPromiser} onValueChange={(value) => setSelectedPromiser(value === 'all' ? '' : value)}>
+              <SelectTrigger id="filter-promiser"><SelectValue placeholder="All Promisers" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Promisers</SelectItem>
+                {allPromisers.map(prom => <SelectItem key={prom.value} value={prom.value}>{prom.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="filter-deadline-year">Deadline Year</Label>
+            <Select value={selectedDeadlineYear} onValueChange={(value) => setSelectedDeadlineYear(value === 'all' ? '' : value)}>
+              <SelectTrigger id="filter-deadline-year"><SelectValue placeholder="All Years" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Years</SelectItem>
+                {allDeadlineYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
             <div>
-              <Label htmlFor="filter-status">Status</Label>
-              <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value === 'all' ? '' : value)}>
-                <SelectTrigger id="filter-status"><SelectValue placeholder="All Statuses" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  {allStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="filter-category">Category</Label>
-              <Select value={selectedCategory} onValueChange={(value) => setSelectedCategory(value === 'all' ? '' : value)}>
-                <SelectTrigger id="filter-category"><SelectValue placeholder="All Categories" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {allCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="filter-promiser">Promiser</Label>
-              <Select value={selectedPromiser} onValueChange={(value) => setSelectedPromiser(value === 'all' ? '' : value)}>
-                <SelectTrigger id="filter-promiser"><SelectValue placeholder="All Promisers" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Promisers</SelectItem>
-                  {allPromisers.map(prom => <SelectItem key={prom.value} value={prom.value}>{prom.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="filter-deadline-year">Deadline Year</Label>
-              <Select value={selectedDeadlineYear} onValueChange={(value) => setSelectedDeadlineYear(value === 'all' ? '' : value)}>
-                <SelectTrigger id="filter-deadline-year"><SelectValue placeholder="All Years" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Years</SelectItem>
-                  {allDeadlineYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-             <div>
-              <Label htmlFor="sort-promises">Sort By</Label>
-              <Select value={sortOption} onValueChange={setSortOption}>
-                <SelectTrigger id="sort-promises"><SelectValue placeholder="Default" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="default">Default</SelectItem>
-                  <SelectItem value="deadline_asc">Deadline (Soonest First)</SelectItem>
-                  <SelectItem value="deadline_desc">Deadline (Latest First)</SelectItem>
-                  <SelectItem value="promised_newest">Promised (Newest First)</SelectItem>
-                  <SelectItem value="promised_oldest">Promised (Oldest First)</SelectItem>
-                  <SelectItem value="recently_updated_newest">Recently Updated (Newest)</SelectItem>
-                  <SelectItem value="recently_updated_oldest">Recently Updated (Oldest)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Label htmlFor="sort-promises">Sort By</Label>
+            <Select value={sortOption} onValueChange={setSortOption}>
+              <SelectTrigger id="sort-promises"><SelectValue placeholder="Default" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="deadline_asc">Deadline (Soonest First)</SelectItem>
+                <SelectItem value="deadline_desc">Deadline (Latest First)</SelectItem>
+                <SelectItem value="promised_newest">Promised (Newest First)</SelectItem>
+                <SelectItem value="promised_oldest">Promised (Oldest First)</SelectItem>
+                <SelectItem value="recently_updated_newest">Recently Updated (Newest)</SelectItem>
+                <SelectItem value="recently_updated_oldest">Recently Updated (Oldest)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </FilterBar>
@@ -440,3 +437,6 @@ export default function PromisesPage() {
     </div>
   );
 }
+
+
+    
