@@ -303,6 +303,7 @@ export type VoteRecord = {
 };
 
 export type BillTimelineEvent = {
+  id: string;
   date: string; // ISO Date string
   event: string; // e.g., "Introduced in Senate", "First Reading", "Amendment X Proposed", "Passed Committee Y", "Voted Yea/Nay"
   description?: string;
@@ -359,7 +360,8 @@ export interface Bill {
   lastActionDate?: string;
   lastActionDescription?: string;
   fullTextUrl?: string;
-  committees?: string[];
+  // committees?: string[]; // Removed in favor of committeeLinks
+  committeeLinks?: Array<{ id: string; committeeId: string; committeeName?: string; referralDate?: string; statusInCommittee?: string; }>;
   impact?: string; // Briefly, what laws it amends/repeals
   tags?: string[];
   revisionHistory?: EntityRevision[];
