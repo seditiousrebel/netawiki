@@ -1,9 +1,10 @@
+
 "use client";
 
 import React, { useState } from 'react';
 import { PageHeader } from '@/components/common/page-header';
 import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth';
-import { useToast } from '@/components/ui/use-toast'; // Corrected path
+import { useToast } from '@/hooks/use-toast'; // Corrected path
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
