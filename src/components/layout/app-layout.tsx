@@ -12,7 +12,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex flex-col bg-background">
-        <AppHeader />
+        {/* AppHeader is MOVED FROM HERE */}
         <div className="flex flex-1 overflow-hidden"> {/* Added overflow-hidden to parent flex */}
           <AppEntitySidebar />
           {/* 
@@ -21,7 +21,9 @@ export function AppLayout({ children }: AppLayoutProps) {
             - overflow-y-auto: Enables vertical scrolling within the main content if it exceeds viewport height.
             - Centering and padding are now handled by a nested div.
           */}
-          <main className="flex-1 overflow-y-auto flex justify-center">
+          <main className="flex-1 overflow-y-auto flex flex-col"> {/* Added flex-col here */}
+            <AppHeader /> {/* New position: Inside main, will be sticky to main's scroll area */}
+            {/* The existing content wrapper div */}
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
               {children}
             </div>
