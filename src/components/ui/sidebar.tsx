@@ -783,7 +783,7 @@ export function AppEntitySidebar() {
     <Sidebar
       variant="sidebar"
       collapsible="icon" // Desktop sidebar remains collapsible to icon state
-      className="hidden md:flex flex-col bg-card border-r border-border shadow-sm" // Ensure it's hidden on mobile via md:flex
+      className="hidden md:flex flex-col bg-sidebar border-r border-sidebar-border shadow-sm" // Ensure it's hidden on mobile via md:flex
     >
       {/* The div that used to show the logo/brand in the sidebar is removed */}
       {/* The header area of the sidebar is now empty or can be used for other purposes if needed in the future */}

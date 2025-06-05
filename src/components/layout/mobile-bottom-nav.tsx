@@ -59,7 +59,7 @@ export function MobileBottomNav() {
               href={item.href}
               className={cn(
                 'flex flex-row items-center justify-center gap-1 p-2 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 w-full h-full',
-                isActive ? 'text-primary font-semibold' : 'text-muted-foreground hover:text-primary'
+                isActive ? 'bg-primary/10 text-primary font-semibold' : 'text-muted-foreground hover:text-primary hover:bg-accent/50'
               )}
               aria-current={isActive ? "page" : undefined}
             >
