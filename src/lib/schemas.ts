@@ -153,8 +153,14 @@ export const politicianSchema: FormFieldSchema[] = [
   { name: 'photoUrl', label: 'Photo URL (Optional)', type: 'url', placeholder: 'Link to a profile photo' },
   { name: 'bio', label: 'Biography (Optional)', type: 'textarea', placeholder: 'A brief biography...' },
   { name: 'province', label: 'Province (Optional)', type: 'text', placeholder: 'e.g., Bagmati' },
-  { name: 'constituency', label: 'Constituency Name (Optional)', type: 'text', placeholder: 'Name of their constituency' },
-  { name: 'constituencyId', label: 'Constituency ID (Optional)', type: 'text', placeholder: 'ID of their constituency' },
+  {
+    name: 'constituencyId',
+    label: 'Constituency (Optional)', // Updated label
+    type: 'entity-selector',
+    referencedEntityType: 'Constituency',
+    placeholder: 'Select their constituency',
+    required: false, // Keep as optional
+  },
   { name: 'isActiveInPolitics', label: 'Currently Active in Politics?', type: 'boolean' },
   {
     name: 'aliases',
@@ -529,7 +535,53 @@ export const billSchema: FormFieldSchema[] = [
   { name: 'lastActionDescription', label: 'Last Action Description', type: 'textarea' },
   { name: 'impact', label: 'Impact Statement', type: 'textarea', placeholder: 'Briefly, what laws it amends/repeals' },
   { name: 'tags', label: 'Tags (one per entry)', type: 'array', arrayItemSchema: 'text' },
-  { name: 'committees', label: 'Referred Committees', type: 'array', arrayItemSchema: 'text' }, // Corrected: array of committee names (strings)
+  // { name: 'committees', label: 'Referred Committees', type: 'array', arrayItemSchema: 'text' }, // Replaced by committeeLinks
+  {
+    name: 'committeeLinks',
+    label: 'Linked Committees',
+    type: 'array',
+    arrayItemSchema: {
+      name: 'committeeLink',
+      label: 'Committee Link',
+      type: 'object',
+      objectSchema: billCommitteeLinkSchema // Defined below
+    } as FormFieldSchema,
+  },
+  {
+    name: 'relatedPartyId',
+    label: 'Related Party (Optional)',
+    type: 'entity-selector',
+    referencedEntityType: 'Party',
+    placeholder: 'Select a party if the bill is strongly associated with it',
+    required: false,
+  }
+];
+
+export const billCommitteeLinkSchema: FormFieldSchema[] = [
+  { name: 'id', label: 'Link ID', type: 'text', readOnly: true, placeholder: 'Generated automatically' },
+  {
+    name: 'committeeId',
+    label: 'Committee',
+    type: 'entity-selector',
+    referencedEntityType: 'Committee',
+    required: true
+  },
+  { name: 'referralDate', label: 'Referral Date', type: 'date', required: false },
+  {
+    name: 'statusInCommittee',
+    label: 'Status in Committee',
+    type: 'select',
+    required: false,
+    options: [
+       { value: 'UnderReview', label: 'Under Review' },
+       { value: 'HearingScheduled', label: 'Hearing Scheduled' },
+       { value: 'Reported', label: 'Reported' },
+       { value: 'Amended', label: 'Amended' },
+       { value: 'Rejected', label: 'Rejected' },
+       { value: 'Other', label: 'Other' },
+    ],
+    placeholder: 'Select status in committee'
+  },
 ];
 
 // --- Schemas for Bill's complex fields ---
@@ -547,6 +599,7 @@ export const keyDatesSchema: FormFieldSchema[] = [
 ];
 
 export const billTimelineEventItemSchema: FormFieldSchema[] = [
+  { name: 'id', label: 'ID', type: 'text', readOnly: true, placeholder: 'Generated automatically' },
   { name: 'date', label: 'Date', type: 'date', required: true },
   { name: 'event', label: 'Event', type: 'text', required: true, placeholder: 'e.g., First Reading' },
   { name: 'description', label: 'Description (Optional)', type: 'textarea' },
@@ -585,12 +638,61 @@ export const billVotingResultsChamberSchema: FormFieldSchema[] = [
 ];
 
 // Update billSchema to include these complex types
-const existingBillSchemaFields = billSchema.slice(0, billSchema.findIndex(f => f.name === 'sponsors') +1); // Keep fields up to and including sponsors
-const remainingBillSchemaFields = billSchema.slice(billSchema.findIndex(f => f.name === 'sponsors') + 1)
-    .filter(f => !['tags', 'committees'].includes(f.name)); // Remove tags and committees from here as they are in the base
+// Find the index of the original 'committees' field to replace it or insert committeeLinks nearby
+const committeesIndex = billSchema.findIndex(f => f.name === 'committees');
+let baseBillSchemaFields = [...billSchema];
+
+if (committeesIndex !== -1) {
+    // Replace 'committees' with 'committeeLinks'
+    baseBillSchemaFields.splice(committeesIndex, 1, {
+        name: 'committeeLinks',
+        label: 'Linked Committees',
+        type: 'array',
+        arrayItemSchema: {
+            name: 'committeeLink',
+            label: 'Committee Link',
+            type: 'object',
+            objectSchema: billCommitteeLinkSchema
+        } as FormFieldSchema,
+    });
+} else {
+    // Fallback: if 'committees' field was already removed or renamed, find 'tags' and insert before it
+    const tagsIndex = baseBillSchemaFields.findIndex(f => f.name === 'tags');
+    if (tagsIndex !== -1) {
+        baseBillSchemaFields.splice(tagsIndex, 0, {
+            name: 'committeeLinks',
+            label: 'Linked Committees',
+            type: 'array',
+            arrayItemSchema: {
+                name: 'committeeLink',
+                label: 'Committee Link',
+                type: 'object',
+                objectSchema: billCommitteeLinkSchema
+            } as FormFieldSchema,
+        });
+    } else {
+        // If neither 'committees' nor 'tags' is found, append to the end (less ideal)
+        baseBillSchemaFields.push({
+            name: 'committeeLinks',
+            label: 'Linked Committees',
+            type: 'array',
+            arrayItemSchema: {
+                name: 'committeeLink',
+                label: 'Committee Link',
+                type: 'object',
+                objectSchema: billCommitteeLinkSchema
+            } as FormFieldSchema,
+        });
+    }
+}
+
+
+const existingBillSchemaFields = baseBillSchemaFields.slice(0, baseBillSchemaFields.findIndex(f => f.name === 'sponsors') +1); // Keep fields up to and including sponsors
+const remainingBillSchemaFields = baseBillSchemaFields.slice(baseBillSchemaFields.findIndex(f => f.name === 'sponsors') + 1);
+    // .filter(f => !['tags', 'committeeLinks'].includes(f.name)); // Ensure new field isn't accidentally duplicated if logic changes
 
 export const fullBillSchema: FormFieldSchema[] = [
-    ...existingBillSchemaFields, // title, billNumber, summary, purpose, billType, status, introducedDate, fullTextUrl, sponsors
+    ...existingBillSchemaFields,
     { name: 'keyDates', label: 'Key Dates', type: 'object', objectSchema: keyDatesSchema, placeholder: 'Various key dates of the bill' },
     { name: 'timelineEvents', label: 'Timeline Events', type: 'array', arrayItemSchema: { name: 'event', label: 'Timeline Event', type: 'object', objectSchema: billTimelineEventItemSchema } as FormFieldSchema },
     {
@@ -602,9 +704,8 @@ export const fullBillSchema: FormFieldSchema[] = [
             { name: 'senate', label: 'Senate Voting Results', type: 'object', objectSchema: billVotingResultsChamberSchema, required: false },
         ]
     },
-    ...remainingBillSchemaFields, // slug, responsibleMinistry, etc.
-    // Ensure 'tags' and 'committees' (as simple string arrays) are correctly defined once, either in base or here.
-    // Since they were corrected in base billSchema, they should be fine.
+    ...remainingBillSchemaFields,
+    // Tags and other fields will be in remainingBillSchemaFields if they were after sponsors
 ];
 
 
@@ -671,6 +772,14 @@ export const committeeSchema: FormFieldSchema[] = [
   { name: 'establishmentDate', label: 'Establishment Date', type: 'date' },
   { name: 'dissolutionDate', label: 'Dissolution Date (Optional)', type: 'date' },
   { name: 'tags', label: 'Tags', type: 'array', arrayItemSchema: { name: 'tag', label: 'Tag', type: 'text', placeholder: 'Enter a tag' } as FormFieldSchema },
+  {
+    name: 'relatedPartyId',
+    label: 'Related Party (Optional)',
+    type: 'entity-selector',
+    referencedEntityType: 'Party',
+    placeholder: 'Select a party if the committee has a strong affiliation',
+    required: false,
+  }
 ];
 
 // --- Schemas for Committee's complex fields ---
@@ -776,6 +885,14 @@ export const constituencySchema: FormFieldSchema[] = [
   { name: 'currentRepresentativeIds', label: 'Current Rep IDs (JSON Array)', type: 'textarea', placeholder: 'e.g., ["repId1", "repId2"]'},
   { name: 'currentRepresentativeNames', label: 'Current Rep Names (JSON Array)', type: 'textarea', placeholder: 'e.g., ["Rep Name 1", "Rep Name 2"]'},
   { name: 'tags', label: 'Tags', type: 'array', arrayItemSchema: { name: 'tag', label: 'Tag', type: 'text', placeholder: 'Enter a tag' } as FormFieldSchema },
+  {
+    name: 'dominantPartyId',
+    label: 'Dominant Party (Optional)',
+    type: 'entity-selector',
+    referencedEntityType: 'Party',
+    placeholder: 'Select the dominant political party in this constituency',
+    required: false,
+  }
 ];
 
 // --- Schemas for Constituency's complex fields ---
@@ -928,6 +1045,14 @@ export const electionSchema: FormFieldSchema[] = [
     placeholder: 'Select election status',
   },
   // Voter turnout, timeline events etc. are results, typically admin-managed.
+];
+
+export const electionTimelineEventSchema: FormFieldSchema[] = [
+  { name: 'id', label: 'ID', type: 'text', readOnly: true, placeholder: 'Generated automatically' }, // Add ID field, make it readOnly in forms
+  { name: 'date', label: 'Date', type: 'date', required: true },
+  { name: 'event', label: 'Event Title', type: 'text', required: true, placeholder: 'e.g., Nomination Deadline' },
+  { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Details about the event' },
+  { name: 'relatedDocumentUrl', label: 'Related Document URL (Optional)', type: 'url' },
 ];
 
 // NewsSchema (for NewsArticleLink)
@@ -1099,6 +1224,14 @@ export const controversySchema: FormFieldSchema[] = [
     referencedEntityType: 'Politician',
     required: false,
     placeholder: 'Select primary politician if applicable',
+  },
+  {
+    name: 'primaryPartyId',
+    label: 'Primary Party Involved (Optional)',
+    type: 'entity-selector',
+    referencedEntityType: 'Party',
+    placeholder: 'Select primary party if applicable',
+    required: false,
   },
   {
     name: 'severityIndicator',
