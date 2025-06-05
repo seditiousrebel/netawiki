@@ -1,5 +1,11 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/common/page-header';
 import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth';
+import { getAllUsers, updateUserRole, getAssignableRoles, type ManagedUser, type ManagedUserRole } from '@/lib/data/users';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import {
   Table,
   TableHeader,
@@ -10,26 +16,82 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Pencil } from 'lucide-react';
 
-const mockUsers = [
-  { id: 'usr_001', name: 'Admin User', email: 'admin@example.com', role: 'Admin', joinDate: '2023-01-15' },
-  { id: 'usr_002', name: 'Editor Bob', email: 'editor.bob@example.com', role: 'Editor', joinDate: '2023-02-20' },
-  { id: 'usr_003', name: 'Member Alice', email: 'alice.m@example.com', role: 'Member', joinDate: '2023-03-10' },
-  { id: 'usr_004', name: 'Member Charlie', email: 'charlie@example.com', role: 'Member', joinDate: '2023-05-01' },
-  { id: 'usr_005', name: 'Editor Eve', email: 'eve.editor@example.com', role: 'Editor', joinDate: '2023-06-15' },
-  { id: 'usr_006', name: 'SuperAdmin Sue', email: 'sue.super@example.com', role: 'SuperAdmin', joinDate: '2022-12-01' },
-];
+// Modal Component for Editing User Role
+interface EditRoleModalProps {
+  isOpen: boolean;
+  user: ManagedUser | null;
+  currentRole: ManagedUserRole | '';
+  assignableRoles: ManagedUserRole[];
+  onClose: () => void;
+  onSave: (newRole: ManagedUserRole) => void;
+  loggedInUserId: string; // To prevent self-editing role
+}
 
-const getRoleBadgeVariant = (role: string): 'default' | 'secondary' | 'outline' | 'destructive' => {
+const EditRoleModal: React.FC<EditRoleModalProps> = ({
+  isOpen,
+  user,
+  currentRole,
+  assignableRoles,
+  onClose,
+  onSave,
+  loggedInUserId,
+}) => {
+  const [selectedRole, setSelectedRole] = useState<ManagedUserRole | ''>(currentRole);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedRole(currentRole);
+    }
+  }, [isOpen, currentRole]);
+
+  if (!isOpen || !user) return null;
+
+  const isSelfEdit = user.id === loggedInUserId;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Role for {user.name}</DialogTitle>
+        </DialogHeader>
+        <div className="py-4 space-y-2">
+          <p className="text-sm text-muted-foreground">User: {user.email}</p>
+          <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as ManagedUserRole)} disabled={isSelfEdit}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select new role" />
+            </SelectTrigger>
+            <SelectContent>
+              {assignableRoles.map(role => (
+                <SelectItem key={role} value={role}>{role}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {isSelfEdit && <p className="text-sm text-yellow-600">You cannot edit your own role.</p>}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={() => selectedRole && onSave(selectedRole)} disabled={!selectedRole || isSelfEdit}>
+            Save Changes
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+
+const getRoleBadgeVariant = (role: ManagedUserRole | string): 'default' | 'secondary' | 'outline' | 'destructive' => {
   switch (role.toLowerCase()) {
     case 'admin':
       return 'destructive';
     case 'superadmin':
-      return 'destructive'; // Or another distinct style like primary if available
+      return 'destructive';
     case 'editor':
       return 'secondary';
     case 'member':
+    case 'guest': // Added guest for completeness
       return 'outline';
     default:
       return 'outline';
@@ -37,18 +99,52 @@ const getRoleBadgeVariant = (role: string): 'default' | 'secondary' | 'outline' 
 };
 
 export default function UserRoleManagementPage() {
-  const currentUser = getCurrentUser();
+  const [users, setUsers] = useState<ManagedUser[]>([]);
+  const [isEditRoleModalOpen, setIsEditRoleModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
+  const [selectedRoleForEdit, setSelectedRoleForEdit] = useState<ManagedUserRole | ''>('');
+  const [assignableRoles, setAssignableRoles] = useState<ManagedUserRole[]>([]);
+
+  const authUser = getCurrentUser(); // Renamed to authUser to avoid confusion
+
+  useEffect(() => {
+    setUsers(getAllUsers());
+    setAssignableRoles(getAssignableRoles());
+  }, []);
 
   // For user management, let's use EDITOR_ROLES for now as per simplification
-  if (!canAccess(currentUser.role, EDITOR_ROLES)) {
+  if (!canAccess(authUser.role, EDITOR_ROLES)) {
     return <div className="container mx-auto py-8 text-center">Access Denied. You do not have permission to view this page.</div>;
   }
+
+  const handleOpenEditModal = (user: ManagedUser) => {
+    setEditingUser(user);
+    setSelectedRoleForEdit(user.role);
+    setIsEditRoleModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditRoleModalOpen(false);
+    setEditingUser(null);
+    setSelectedRoleForEdit('');
+  };
+
+  const handleSaveRole = (newRole: ManagedUserRole) => {
+    if (editingUser) {
+      if (updateUserRole(editingUser.id, newRole)) {
+        setUsers(getAllUsers()); // Refresh user list
+      } else {
+        alert(`Failed to update role for ${editingUser.name}.`);
+      }
+    }
+    handleCloseEditModal();
+  };
 
   return (
     <div className="container mx-auto py-8">
       <PageHeader
         title="User Role Management"
-        description="View and manage user roles across the platform. (Currently view-only)"
+        description="View and manage user roles across the platform."
         actions={
           <Button variant="outline" disabled>
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -70,7 +166,7 @@ export default function UserRoleManagementPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {mockUsers.map((user) => (
+            {users.map((user) => (
               <TableRow key={user.id}>
                 <TableCell className="font-mono text-xs">{user.id}</TableCell>
                 <TableCell className="font-medium">{user.name}</TableCell>
@@ -80,8 +176,8 @@ export default function UserRoleManagementPage() {
                 </TableCell>
                 <TableCell>{new Date(user.joinDate).toLocaleDateString()}</TableCell>
                 <TableCell className="text-right">
-                  <Button variant="outline" size="sm" disabled>
-                    Edit Role
+                  <Button variant="outline" size="sm" onClick={() => handleOpenEditModal(user)}>
+                    <Pencil className="mr-1 h-3 w-3" /> Edit Role
                   </Button>
                 </TableCell>
               </TableRow>
@@ -89,6 +185,15 @@ export default function UserRoleManagementPage() {
           </TableBody>
         </Table>
       </div>
+      <EditRoleModal
+        isOpen={isEditRoleModalOpen}
+        user={editingUser}
+        currentRole={selectedRoleForEdit}
+        assignableRoles={assignableRoles}
+        onClose={handleCloseEditModal}
+        onSave={handleSaveRole}
+        loggedInUserId={authUser.id}
+      />
     </div>
   );
 }
