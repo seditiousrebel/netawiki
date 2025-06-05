@@ -479,6 +479,3 @@ export default function ConstituencyDetailPage({ params: paramsPromise }: { para
     </div>
   );
 }
-
-
-[end of src/app/(app)/constituencies/[id]/page.tsx]
