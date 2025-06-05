@@ -24,7 +24,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           <main className="flex-1 overflow-y-auto flex flex-col"> {/* Added flex-col here */}
             <AppHeader /> {/* New position: Inside main, will be sticky to main's scroll area */}
             {/* The existing content wrapper div */}
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+            <div className="mx-auto w-full px-4 sm:px-6 md:px-8 py-6 md:py-8 lg:max-w-screen-xl xl:max-w-screen-2xl">
               {children}
             </div>
           </main>

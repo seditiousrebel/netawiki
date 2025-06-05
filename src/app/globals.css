@@ -106,6 +106,6 @@
   body {
     @apply bg-background text-foreground;
     /* Consider adding font-antialiased for smoother text rendering */
-    /* @apply font-antialiased; */
+  @apply font-antialiased;
   }
 }
