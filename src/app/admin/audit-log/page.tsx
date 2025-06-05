@@ -1,3 +1,7 @@
+
+"use client"; // Add this line to make it a client component
+
+import React, { useState, useEffect } from 'react'; // Import useState and useEffect
 import { PageHeader } from '@/components/common/page-header';
 import {
   Table,
@@ -10,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Filter } from 'lucide-react';
+import { Filter, Loader2 } from 'lucide-react'; // Import Loader2
 import { getCurrentUser, canAccess, EDITOR_ROLES } from '@/lib/auth';
 
 const mockAuditLogEntries = [
@@ -24,7 +28,21 @@ const mockAuditLogEntries = [
 ];
 
 export default function AuditLogPage() {
-  const currentUser = getCurrentUser();
+  const [isClient, setIsClient] = useState(false);
+  const [currentUser, setCurrentUser] = useState(getCurrentUser()); // Get user once on client
+
+  useEffect(() => {
+    setIsClient(true);
+    setCurrentUser(getCurrentUser()); // Re-check current user on client mount
+  }, []);
+
+  if (!isClient) {
+    return (
+      <div className="container mx-auto py-8 flex justify-center items-center min-h-[calc(100vh-10rem)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!canAccess(currentUser.role, EDITOR_ROLES)) {
     return <div className="container mx-auto py-8 text-center">Access Denied. You do not have permission to view this page.</div>;
