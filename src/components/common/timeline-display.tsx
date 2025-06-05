@@ -1,6 +1,6 @@
 
 import type { PoliticalJourneyEvent, BillTimelineEvent, PromiseStatusUpdate, ControversyUpdate, ElectionTimelineEvent, CommitteeActivityEvent } from '@/types/gov';
-import { Briefcase, FileText, ListChecks, ShieldAlert, Vote, Landmark, CalendarDays, LucideIcon, ListFilter, X } from 'lucide-react';
+import { Briefcase, FileText, ListChecks, ShieldAlert, Vote, Landmark, CalendarDays, LucideIcon, ListFilter, X, Pencil, Trash2 } from 'lucide-react';
 import React, { useState, useMemo, memo } from 'react'; // Import memo
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface TimelineItem {
+  id: string; // Added id for editing/deleting
   date: string;
   title: string;
   description?: string;
@@ -25,6 +26,8 @@ interface TimelineItem {
 interface TimelineDisplayProps {
   items: TimelineItem[];
   title?: string;
+  onEditItem?: (id: string) => void; // Optional handler for editing
+  onDeleteItem?: (id: string) => void; // Optional handler for deleting
 }
 
 const iconMap: { [key: string]: LucideIcon } = {
@@ -139,14 +142,28 @@ const TimelineDisplayComponent: React.FC<TimelineDisplayProps> = ({ items, title
               <p className="font-semibold text-foreground">{item.title}</p>
               <p className="text-sm text-muted-foreground mb-1">{new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
               {item.description && <p className="text-sm text-foreground/80 whitespace-pre-line">{item.description}</p>}
-            {item.actor && <p className="text-xs text-muted-foreground mt-0.5">Actor: {item.actor}</p>}
-            {item.relatedDocumentUrl && (
-              <a href={item.relatedDocumentUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-0.5 inline-block">
-                View Related Document
-              </a>
-            )}
-          </div>
-        );
+              {item.actor && <p className="text-xs text-muted-foreground mt-0.5">Actor: {item.actor}</p>}
+              {item.relatedDocumentUrl && (
+                <a href={item.relatedDocumentUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-0.5 inline-block">
+                  View Related Document
+                </a>
+              )}
+              {(onEditItem || onDeleteItem) && (
+                <div className="mt-2 space-x-2">
+                  {onEditItem && (
+                    <Button variant="outline" size="xs" onClick={() => onEditItem(item.id)}>
+                      <Pencil className="h-3 w-3 mr-1" /> Edit
+                    </Button>
+                  )}
+                  {onDeleteItem && (
+                    <Button variant="destructive" size="xs" onClick={() => onDeleteItem(item.id)}>
+                      <Trash2 className="h-3 w-3 mr-1" /> Delete
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          );
         })}
       </div>
     </div>
@@ -154,7 +171,7 @@ const TimelineDisplayComponent: React.FC<TimelineDisplayProps> = ({ items, title
 }
 
 // Helper functions to adapt specific types to TimelineItem
-export function formatPoliticalJourneyForTimeline(journeyEvents: PoliticalJourneyEvent[]): TimelineItem[] {
+export function formatPoliticalJourneyForTimeline(journeyEvents: PoliticalJourneyEvent[]): Omit<TimelineItem, 'id'>[] { // ID is not present in PoliticalJourneyEvent
   return journeyEvents.map(event => ({
     date: event.date,
     title: event.event,
@@ -165,7 +182,7 @@ export function formatPoliticalJourneyForTimeline(journeyEvents: PoliticalJourne
 
 // Export the memoized version as the primary TimelineDisplay
 export const TimelineDisplay = memo(TimelineDisplayComponent);
-export function formatBillTimelineEventsForTimeline(events: BillTimelineEvent[]): TimelineItem[] {
+export function formatBillTimelineEventsForTimeline(events: BillTimelineEvent[]): Omit<TimelineItem, 'id'>[] { // ID is not present in BillTimelineEvent
   return events.map(event => ({
     date: event.date,
     title: event.event,
@@ -176,7 +193,7 @@ export function formatBillTimelineEventsForTimeline(events: BillTimelineEvent[])
   }));
 }
 
-export function formatPromiseStatusUpdatesForTimeline(statusUpdates: PromiseStatusUpdate[]): TimelineItem[] {
+export function formatPromiseStatusUpdatesForTimeline(statusUpdates: PromiseStatusUpdate[]): Omit<TimelineItem, 'id'>[] { // ID is not present in PromiseStatusUpdate
   return statusUpdates.map(update => {
     let title = `Status changed to: ${update.status}`;
     if (update.fulfillmentPercentage !== undefined) {
@@ -195,7 +212,7 @@ export function formatPromiseStatusUpdatesForTimeline(statusUpdates: PromiseStat
   });
 }
 
-export function formatControversyUpdatesForTimeline(updates: ControversyUpdate[]): TimelineItem[] {
+export function formatControversyUpdatesForTimeline(updates: ControversyUpdate[]): Omit<TimelineItem, 'id'>[] { // ID is not present in ControversyUpdate
   return updates.map(update => ({
     date: update.date,
     title: update.description, // Using description as the main title for controversy updates
@@ -204,8 +221,9 @@ export function formatControversyUpdatesForTimeline(updates: ControversyUpdate[]
   }));
 }
 
-export function formatElectionTimelineEventsForTimeline(events: ElectionTimelineEvent[]): TimelineItem[] {
+export function formatElectionTimelineEventsForTimeline(events: ElectionTimelineEvent[]): TimelineItem[] { // ElectionTimelineEvent now has ID
   return events.map(event => ({
+    id: event.id, // Ensure id is passed through
     date: event.date,
     title: event.event,
     description: event.description,
@@ -214,7 +232,7 @@ export function formatElectionTimelineEventsForTimeline(events: ElectionTimeline
   }));
 }
 
-export function formatCommitteeActivityForTimeline(events: CommitteeActivityEvent[]): TimelineItem[] {
+export function formatCommitteeActivityForTimeline(events: CommitteeActivityEvent[]): Omit<TimelineItem, 'id'>[] { // ID is not present in CommitteeActivityEvent
   return events.map(event => ({
     date: event.date,
     title: event.event,

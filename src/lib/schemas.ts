@@ -530,6 +530,14 @@ export const billSchema: FormFieldSchema[] = [
   { name: 'impact', label: 'Impact Statement', type: 'textarea', placeholder: 'Briefly, what laws it amends/repeals' },
   { name: 'tags', label: 'Tags (one per entry)', type: 'array', arrayItemSchema: 'text' },
   { name: 'committees', label: 'Referred Committees', type: 'array', arrayItemSchema: 'text' }, // Corrected: array of committee names (strings)
+  {
+    name: 'relatedPartyId',
+    label: 'Related Party (Optional)',
+    type: 'entity-selector',
+    referencedEntityType: 'Party',
+    placeholder: 'Select a party if the bill is strongly associated with it',
+    required: false,
+  }
 ];
 
 // --- Schemas for Bill's complex fields ---
@@ -671,6 +679,14 @@ export const committeeSchema: FormFieldSchema[] = [
   { name: 'establishmentDate', label: 'Establishment Date', type: 'date' },
   { name: 'dissolutionDate', label: 'Dissolution Date (Optional)', type: 'date' },
   { name: 'tags', label: 'Tags', type: 'array', arrayItemSchema: { name: 'tag', label: 'Tag', type: 'text', placeholder: 'Enter a tag' } as FormFieldSchema },
+  {
+    name: 'relatedPartyId',
+    label: 'Related Party (Optional)',
+    type: 'entity-selector',
+    referencedEntityType: 'Party',
+    placeholder: 'Select a party if the committee has a strong affiliation',
+    required: false,
+  }
 ];
 
 // --- Schemas for Committee's complex fields ---
@@ -776,6 +792,14 @@ export const constituencySchema: FormFieldSchema[] = [
   { name: 'currentRepresentativeIds', label: 'Current Rep IDs (JSON Array)', type: 'textarea', placeholder: 'e.g., ["repId1", "repId2"]'},
   { name: 'currentRepresentativeNames', label: 'Current Rep Names (JSON Array)', type: 'textarea', placeholder: 'e.g., ["Rep Name 1", "Rep Name 2"]'},
   { name: 'tags', label: 'Tags', type: 'array', arrayItemSchema: { name: 'tag', label: 'Tag', type: 'text', placeholder: 'Enter a tag' } as FormFieldSchema },
+  {
+    name: 'dominantPartyId',
+    label: 'Dominant Party (Optional)',
+    type: 'entity-selector',
+    referencedEntityType: 'Party',
+    placeholder: 'Select the dominant political party in this constituency',
+    required: false,
+  }
 ];
 
 // --- Schemas for Constituency's complex fields ---
@@ -928,6 +952,14 @@ export const electionSchema: FormFieldSchema[] = [
     placeholder: 'Select election status',
   },
   // Voter turnout, timeline events etc. are results, typically admin-managed.
+];
+
+export const electionTimelineEventSchema: FormFieldSchema[] = [
+  { name: 'id', label: 'ID', type: 'text', readOnly: true, placeholder: 'Generated automatically' }, // Add ID field, make it readOnly in forms
+  { name: 'date', label: 'Date', type: 'date', required: true },
+  { name: 'event', label: 'Event Title', type: 'text', required: true, placeholder: 'e.g., Nomination Deadline' },
+  { name: 'description', label: 'Description', type: 'textarea', placeholder: 'Details about the event' },
+  { name: 'relatedDocumentUrl', label: 'Related Document URL (Optional)', type: 'url' },
 ];
 
 // NewsSchema (for NewsArticleLink)
@@ -1099,6 +1131,14 @@ export const controversySchema: FormFieldSchema[] = [
     referencedEntityType: 'Politician',
     required: false,
     placeholder: 'Select primary politician if applicable',
+  },
+  {
+    name: 'primaryPartyId',
+    label: 'Primary Party Involved (Optional)',
+    type: 'entity-selector',
+    referencedEntityType: 'Party',
+    placeholder: 'Select primary party if applicable',
+    required: false,
   },
   {
     name: 'severityIndicator',

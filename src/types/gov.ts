@@ -355,6 +355,7 @@ export interface Bill {
   timelineEvents: BillTimelineEvent[];
   status: BillStatus;
   introducedDate: string;
+  relatedPartyId?: string;
   lastActionDate?: string;
   lastActionDescription?: string;
   fullTextUrl?: string;
@@ -559,6 +560,7 @@ export type ElectionStatus =
   | 'Cancelled';
 
 export type ElectionTimelineEvent = {
+  id: string;
   date: string; // ISO Date string
   event: string; // e.g., "Nomination Deadline", "Campaign Period Starts", "Voting Day", "Results Announced"
   description?: string;
@@ -686,6 +688,7 @@ export interface Committee {
   dissolutionDate?: string; // ISO Date string (if applicable)
   activityTimeline?: CommitteeActivityEvent[];
   dataAiHint?: string; // For a generic image placeholder
+  relatedPartyId?: string;
   revisionHistory?: EntityRevision[];
 }
 
@@ -757,6 +760,7 @@ export interface Constituency {
   localIssues?: LocalIssue[];
   dataAiHint?: string; // For image placeholder on list views
   tags?: string[];
+  dominantPartyId?: string;
   revisionHistory?: EntityRevision[];
 }
 
