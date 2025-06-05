@@ -11,9 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { ArrowRight, CalendarDays, VoteIcon, CheckCircle, Clock, SearchIcon, FileText, PlusCircle } from 'lucide-react';
+import { ArrowRight, CalendarDays, VoteIcon, CheckCircle, Clock, SearchIcon, FileText, PlusCircle, ArchiveIcon } from 'lucide-react';
 import type { Election, ElectionStatus, ElectionType } from '@/types/gov';
 import { format } from 'date-fns';
+import { FilterBar } from '@/components/common/filter-bar';
+import { EmptyState } from '@/components/common/empty-state';
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
 import { entitySchemas } from '@/lib/schemas'; // Added
 import type { EntityType } from '@/lib/data/suggestions'; // Added
@@ -159,7 +161,7 @@ export default function ElectionsPage() {
         onSubmit={handleSuggestNewElectionSubmit}
       />
 
-      <Card className="mb-8 p-6 shadow-md">
+      <FilterBar title="Filters">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
           <div className="sm:col-span-2 md:col-span-4">
             <Label htmlFor="search-elections">Search Elections</Label>
@@ -211,7 +213,7 @@ export default function ElectionsPage() {
             </Select>
           </div>
         </div>
-      </Card>
+      </FilterBar>
 
       {filteredElections.length > 0 ? (
         <div className="space-y-6">
@@ -257,11 +259,11 @@ export default function ElectionsPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-10">
-            <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
-            <p className="mt-4 text-lg font-medium">No elections found.</p>
-            <p className="text-sm text-muted-foreground">Try adjusting your search or filter criteria.</p>
-        </div>
+        <EmptyState
+          IconComponent={ArchiveIcon}
+          title="No Elections Found"
+          message="Try adjusting your search or filter criteria."
+        />
       )}
     </div>
   );

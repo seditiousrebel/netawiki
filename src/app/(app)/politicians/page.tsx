@@ -14,6 +14,8 @@ import type { Politician, Party, Committee } from '@/types/gov'; // Added Commit
 import { Button } from '@/components/ui/button';
 import { PlusCircle, UsersIcon } from 'lucide-react'; // Added UsersIcon
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { FilterBar } from '@/components/common/filter-bar';
+import { EmptyState } from '@/components/common/empty-state';
 import { entitySchemas } from '@/lib/schemas'; // Added
 import type { EntityType } from '@/lib/data/suggestions'; // Added
 import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
@@ -230,10 +232,11 @@ export default function PoliticiansPage() {
         onSubmit={handleSuggestNewPoliticianSubmit}
       />
 
-      <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        <Input
-          placeholder="Search by name..."
-          value={searchTerm}
+      <FilterBar title="Filters">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <Input
+            placeholder="Search by name..."
+            value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="sm:col-span-2 md:col-span-1"
         />
@@ -325,7 +328,8 @@ export default function PoliticiansPage() {
             <SelectItem value="activity_asc">Recently Active (Oldest)</SelectItem>
           </SelectContent>
         </Select>
-      </div>
+        </div>
+      </FilterBar>
 
       {filteredPoliticians.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -343,13 +347,11 @@ export default function PoliticiansPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-10">
-          <UsersIcon className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-2 text-lg font-medium">No Politicians Found</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            No politicians match your current search or filter criteria. Try adjusting your filters.
-          </p>
-        </div>
+        <EmptyState
+          IconComponent={UsersIcon}
+          title="No Politicians Found"
+          message="No politicians match your current search or filter criteria. Try adjusting your filters."
+        />
       )}
     </div>
   );

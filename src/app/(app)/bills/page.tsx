@@ -20,6 +20,8 @@ import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { FilterBar } from '@/components/common/filter-bar';
+import { EmptyState } from '@/components/common/empty-state';
 
 export default function BillsPage() {
   const { toast } = useToast();
@@ -145,7 +147,7 @@ export default function BillsPage() {
         </CardContent>
       </Card>
 
-      <Card className="mb-8 p-6 shadow-md">
+      <FilterBar title="Filters">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
           <div>
             <Label htmlFor="search-bills">Search Bills</Label>
@@ -187,7 +189,7 @@ export default function BillsPage() {
             </Select>
           </div>
         </div>
-      </Card>
+      </FilterBar>
 
       {filteredBills.length > 0 ? (
         <div className="space-y-6">
@@ -240,11 +242,11 @@ export default function BillsPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-10">
-            <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
-            <p className="mt-4 text-lg font-medium">No bills found.</p>
-            <p className="text-sm text-muted-foreground">Try adjusting your search or filter criteria.</p>
-        </div>
+        <EmptyState
+          IconComponent={FileText}
+          title="No Bills Found"
+          message="Try adjusting your search or filter criteria."
+        />
       )}
     </div>
   );

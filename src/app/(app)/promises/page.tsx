@@ -20,6 +20,8 @@ import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { FilterBar } from '@/components/common/filter-bar';
+import { EmptyState } from '@/components/common/empty-state';
 
 
 function getStatusVisuals(status: PromiseStatus): { icon: React.ReactNode; badgeClass: string; } {
@@ -263,7 +265,7 @@ export default function PromisesPage() {
         onSubmit={handleSuggestNewPromiseSubmit}
       />
 
-      <Card className="mb-8 p-6 shadow-md">
+      <FilterBar title="Filters">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
           <div className="col-span-full md:col-span-1">
             <Label htmlFor="search-promise">Search Promises</Label>
@@ -337,7 +339,7 @@ export default function PromisesPage() {
             </div>
           </div>
         </div>
-      </Card>
+      </FilterBar>
 
 
       {filteredPromises.length > 0 ? (
@@ -429,11 +431,11 @@ export default function PromisesPage() {
           })}
         </div>
       ) : (
-         <div className="text-center py-10">
-          <ClipboardList className="mx-auto h-12 w-12 text-muted-foreground" />
-          <p className="mt-4 text-lg font-medium">No promises found.</p>
-          <p className="text-sm text-muted-foreground">Try adjusting your search or filter criteria.</p>
-        </div>
+        <EmptyState
+          IconComponent={ClipboardList}
+          title="No Promises Found"
+          message="Try adjusting your search or filter criteria."
+        />
       )}
     </div>
   );

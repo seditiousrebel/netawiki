@@ -13,6 +13,8 @@ import { Users, Landmark, Building, Search, ArrowRight, PlusCircle } from 'lucid
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { FilterBar } from '@/components/common/filter-bar';
+import { EmptyState } from '@/components/common/empty-state';
 import { entitySchemas } from '@/lib/schemas'; // Added
 import type { EntityType } from '@/lib/data/suggestions'; // Added
 import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
@@ -129,7 +131,7 @@ export default function CommitteesPage() {
         onSubmit={handleSuggestNewCommitteeSubmit}
       />
 
-      <Card className="mb-8 p-6 shadow-md">
+      <FilterBar title="Filters">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
           <div className="col-span-full md:col-span-1">
             <Label htmlFor="search-committee">Search Committees</Label>
@@ -179,7 +181,7 @@ export default function CommitteesPage() {
             </div>
           </div>
         </div>
-      </Card>
+      </FilterBar>
 
       {filteredCommittees.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -230,11 +232,11 @@ export default function CommitteesPage() {
           })}
         </div>
       ) : (
-        <div className="text-center py-10">
-          <Users className="mx-auto h-12 w-12 text-muted-foreground" />
-          <p className="mt-4 text-lg font-medium">No committees found.</p>
-          <p className="text-sm text-muted-foreground">Try adjusting your search or filter criteria.</p>
-        </div>
+        <EmptyState
+          IconComponent={Users}
+          title="No Committees Found"
+          message="Try adjusting your search or filter criteria."
+        />
       )}
     </div>
   );
