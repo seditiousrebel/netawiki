@@ -802,15 +802,19 @@ export function AppEntitySidebar() {
       collapsible="icon"
       className="hidden md:flex flex-col bg-card border-r border-border shadow-sm"
     >
-      <SidebarHeader className="flex items-center justify-end h-16"> {/* Changed justify-between to justify-end */}
+      <SidebarHeader className="flex items-center justify-between h-16"> {/* Changed back to justify-between */}
+        <Link href="/feed" className={cn("flex items-center gap-2 text-xl font-headline font-semibold text-primary", state === "collapsed" && "hidden")}>
+          <ShieldCheck className="h-7 w-7" />
+          <span>GovTrackr</span>
+        </Link>
         <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          variant="outline" /* Changed from ghost */
+          size="icon" /* size="icon" usually means padding is handled by h-X w-X */
+          className="h-10 w-10 text-muted-foreground hover:text-foreground" /* Increased size */
           onClick={toggleSidebar}
           aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
         >
-          <PanelLeftOpen className={cn("h-5 w-5 transition-transform duration-300", open && "rotate-180")} />
+          <PanelLeftOpen className={cn("h-6 w-6 transition-transform duration-300", open && "rotate-180")} /> {/* Increased icon size */}
         </Button>
       </SidebarHeader>
       <SidebarContent className="pt-2">

@@ -86,12 +86,8 @@ export function AppHeader() {
   const showAdminLinksInMobile = user && canAccess(currentUserForRoles.role, EDITOR_ROLES);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/feed" className="flex items-center gap-2 text-lg font-headline font-semibold text-primary">
-          <ShieldCheck className="h-7 w-7" />
-          <span>GovTrackr</span>
-        </Link>
 
         <nav className="hidden lg:flex items-center space-x-1 text-sm font-medium">
           {mainNavLinks.map((link) => {
@@ -181,10 +177,6 @@ export function AppHeader() {
               <SheetContent side="right" className="w-[280px] sm:w-[320px] p-0">
                  <SheetHeader className="p-4 border-b border-sidebar-border">
                   <SheetTitle className="text-lg font-semibold text-primary sr-only">Mobile Menu</SheetTitle>
-                   <Link href="/feed" className="flex items-center gap-2 text-lg font-headline font-semibold text-primary" onClick={() => setIsSheetOpen(false)}>
-                    <ShieldCheck className="h-7 w-7" />
-                    <span>GovTrackr</span>
-                  </Link>
                 </SheetHeader>
                 <div className="p-4">
                   <form onSubmit={handleSearchSubmit} className="relative mb-4">
