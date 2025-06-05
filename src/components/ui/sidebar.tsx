@@ -785,22 +785,11 @@ export function AppEntitySidebar() {
       collapsible="icon" // Desktop sidebar remains collapsible to icon state
       className="hidden md:flex flex-col bg-card border-r border-border shadow-sm" // Ensure it's hidden on mobile via md:flex
     >
-      {/* SidebarHeader is removed as the toggle and brand are now in AppHeader */}
-      <div className="h-16 flex items-center justify-center p-3 border-b border-sidebar-border">
-        {/* Optional: Placeholder or minimal brand icon for collapsed state if AppHeader brand is not visible */}
-        {state === 'collapsed' && (
-          <Link href="/" className="text-primary">
-            <ShieldCheck className="h-7 w-7" />
-            <span className="sr-only">GovTrackr</span>
-          </Link>
-        )}
-         {/* If expanded, and AppHeader Brand is sufficient, this area can be minimal or show full brand if desired */}
-        {state === 'expanded' && (
-           <Link href="/" className={cn("flex items-center gap-2 text-xl font-headline font-semibold text-primary")}>
-            <ShieldCheck className="h-7 w-7" />
-            <span>GovTrackr</span>
-          </Link>
-        )}
+      {/* The div that used to show the logo/brand in the sidebar is removed */}
+      {/* The header area of the sidebar is now empty or can be used for other purposes if needed in the future */}
+      <div className="h-16 border-b border-sidebar-border flex items-center justify-center">
+        {/* This space is now intentionally left blank, or could be used for a small icon if sidebar is collapsed and space is tight. */}
+        {/* For now, keeping it minimal as the main AppHeader handles branding. */}
       </div>
 
       <SidebarContent className="pt-2">
