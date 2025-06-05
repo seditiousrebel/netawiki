@@ -12,9 +12,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { ArrowRight, FileText, ExternalLink, SearchIcon, CheckSquare, ShieldQuestion, Bookmark, BookmarkCheck } from 'lucide-react'; // Added Bookmark, BookmarkCheck
+import { ArrowRight, FileText, ExternalLink, SearchIcon, CheckSquare, ShieldQuestion, Bookmark, BookmarkCheck, NewspaperIcon } from 'lucide-react'; // Added Bookmark, BookmarkCheck
 import type { NewsArticleLink, NewsArticleCategory } from '@/types/gov';
 import { format } from 'date-fns';
+import { FilterBar } from '@/components/common/filter-bar';
+import { EmptyState } from '@/components/common/empty-state';
 // Removed duplicate import: import { Button } from '@/components/ui/button'; 
 import { PlusCircle } from 'lucide-react'; 
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form'; 
@@ -159,7 +161,7 @@ export default function NewsPage() {
         />
       )}
 
-      <Card className="mb-8 p-6 shadow-md">
+      <FilterBar title="Filters">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
           <div>
             <Label htmlFor="search-news">Search News</Label>
@@ -199,7 +201,7 @@ export default function NewsPage() {
             </Select>
           </div>
         </div>
-      </Card>
+      </FilterBar>
 
       {filteredArticles.length > 0 ? (
         <div className="space-y-6">
@@ -274,11 +276,11 @@ export default function NewsPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-10">
-          <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
-          <p className="mt-4 text-lg font-medium">No news articles found.</p>
-          <p className="text-sm text-muted-foreground">Try adjusting your search or filter criteria, or check back later for new content.</p>
-        </div>
+        <EmptyState
+          IconComponent={NewspaperIcon}
+          title="No News Articles Found"
+          message="Try adjusting your search or filter criteria, or check back later for new content."
+        />
       )}
     </div>
   );

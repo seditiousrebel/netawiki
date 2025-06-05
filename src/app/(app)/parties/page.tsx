@@ -11,9 +11,11 @@ import PartyDistributionPieChart from '@/components/charts/PartyDistributionPieC
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Import Card components
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { FilterBar } from '@/components/common/filter-bar';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Building } from 'lucide-react'; // Added Building
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
+import { EmptyState } from '@/components/common/empty-state';
 import { entitySchemas } from '@/lib/schemas'; // Added
 import type { EntityType } from '@/lib/data/suggestions'; // Added
 import { getCurrentUser, isUserLoggedIn } from '@/lib/auth';
@@ -163,7 +165,7 @@ export default function PartiesPage() {
         </Card>
       )}
 
-      <div className="mb-8 p-6 bg-card rounded-lg shadow">
+      <FilterBar title="Filters">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3 gap-4 items-end">
           <div className="col-span-full xl:col-span-1">
             <Label htmlFor="search-party">Search Party</Label>
@@ -232,7 +234,7 @@ export default function PartiesPage() {
             </div>
           </div>
         </div>
-      </div>
+      </FilterBar>
 
       {filteredParties.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -250,13 +252,11 @@ export default function PartiesPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-10">
-          <Building className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-2 text-lg font-medium">No Political Parties Found</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            No parties match your current search or filter criteria. Try adjusting your filters.
-          </p>
-        </div>
+        <EmptyState
+          IconComponent={Building}
+          title="No Political Parties Found"
+          message="No parties match your current search or filter criteria. Try adjusting your filters."
+        />
       )}
     </div>
   );

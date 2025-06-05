@@ -8,9 +8,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowRight, ShieldAlert, Edit, SearchIcon, PlusCircle } from 'lucide-react';
+import { ArrowRight, ShieldAlert, Edit, SearchIcon, PlusCircle, ShieldXIcon } from 'lucide-react';
 import type { Controversy, InvolvedEntity } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
+import { FilterBar } from '@/components/common/filter-bar';
+import { EmptyState } from '@/components/common/empty-state';
 import { Input } from '@/components/ui/input';
 import { SuggestNewEntryForm } from '@/components/common/suggest-new-entry-form';
 import { entitySchemas } from '@/lib/schemas'; // Ensured import
@@ -164,7 +166,7 @@ export default function ControversiesPage() {
       )}
 
 
-      <Card className="mb-8 p-6 shadow-md">
+      <FilterBar title="Filters">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
           <div className="sm:col-span-2 md:col-span-4">
             <Label htmlFor="search-controversy">Search Controversies</Label>
@@ -216,7 +218,7 @@ export default function ControversiesPage() {
             </Select>
           </div>
         </div>
-      </Card>
+      </FilterBar>
 
       {filteredControversies.length > 0 ? (
         <div className="space-y-6">
@@ -262,11 +264,11 @@ export default function ControversiesPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-10">
-          <ShieldAlert className="mx-auto h-12 w-12 text-muted-foreground" />
-          <p className="mt-4 text-lg font-medium">No controversies found.</p>
-          <p className="text-sm text-muted-foreground">Try adjusting your search or filter criteria, or it's all quiet on the political front... for now.</p>
-        </div>
+        <EmptyState
+          IconComponent={ShieldXIcon}
+          title="No Controversies Found"
+          message="Try adjusting your search or filter criteria, or it's all quiet on the political front... for now."
+        />
       )}
     </div>
   );
