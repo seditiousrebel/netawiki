@@ -4,7 +4,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { PanelLeft, Gavel } from "lucide-react"; // Added Gavel
+import { PanelLeft, Gavel, PanelLeftOpen } from "lucide-react"; // Added PanelLeftOpen explicitly
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -19,7 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { getCurrentUser, canAccess, EDITOR_ROLES } from "@/lib/auth"; // Added canAccess, EDITOR_ROLES
+import { getCurrentUser, canAccess, EDITOR_ROLES } from "@/lib/auth";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -102,10 +102,18 @@ const SidebarProvider = React.forwardRef<
     )
 
     const toggleSidebar = React.useCallback(() => {
-      return isMobile
-        ? setOpenMobile((openVal) => !openVal)
-        : setOpen((openVal) => !openVal)
-    }, [isMobile, setOpen, setOpenMobile])
+      // For desktop, toggle the main sidebar. For mobile, this context's toggleSidebar
+      // is primarily for the desktop sidebar if it were ever unhidden on mobile,
+      // or for keyboard shortcuts. The mobile sheet has its own open/setOpen.
+      // However, the AppHeader's desktop toggle will use this.
+      if (!isMobile) {
+        setOpen((openVal) => !openVal);
+      }
+      // If you intend for a global shortcut to also control the mobile sheet:
+      // else {
+      //   setOpenMobile((openVal) => !openVal);
+      // }
+    }, [isMobile, setOpen, setOpenMobile]) // setOpenMobile removed if not toggling sheet from here
 
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
@@ -114,13 +122,19 @@ const SidebarProvider = React.forwardRef<
           (event.metaKey || event.ctrlKey)
         ) {
           event.preventDefault()
-          toggleSidebar()
+          // This global shortcut should ideally toggle the *visible* sidebar.
+          // If on mobile, it might be confusing if it tries to toggle the hidden desktop one.
+          // The AppHeader's mobile sheet trigger has its own mechanism.
+          // Let's make this primarily for desktop.
+          if (!isMobile) {
+            toggleSidebar()
+          }
         }
       }
 
       window.addEventListener("keydown", handleKeyDown)
       return () => window.removeEventListener("keydown", handleKeyDown)
-    }, [toggleSidebar])
+    }, [toggleSidebar, isMobile])
 
     const state = open ? "expanded" : "collapsed"
 
@@ -132,7 +146,7 @@ const SidebarProvider = React.forwardRef<
         isMobile,
         openMobile,
         setOpenMobile,
-        toggleSidebar,
+        toggleSidebar, // Expose the specific desktop sidebar toggle
       }),
       [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
     )
@@ -176,58 +190,27 @@ const Sidebar = React.forwardRef<
     {
       side = "left",
       variant = "sidebar",
-      collapsible = "offcanvas",
+      collapsible = "offcanvas", // Default behavior for desktop sidebar
       className,
       children,
       ...props
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const { isMobile, state } = useSidebar() // Removed openMobile, setOpenMobile as Sheet handles it directly
 
-    if (collapsible === "none") {
-      return (
-        <div
-          className={cn(
-            "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border",
-            className
-          )}
-          ref={ref}
-          {...props}
-        >
-          {children}
-        </div>
-      )
-    }
-
+    // The mobile sidebar (Sheet) is now handled within AppHeader.
+    // This Sidebar component is now primarily for the desktop version.
     if (isMobile) {
-      return (
-        <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-          <SheetContent
-            data-sidebar="sidebar"
-            data-mobile="true"
-            className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-            style={
-              {
-                "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-              } as React.CSSProperties
-            }
-            side={side}
-          >
-             <SheetHeader className="p-4 border-b border-sidebar-border">
-              <SheetTitle className="text-lg font-semibold text-primary">Navigation</SheetTitle>
-            </SheetHeader>
-            <div className="flex h-full w-full flex-col">{children}</div>
-          </SheetContent>
-        </Sheet>
-      )
+      return null; // Desktop sidebar is not rendered on mobile
     }
 
+    // Desktop Sidebar Logic
     return (
       <div
         ref={ref}
-        className="group peer hidden md:block text-sidebar-foreground"
-        data-state={state}
+        className="group peer hidden md:block text-sidebar-foreground" // Ensures it's hidden on mobile by default
+        data-state={state} // 'expanded' or 'collapsed'
         data-collapsible={state === "collapsed" ? collapsible : ""}
         data-variant={variant}
         data-side={side}
@@ -235,22 +218,23 @@ const Sidebar = React.forwardRef<
         <div
           className={cn(
             "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-in-out",
-            "group-data-[collapsible=offcanvas]:w-0",
-            "group-data-[side=right]:rotate-180",
+            "group-data-[collapsible=offcanvas]:w-0", // Collapses to 0 if offcanvas
+            "group-data-[collapsible=icon]:w-[--sidebar-width-icon]", // Collapses to icon width if icon
             variant === "floating" || variant === "inset"
               ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon]"
+              : ""
           )}
         />
         <div
           className={cn(
-            "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-in-out md:flex border-r border-sidebar-border",
+            "duration-200 fixed inset-y-0 z-10 flex h-svh w-[--sidebar-width] transition-[left,right,width] ease-in-out border-r border-sidebar-border",
             side === "left"
               ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
               : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
+            "group-data-[collapsible=icon]:w-[--sidebar-width-icon]",
             variant === "floating" || variant === "inset"
               ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=right]:border-l group-data-[side=left]:border-r",
+              : "group-data-[side=right]:border-l group-data-[side=left]:border-r",
             className
           )}
           {...props}
@@ -272,7 +256,7 @@ const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar } = useSidebar() // This toggle is for the desktop sidebar
 
   return (
     <Button
@@ -589,7 +573,7 @@ const SidebarMenuButton = React.forwardRef<
         <TooltipContent
           side="right"
           align="center"
-          sideOffset={6}
+          sideOffset={8} // Increased offset
           hidden={state !== "collapsed" || isMobile}
           {...tooltip}
         />
@@ -759,7 +743,6 @@ export {
   SidebarSeparator,
   SidebarTrigger,
   useSidebar,
-  // AppEntitySidebar, // This will be defined below
 }
 
 // --- Application-specific Sidebar Component ---
@@ -767,7 +750,6 @@ export {
 import Link from "next/link"
 import {
   SettingsIcon,
-  PanelLeftOpen,
   ShieldCheck,
   ScrollText,
   Database,
@@ -779,7 +761,8 @@ import { entityNavItems } from "@/lib/navigation";
 
 export function AppEntitySidebar() {
   const pathname = usePathname();
-  const { state, toggleSidebar, isMobile, open } = useSidebar();
+  // The desktop sidebar toggle is now in AppHeader, so useSidebar is mainly for state here.
+  const { state, isMobile } = useSidebar();
   const [isClientHydrated, setIsClientHydrated] = React.useState(false);
   const [showAdminLinksClient, setShowAdminLinksClient] = React.useState(false);
   const [showSettingsLinkClient, setShowSettingsLinkClient] = React.useState(false);
@@ -792,31 +775,34 @@ export function AppEntitySidebar() {
   }, []);
 
 
-  if (isMobile) {
+  if (isMobile) { // Desktop sidebar is not rendered on mobile. Mobile navigation is handled by AppHeader's Sheet.
     return null;
   }
 
   return (
     <Sidebar
       variant="sidebar"
-      collapsible="icon"
-      className="hidden md:flex flex-col bg-card border-r border-border shadow-sm"
+      collapsible="icon" // Desktop sidebar remains collapsible to icon state
+      className="hidden md:flex flex-col bg-card border-r border-border shadow-sm" // Ensure it's hidden on mobile via md:flex
     >
-      <SidebarHeader className="flex items-center justify-between h-16">
-        <Link href="/feed" className={cn("flex items-center gap-2 text-xl font-headline font-semibold text-primary", state === "collapsed" && "hidden")}>
-          <ShieldCheck className="h-7 w-7" />
-          <span>GovTrackr</span>
-        </Link>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-9 w-9 text-muted-foreground hover:text-foreground"
-          onClick={toggleSidebar}
-          aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
-        >
-          <PanelLeftOpen className={cn("h-5 w-5 transition-transform duration-300", open && "rotate-180")} />
-        </Button>
-      </SidebarHeader>
+      {/* SidebarHeader is removed as the toggle and brand are now in AppHeader */}
+      <div className="h-16 flex items-center justify-center p-3 border-b border-sidebar-border">
+        {/* Optional: Placeholder or minimal brand icon for collapsed state if AppHeader brand is not visible */}
+        {state === 'collapsed' && (
+          <Link href="/" className="text-primary">
+            <ShieldCheck className="h-7 w-7" />
+            <span className="sr-only">GovTrackr</span>
+          </Link>
+        )}
+         {/* If expanded, and AppHeader Brand is sufficient, this area can be minimal or show full brand if desired */}
+        {state === 'expanded' && (
+           <Link href="/" className={cn("flex items-center gap-2 text-xl font-headline font-semibold text-primary")}>
+            <ShieldCheck className="h-7 w-7" />
+            <span>GovTrackr</span>
+          </Link>
+        )}
+      </div>
+
       <SidebarContent className="pt-2">
         <SidebarMenu>
           {entityNavItems.map((item) => (
@@ -909,4 +895,3 @@ export function AppEntitySidebar() {
     </Sidebar>
   );
 }
-
