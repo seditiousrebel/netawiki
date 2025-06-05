@@ -41,6 +41,7 @@ export type EducationEntry = {
 };
 
 export type AssetDeclaration = {
+  id: string;
   year: number;
   description: string;
   value?: string; // Changed from number to string to allow for ranges or "Undisclosed"
@@ -48,6 +49,7 @@ export type AssetDeclaration = {
 };
 
 export type CriminalRecord = {
+  id: string;
   date: string; // Date of record or offense
   caseNumber?: string;
   offense: string;

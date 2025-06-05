@@ -68,6 +68,7 @@ export const educationEntrySchema: FormFieldSchema[] = [
 ];
 
 export const assetDeclarationSchema: FormFieldSchema[] = [
+  { name: 'id', label: 'ID', type: 'text', readOnly: true, placeholder: 'Generated automatically' },
   { name: 'year', label: 'Year of Declaration', type: 'number', required: true, placeholder: 'e.g., 2023' },
   { name: 'description', label: 'Asset Description', type: 'textarea', required: true, placeholder: 'Details of the asset' },
   { name: 'value', label: 'Value', type: 'text', placeholder: 'e.g., $100,000 or Undisclosed' },
@@ -75,6 +76,7 @@ export const assetDeclarationSchema: FormFieldSchema[] = [
 ];
 
 export const criminalRecordSchema: FormFieldSchema[] = [
+  { name: 'id', label: 'ID', type: 'text', readOnly: true, placeholder: 'Generated automatically' },
   { name: 'date', label: 'Date of Record/Offense', type: 'date', required: true },
   { name: 'caseNumber', label: 'Case Number (optional)', type: 'text', placeholder: 'Case ID' },
   { name: 'offense', label: 'Offense', type: 'text', required: true, placeholder: 'Nature of the offense' },
@@ -86,11 +88,12 @@ export const criminalRecordSchema: FormFieldSchema[] = [
     required: true,
     options: [
         { value: 'Alleged', label: 'Alleged' },
-        { value: 'Charged', label: 'Charged' },
+        { value: 'Under Investigation', label: 'Under Investigation' },
+        { value: 'Charges Filed', label: 'Charges Filed' },
         { value: 'Convicted', label: 'Convicted' },
         { value: 'Acquitted', label: 'Acquitted' },
+        { value: 'Dismissed', label: 'Dismissed' },
         { value: 'Appealed', label: 'Appealed' },
-        { value: 'Pardoned', label: 'Pardoned' }
     ],
     placeholder: 'Select status',
   },
