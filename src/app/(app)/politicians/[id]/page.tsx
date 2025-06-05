@@ -429,7 +429,18 @@ export default function PoliticianProfilePage({ params: paramsPromise }: { param
                     <Landmark className="h-4 w-4" /> {party.name}
                   </Link>
                 )}
-                 {politician.constituency && <p className="text-sm text-muted-foreground flex items-center gap-1"><MapPin className="h-4 w-4" /> {politician.constituency} </p>}
+                 {politician.constituency && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />{' '}
+                    {politician.constituencyId ? (
+                      <Link href={`/constituencies/${politician.constituencyId}`} className="text-primary hover:underline">
+                        {politician.constituency}
+                      </Link>
+                    ) : (
+                      politician.constituency
+                    )}
+                  </p>
+                )}
                 {politician.dateOfBirth && <p className="text-sm text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Born: {formattedDateOfBirth || '...'} {politician.placeOfBirth?.district && <span className="flex items-center">, {politician.placeOfBirth.district} </span>}{politician.placeOfBirth?.address && <span className="flex items-center">, {politician.placeOfBirth.address} </span>}</p>}
                 {politician.dateOfDeath && <p className="text-sm text-muted-foreground flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Deceased: {formattedDateOfDeath || '...'} </p>}
                 {politician.gender && <p className="text-sm text-muted-foreground flex items-center">Gender: {politician.gender} </p>}

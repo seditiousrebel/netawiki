@@ -210,9 +210,9 @@ export const politicianSchema: FormFieldSchema[] = [
     type: 'array',
     arrayItemSchema: { name: 'membership', label: 'Committee Membership', type: 'object', objectSchema: committeeMembershipSchema } as FormFieldSchema,
   },
-  { name: 'politicalIdeology', label: 'Political Ideologies (comma-separated)', type: 'textarea', placeholder: 'e.g., Socialism, Environmentalism' }, // Simple textarea for now
-  { name: 'languagesSpoken', label: 'Languages Spoken (comma-separated)', type: 'textarea', placeholder: 'e.g., Nepali, English' }, // Simple textarea
-  { name: 'tags', label: 'Tags (comma-separated)', type: 'textarea', placeholder: 'e.g., human-rights, fiscal-policy' }, // Simple textarea
+  { name: 'politicalIdeology', label: 'Political Ideologies (one per entry)', type: 'array', arrayItemSchema: 'text', placeholder: 'e.g., Socialism, Environmentalism' },
+  { name: 'languagesSpoken', label: 'Languages Spoken (one per entry)', type: 'array', arrayItemSchema: 'text', placeholder: 'e.g., Nepali, English' },
+  { name: 'tags', label: 'Tags (one per entry)', type: 'array', arrayItemSchema: 'text', placeholder: 'e.g., human-rights, fiscal-policy' },
   // controversyIds is likely admin managed or linked from elsewhere
 ];
 
@@ -250,17 +250,17 @@ export const partySchema: FormFieldSchema[] = [
     type: 'array',
     arrayItemSchema: { name: 'leader', label: 'Leader', type: 'object', objectSchema: leadershipMemberSchema } as FormFieldSchema,
   },
-  { name: 'ideology', label: 'Ideologies (comma-separated)', type: 'textarea', placeholder: 'e.g., Democracy, Social Justice' }, // Simple textarea
-  { name: 'internationalAffiliations', label: 'International Affiliations (comma-separated)', type: 'textarea' }, // Simple textarea
-  { name: 'tags', label: 'Tags (comma-separated)', type: 'textarea' },
+  { name: 'ideology', label: 'Ideologies (one per entry)', type: 'array', arrayItemSchema: 'text', placeholder: 'e.g., Democracy, Social Justice' },
+  { name: 'internationalAffiliations', label: 'International Affiliations (one per entry)', type: 'array', arrayItemSchema: 'text' },
+  { name: 'tags', label: 'Tags (one per entry)', type: 'array', arrayItemSchema: 'text' },
   { name: 'isActive', label: 'Is Party Currently Active?', type: 'boolean' },
   { name: 'isNationalParty', label: 'Is Party a National Party?', type: 'boolean' },
   { name: 'detailedIdeologyDescription', label: 'Detailed Ideology', type: 'textarea', placeholder: 'Full description of party ideology.' },
   { name: 'partyManifestoUrl', label: 'Current Manifesto URL', type: 'url', placeholder: 'Link to current party manifesto.' },
   { name: 'parentPartyId', label: 'Parent Party ID (Optional)', type: 'text' },
   { name: 'parentPartyName', label: 'Parent Party Name (Optional)', type: 'text' },
-  { name: 'splinterPartyIds', label: 'Splinter Party IDs (JSON Array)', type: 'textarea', placeholder: 'e.g., ["id1", "id2"]' }, // Simple JSON for now
-  { name: 'splinterPartyNames', label: 'Splinter Party Names (JSON Array)', type: 'textarea', placeholder: 'e.g., ["Name1", "Name2"]' }, // Simple JSON for now
+  { name: 'splinterPartyIds', label: 'Splinter Party IDs (JSON Array)', type: 'textarea', placeholder: 'e.g., ["id1", "id2"]' }, // TODO: Enhance to array of objects for better UX if possible
+  { name: 'splinterPartyNames', label: 'Splinter Party Names (JSON Array)', type: 'textarea', placeholder: 'e.g., ["Name1", "Name2"]' }, // TODO: Enhance to array of objects for better UX if possible
 ];
 
 // --- Schemas for Party's complex array fields ---
@@ -528,7 +528,7 @@ export const billSchema: FormFieldSchema[] = [
   { name: 'lastActionDate', label: 'Last Action Date', type: 'date' },
   { name: 'lastActionDescription', label: 'Last Action Description', type: 'textarea' },
   { name: 'impact', label: 'Impact Statement', type: 'textarea', placeholder: 'Briefly, what laws it amends/repeals' },
-  { name: 'tags', label: 'Tags', type: 'array', arrayItemSchema: 'text' }, // Corrected
+  { name: 'tags', label: 'Tags (one per entry)', type: 'array', arrayItemSchema: 'text' },
   { name: 'committees', label: 'Referred Committees', type: 'array', arrayItemSchema: 'text' }, // Corrected: array of committee names (strings)
 ];
 
@@ -952,8 +952,57 @@ export const newsSchema: FormFieldSchema[] = [
     ],
     placeholder: 'Select category',
   },
-  { name: 'topics', label: 'Topics/Keywords (comma-separated)', type: 'textarea', placeholder: 'e.g., budget, healthcare' }, // Simple textarea for now
-  // fullContent, author details, isFactCheck etc. for more detailed internal news management.
+  { name: 'topics', label: 'Topics/Keywords (one per entry)', type: 'array', arrayItemSchema: 'text', placeholder: 'e.g., budget, healthcare' },
+  { name: 'isFactCheck', label: 'Is Fact Check?', type: 'boolean' },
+  { name: 'fullContent', label: 'Full Content', type: 'textarea', placeholder: 'Full content of the news article...' },
+  {
+    name: 'taggedPoliticianIds',
+    label: 'Tagged Politician IDs',
+    type: 'array',
+    arrayItemSchema: { name: 'politicianId', label: 'Politician ID', type: 'text' } as FormFieldSchema,
+  },
+  {
+    name: 'taggedPartyIds',
+    label: 'Tagged Party IDs',
+    type: 'array',
+    arrayItemSchema: { name: 'partyId', label: 'Party ID', type: 'text' } as FormFieldSchema,
+  },
+  {
+    name: 'taggedBillIds',
+    label: 'Tagged Bill IDs',
+    type: 'array',
+    arrayItemSchema: { name: 'billId', label: 'Bill ID', type: 'text' } as FormFieldSchema,
+  },
+  {
+    name: 'taggedPromiseIds',
+    label: 'Tagged Promise IDs',
+    type: 'array',
+    arrayItemSchema: { name: 'promiseId', label: 'Promise ID', type: 'text' } as FormFieldSchema,
+  },
+  {
+    name: 'taggedControversyIds',
+    label: 'Tagged Controversy IDs',
+    type: 'array',
+    arrayItemSchema: { name: 'controversyId', label: 'Controversy ID', type: 'text' } as FormFieldSchema,
+  },
+  {
+    name: 'taggedElectionIds',
+    label: 'Tagged Election IDs',
+    type: 'array',
+    arrayItemSchema: { name: 'electionId', label: 'Election ID', type: 'text' } as FormFieldSchema,
+  },
+  {
+    name: 'taggedCommitteeIds',
+    label: 'Tagged Committee IDs',
+    type: 'array',
+    arrayItemSchema: { name: 'committeeId', label: 'Committee ID', type: 'text' } as FormFieldSchema,
+  },
+  {
+    name: 'taggedConstituencyIds',
+    label: 'Tagged Constituency IDs',
+    type: 'array',
+    arrayItemSchema: { name: 'constituencyId', label: 'Constituency ID', type: 'text' } as FormFieldSchema,
+  },
 ];
 
 const promiseEvidenceLinkSchema: FormFieldSchema[] = [
@@ -1081,7 +1130,7 @@ export const controversySchema: FormFieldSchema[] = [
   { name: 'period', label: 'Period (e.g., Mid-2023 or YYYY-MM-DD)', type: 'text', placeholder: 'General timeframe of the controversy' },
   { name: 'dates.started', label: 'Date Started (Optional)', type: 'date'},
   { name: 'dates.ended', label: 'Date Ended (Optional)', type: 'date'},
-  { name: 'tags', label: 'Tags (JSON Array)', type: 'textarea', placeholder: 'e.g., ["corruption", "ethics"]' },
+  { name: 'tags', label: 'Tags (one per entry)', type: 'array', arrayItemSchema: 'text', placeholder: 'e.g., corruption, ethics' }, // Previously JSON textarea, now array of strings
   {
     name: 'involvedEntities',
     label: 'Involved Entities',
@@ -1094,8 +1143,43 @@ export const controversySchema: FormFieldSchema[] = [
   // Complex arrays like updates, evidenceLinks, officialResponses, mediaCoverageLinks, legalProceedings
   // are typically managed via the detail page after creation, not usually in the "new entry" form.
   // If needed for suggestion, they'd be JSON textareas initially.
+  {
+    name: 'updates',
+    label: 'Updates',
+    type: 'array',
+    arrayItemSchema: { name: 'update', label: 'Update', type: 'object', objectSchema: controversyUpdateSchema } as FormFieldSchema,
+  },
+  {
+    name: 'evidenceLinks',
+    label: 'Evidence Links',
+    type: 'array',
+    arrayItemSchema: { name: 'evidence', label: 'Evidence Link', type: 'object', objectSchema: controversyEvidenceLinkSchema } as FormFieldSchema,
+  },
 ];
 
+export const controversyUpdateSchema: FormFieldSchema[] = [
+  { name: 'date', label: 'Date', type: 'date', required: true },
+  { name: 'description', label: 'Description', type: 'textarea', required: true },
+  { name: 'sourceUrl', label: 'Source URL', type: 'url' },
+];
+
+export const controversyEvidenceLinkSchema: FormFieldSchema[] = [
+  { name: 'url', label: 'URL', type: 'url', required: true },
+  { name: 'description', label: 'Description', type: 'text' },
+  {
+    name: 'type',
+    label: 'Type',
+    type: 'select',
+    options: [
+      { value: 'document', label: 'Document' },
+      { value: 'image', label: 'Image' },
+      { value: 'video', label: 'Video' },
+      { value: 'article', label: 'Article' },
+      { value: 'official_report', label: 'Official Report' },
+      { value: 'other', label: 'Other' },
+    ],
+  },
+];
 
 // --- Suggestion Schema ---
 export type SuggestionStatus = 'PendingNewEntry' | 'PendingUpdate' | 'PendingEntityUpdate' | 'PendingFieldEdit' | 'Approved' | 'Rejected';
