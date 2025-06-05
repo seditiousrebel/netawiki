@@ -243,9 +243,11 @@ export default function PromiseDetailPage({ params: paramsPromise }: { params: P
         description={<div className="text-sm text-muted-foreground">Promised by: {promiserLink}</div>}
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={openSuggestPromiseEditModal}>
-              <Edit className="mr-2 h-4 w-4" /> Propose Changes to Promise
-            </Button>
+            {isUserLoggedIn() && canAccess(currentUser.role, ADMIN_ROLES) && (
+              <Button variant="outline" onClick={openSuggestPromiseEditModal}>
+                <Edit className="mr-2 h-4 w-4" /> Propose Changes to Promise
+              </Button>
+            )}
             {/* Export button removed */}
             {canAccess(currentUser.role, ADMIN_ROLES) && (
               <Button variant="destructive" onClick={handleDeletePromise}>
