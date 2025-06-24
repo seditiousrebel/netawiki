@@ -40,9 +40,17 @@ function formatLeadershipHistoryForTimeline(events: LeadershipEvent[] = []): Tim
     } else {
        description += ' - Present';
     }
+    const titleName = event.politicianId ? (
+      <Link href={`/politicians/${event.politicianId}`} className="text-primary hover:underline">
+        {event.name}
+      </Link>
+    ) : (
+      event.name
+    );
+    const title = <>{event.role}: {titleName}</>;
     return {
       date: event.startDate,
-      title: `${event.role}: ${event.name}`,
+      title: title as any, // Cast to any to allow JSX in title, TimelineDisplay should handle it
       description: description,
     };
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -51,14 +59,36 @@ function formatLeadershipHistoryForTimeline(events: LeadershipEvent[] = []): Tim
 function formatSplitMergerHistoryForTimeline(events: PartySplitMergerEvent[] = []): TimelineItem[] {
   return events.map(event => {
     let title = `${event.type}: ${event.description.substring(0, 50)}${event.description.length > 50 ? '...' : ''}`;
-    let description = event.description;
+    let currentDescription = event.description;
     if (event.involvedParties && event.involvedParties.length > 0) {
-      description += ` (Involved: ${event.involvedParties.map(p => p.name).join(', ')})`;
+      const involvedPartyNames = event.involvedParties.map((p, idx) => (
+        <React.Fragment key={p.id || idx}>
+          {p.id ? (
+            <Link href={`/parties/${p.id}`} className="text-primary hover:underline">
+              {p.name}
+            </Link>
+          ) : (
+            p.name
+          )}
+          {idx < event.involvedParties!.length - 1 ? ', ' : ''}
+        </React.Fragment>
+      ));
+      currentDescription += ' (Involved: ';
+      // This part is tricky because description is a string. We can't directly embed JSX.
+      // For now, let's keep the description simple and rely on the card's main content for links.
+      // Or, the TimelineDisplay component needs to be enhanced to accept JSX in description.
+      // For this task, let's simplify by not adding links directly into the timeline description string.
+      // The main display for split/merger events should handle the linking.
     }
+    // Reverting description to simple string for timeline item.
+    // Linking will be handled in the card display if needed separately.
+    const simpleDescription = event.description + (event.involvedParties && event.involvedParties.length > 0 ?
+      ` (Involved: ${event.involvedParties.map(p => p.name).join(', ')})` : '');
+
     return {
       date: event.date,
       title: title,
-      description: description,
+      description: simpleDescription, // Keep description as string for TimelineDisplay
     };
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
@@ -459,7 +489,36 @@ export default function PartyProfilePage({ params: paramsPromise }: { params: Pr
                     <CardTitle className="font-headline text-xl flex items-center gap-2"><GitMerge className="text-primary"/> Party Evolution</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <TimelineDisplay items={splitMergerTimelineItems} />
+                  {/* Displaying with links directly in the card content if timeline description is too complex */}
+                  <ul className="space-y-4">
+                    {party.splitMergerHistory.map((event, idx) => (
+                      <li key={idx} className="text-sm border-b pb-3 last:border-b-0">
+                        <div className="flex justify-between items-center">
+                           <h4 className="font-semibold">{event.type} - {format(new Date(event.date), 'MM/dd/yyyy')}</h4>
+                        </div>
+                        <p className="text-foreground/80 mt-1">{event.description}</p>
+                        {event.involvedParties && event.involvedParties.length > 0 && (
+                          <p className="text-xs mt-1">
+                            <span className="font-medium">Involved Parties:</span>{' '}
+                            {event.involvedParties.map((p, pIdx) => (
+                              <React.Fragment key={p.id || pIdx}>
+                                {p.id ? (
+                                  <Link href={`/parties/${p.id}`} className="text-primary hover:underline">
+                                    {p.name}
+                                  </Link>
+                                ) : (
+                                  p.name
+                                )}
+                                {pIdx < event.involvedParties!.length - 1 && ', '}
+                              </React.Fragment>
+                            ))}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                  {/* Optionally, keep the simplified timeline display if preferred for overview */}
+                  {/* <TimelineDisplay items={splitMergerTimelineItems} /> */}
                 </CardContent>
             </Card>
           )}

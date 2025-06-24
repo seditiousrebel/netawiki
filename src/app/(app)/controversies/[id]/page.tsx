@@ -198,9 +198,11 @@ export default function ControversyDetailPage({ params: paramsPromise }: { param
               {isFollowingControversy ? <CheckCircle className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
               {isFollowingControversy ? 'Following' : 'Follow'}
             </Button>
-            <Button variant="outline" onClick={openSuggestControversyEditModal}>
-              <Edit className="mr-2 h-4 w-4" /> Propose Changes to Controversy
-            </Button>
+            {isUserLoggedIn() && canAccess(currentUser.role, ADMIN_ROLES) && (
+              <Button variant="outline" onClick={openSuggestControversyEditModal}>
+                <Edit className="mr-2 h-4 w-4" /> Propose Changes to Controversy
+              </Button>
+            )}
             {/* <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}> // Removed
               <Download className="mr-2 h-4 w-4" /> {isGeneratingPdf ? 'Generating PDF...' : 'Export Controversy Details'}
             </Button> */}

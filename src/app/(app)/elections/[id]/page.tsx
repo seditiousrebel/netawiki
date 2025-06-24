@@ -12,8 +12,11 @@ import { CalendarDays, Users, VoteIcon, MapPin, BarChart3, UserCircle, Flag, Ext
 import type { Election, ElectionCandidate, ElectionStatus, Politician, Party, NewsArticleLink, ElectionTimelineEvent } from '@/types/gov';
 import { format } from 'date-fns';
 import Image from 'next/image';
+import { PlusCircle } from 'lucide-react'; // Added for button icon
 import { TimelineDisplay, formatElectionTimelineEventsForTimeline } from '@/components/common/timeline-display';
 import { useToast } from "@/hooks/use-toast";
+import { electionTimelineEventSchema } from '@/lib/schemas'; // Import the new schema
+import { TimelineEventForm } from '@/components/common/forms/TimelineEventForm'; // Import the new form
 // Removed PDF export import
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
@@ -35,10 +38,18 @@ function getElectionStatusBadgeVariant(status: ElectionStatus) {
 
 export default function ElectionDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
-  const election = getElectionById(params.id);
-  const candidates = election ? getCandidatesByElectionId(election.id) : [];
-  const relatedNews = election ? getNewsByElectionId(election.id) : [];
-  const timelineItems = election?.timelineEvents ? formatElectionTimelineEventsForTimeline(election.timelineEvents) : [];
+  const initialElection = getElectionById(params.id); // Renamed to initialElection
+  const [currentElectionData, setCurrentElectionData] = useState<Election | null>(null);
+
+  useEffect(() => {
+    if (initialElection) {
+      setCurrentElectionData(JSON.parse(JSON.stringify(initialElection))); // Deep copy
+    }
+  }, [initialElection]);
+
+  const candidates = currentElectionData ? getCandidatesByElectionId(currentElectionData.id) : [];
+  const relatedNews = currentElectionData ? getNewsByElectionId(currentElectionData.id) : [];
+  const timelineItems = currentElectionData?.timelineEvents ? formatElectionTimelineEventsForTimeline(currentElectionData.timelineEvents) : [];
   const { toast } = useToast();
   const currentUser = getCurrentUser();
   const router = useRouter();
@@ -48,24 +59,27 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
   const [currentRating, setCurrentRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  const [isElectionSuggestEntityEditModalOpen, setIsElectionSuggestEntityEditModalOpen] = useState(false); 
+  const [isElectionSuggestEntityEditModalOpen, setIsElectionSuggestEntityEditModalOpen] = useState(false);
+  const [isTimelineEventModalOpen, setIsTimelineEventModalOpen] = useState(false);
+  const [editingTimelineEvent, setEditingTimelineEvent] = useState<ElectionTimelineEvent | null>(null);
+
 
   useEffect(() => {
-    if (election) {
+    if (currentElectionData) {
       try {
         const followedItemsStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_ELECTIONS_KEY);
         if (followedItemsStr) {
           const followedIds: string[] = JSON.parse(followedItemsStr);
-          setIsFollowingElection(followedIds.includes(election.id));
+          setIsFollowingElection(followedIds.includes(currentElectionData.id));
         }
       } catch (error) {
         console.error("Error reading followed elections from localStorage:", error);
       }
     }
-  }, [election]);
+  }, [currentElectionData]);
 
 
-  if (!election) {
+  if (!currentElectionData) {
     return (
       <div className="text-center py-10">
         <VoteIcon className="mx-auto h-12 w-12 text-destructive" />
@@ -83,20 +97,20 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
       router.push('/auth/login');
       return;
     }
-    if (!election) return;
+    if (!currentElectionData) return;
     setIsElectionSuggestEntityEditModalOpen(true);
   };
 
-  const handleFullElectionEditSuggestionSubmit = (submission: { 
+  const handleFullElectionEditSuggestionSubmit = (submission: {
     formData: Record<string, any>;
     reason: string;
     evidenceUrl: string;
   }) => {
-    if (!election) return;
+    if (!currentElectionData) return;
 
     console.log("Full Election edit suggestion submitted:", {
       entityType: "Election" as EntityType,
-      entityId: election.id,
+      entityId: currentElectionData.id,
       suggestedData: submission.formData,
       reason: submission.reason,
       evidenceUrl: submission.evidenceUrl,
@@ -106,14 +120,14 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
 
     toast({
       title: "Changes Suggested",
-      description: `Your proposed changes for election "${election.name}" have been submitted for review. Thank you!`,
+      description: `Your proposed changes for election "${currentElectionData.name}" have been submitted for review. Thank you!`,
       duration: 5000,
     });
     setIsElectionSuggestEntityEditModalOpen(false);
   };
 
   const handleFollowElectionToggle = () => {
-    if (!election) return;
+    if (!currentElectionData) return;
     const newFollowingState = !isFollowingElection;
     setIsFollowingElection(newFollowingState);
 
@@ -122,15 +136,15 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
       let followedIds: string[] = followedItemsStr ? JSON.parse(followedItemsStr) : [];
 
       if (newFollowingState) {
-        if (!followedIds.includes(election.id)) {
-          followedIds.push(election.id);
+        if (!followedIds.includes(currentElectionData.id)) {
+          followedIds.push(currentElectionData.id);
         }
       } else {
-        followedIds = followedIds.filter(id => id !== election.id);
+        followedIds = followedIds.filter(id => id !== currentElectionData.id);
       }
       localStorage.setItem(LOCAL_STORAGE_FOLLOWED_ELECTIONS_KEY, JSON.stringify(followedIds));
        toast({
-        title: newFollowingState ? `Following Election: "${election.name.substring(0,30)}..."` : `Unfollowed Election: "${election.name.substring(0,30)}..."`,
+        title: newFollowingState ? `Following Election: "${currentElectionData.name.substring(0,30)}..."` : `Unfollowed Election: "${currentElectionData.name.substring(0,30)}..."`,
         description: newFollowingState ? "You'll receive updates for this election (demo)." : "You will no longer receive updates (demo).",
         duration: 3000,
       });
@@ -156,7 +170,7 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
       });
       return;
     }
-    console.log("Election Rating Submitted:", { electionId: election.id, rating: currentRating });
+    console.log("Election Rating Submitted:", { electionId: currentElectionData.id, rating: currentRating });
     toast({
       title: "Review Submitted (Demo)",
       description: `You rated this election ${currentRating} star(s).`,
@@ -167,23 +181,62 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
   // Removed handleExportPdf function
 
   const handleDeleteElection = () => {
-    if (!election) return;
-    alert(`Mock delete action for election: ${election.name}`);
+    if (!currentElectionData) return;
+    alert(`Mock delete action for election: ${currentElectionData.name}`);
   };
 
+  const handleOpenAddTimelineEventModal = () => {
+    setEditingTimelineEvent(null);
+    setIsTimelineEventModalOpen(true);
+  };
+
+  const handleOpenEditTimelineEventModal = (eventId: string) => {
+    const eventToEdit = currentElectionData?.timelineEvents?.find(e => e.id === eventId);
+    if (eventToEdit) {
+      setEditingTimelineEvent(eventToEdit);
+      setIsTimelineEventModalOpen(true);
+    }
+  };
+
+  const handleTimelineEventFormSubmit = (values: any) => {
+    if (!currentElectionData) return;
+    let updatedEvents = [...(currentElectionData.timelineEvents || [])];
+    if (editingTimelineEvent) { // Editing existing
+      updatedEvents = updatedEvents.map(e => e.id === editingTimelineEvent.id ? { ...e, ...values } : e);
+    } else { // Adding new
+      updatedEvents.push({ ...values, id: `evt-${Date.now().toString()}` }); // Simple ID generation
+    }
+    const updatedElection = { ...currentElectionData, timelineEvents: updatedEvents };
+    setCurrentElectionData(updatedElection);
+    // TODO: Persist updatedElection (e.g., call a mock update function)
+    console.log('Updated Election Data with Timeline Changes:', updatedElection);
+    toast({ title: 'Timeline Event Saved (Mock)', description: 'Changes are reflected locally.' });
+    setIsTimelineEventModalOpen(false);
+    setEditingTimelineEvent(null);
+  };
+
+  const handleDeleteTimelineEvent = (eventId: string) => {
+    if (!currentElectionData) return;
+    const updatedEvents = (currentElectionData.timelineEvents || []).filter(e => e.id !== eventId);
+    const updatedElection = { ...currentElectionData, timelineEvents: updatedEvents };
+    setCurrentElectionData(updatedElection);
+    // TODO: Persist updatedElection
+    console.log('Updated Election Data after Deleting Timeline Event:', updatedElection);
+    toast({ title: 'Timeline Event Deleted (Mock)', description: 'Changes are reflected locally.' });
+  };
 
   return (
     <div>
       <PageHeader
-        title={election.name}
+        title={currentElectionData.name}
         description={
           <div className="flex flex-wrap gap-2 items-center mt-1 text-sm">
-            <Badge variant="outline" className={getElectionStatusBadgeVariant(election.status)}>
-              {election.status}
+            <Badge variant="outline" className={getElectionStatusBadgeVariant(currentElectionData.status)}>
+              {currentElectionData.status}
             </Badge>
-            <Badge variant="secondary">{election.electionType}</Badge>
+            <Badge variant="secondary">{currentElectionData.electionType}</Badge>
             <span className="text-muted-foreground flex items-center gap-1">
-              <CalendarDays className="h-4 w-4" /> {format(new Date(election.date), 'MMMM dd, yyyy')}
+              <CalendarDays className="h-4 w-4" /> {format(new Date(currentElectionData.date), 'MMMM dd, yyyy')}
             </span>
           </div>
         }
@@ -209,16 +262,24 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
         }
       />
 
-      {election && isElectionSuggestEntityEditModalOpen && entitySchemas.Election && ( 
+      {currentElectionData && isElectionSuggestEntityEditModalOpen && entitySchemas.Election && (
         <SuggestEntityEditForm
           isOpen={isElectionSuggestEntityEditModalOpen}
           onOpenChange={setIsElectionSuggestEntityEditModalOpen}
           entityType="Election"
           entitySchema={entitySchemas.Election}
-          currentEntityData={election}
+          currentEntityData={currentElectionData}
           onSubmit={handleFullElectionEditSuggestionSubmit}
         />
       )}
+
+      <TimelineEventForm
+        isOpen={isTimelineEventModalOpen}
+        onOpenChange={setIsTimelineEventModalOpen}
+        eventData={editingTimelineEvent}
+        onSubmit={handleTimelineEventFormSubmit}
+        entitySchema={electionTimelineEventSchema}
+      />
 
       <div id="election-details-export-area" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
@@ -227,24 +288,24 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
               <CardTitle className="font-headline text-xl flex items-center gap-2"><VoteIcon className="text-primary"/>Election Overview</CardTitle>
             </CardHeader>
             <CardContent>
-              {election.description && <p className="text-foreground/80 mb-4 whitespace-pre-line">{election.description}</p>}
+              {currentElectionData.description && <p className="text-foreground/80 mb-4 whitespace-pre-line">{currentElectionData.description}</p>}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                {election.country && <div><strong>Country:</strong> {election.country}</div>}
-                {election.province && <div><strong>Province:</strong> {election.province}</div>}
-                {election.districts && election.districts.length > 0 && <div><strong>District(s):</strong> {election.districts.join(', ')}</div>}
-                {election.constituencyIds && election.constituencyIds.length > 0 && (
-                  <div><strong>Constituencies:</strong> {election.constituencyIds.join(', ')} (Detailed list below)</div>
+                {currentElectionData.country && <div><strong>Country:</strong> {currentElectionData.country}</div>}
+                {currentElectionData.province && <div><strong>Province:</strong> {currentElectionData.province}</div>}
+                {currentElectionData.districts && currentElectionData.districts.length > 0 && <div><strong>District(s):</strong> {currentElectionData.districts.join(', ')}</div>}
+                {currentElectionData.constituencyIds && currentElectionData.constituencyIds.length > 0 && (
+                  <div><strong>Constituencies:</strong> {currentElectionData.constituencyIds.join(', ')} (Detailed list below)</div>
                 )}
-                {election.totalRegisteredVoters && <div className="flex items-center gap-1"><strong>Registered Voters:</strong> <Users className="h-4 w-4 text-muted-foreground"/> {election.totalRegisteredVoters.toLocaleString()}</div>}
-                {election.totalVotesCast && <div className="flex items-center gap-1"><strong>Votes Cast:</strong> <Users className="h-4 w-4 text-muted-foreground"/> {election.totalVotesCast.toLocaleString()}</div>}
-                {election.voterTurnoutPercentage && <div className="flex items-center gap-1"><strong>Voter Turnout:</strong> <BarChart3 className="h-4 w-4 text-muted-foreground"/> {election.voterTurnoutPercentage}%</div>}
-                {election.pollingStationsCount && <div><strong>Polling Stations:</strong> {election.pollingStationsCount.toLocaleString()}</div>}
+                {currentElectionData.totalRegisteredVoters && <div className="flex items-center gap-1"><strong>Registered Voters:</strong> <Users className="h-4 w-4 text-muted-foreground"/> {currentElectionData.totalRegisteredVoters.toLocaleString()}</div>}
+                {currentElectionData.totalVotesCast && <div className="flex items-center gap-1"><strong>Votes Cast:</strong> <Users className="h-4 w-4 text-muted-foreground"/> {currentElectionData.totalVotesCast.toLocaleString()}</div>}
+                {currentElectionData.voterTurnoutPercentage && <div className="flex items-center gap-1"><strong>Voter Turnout:</strong> <BarChart3 className="h-4 w-4 text-muted-foreground"/> {currentElectionData.voterTurnoutPercentage}%</div>}
+                {currentElectionData.pollingStationsCount && <div><strong>Polling Stations:</strong> {currentElectionData.pollingStationsCount.toLocaleString()}</div>}
               </div>
-               {election.tags && election.tags.length > 0 && (
+               {currentElectionData.tags && currentElectionData.tags.length > 0 && (
                 <div className="mt-4 pt-4 border-t">
                   <h3 className="font-semibold text-md mb-1">Tags:</h3>
                   <div className="flex flex-wrap gap-2">
-                    {election.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
+                    {currentElectionData.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
                   </div>
                 </div>
               )}
@@ -257,7 +318,14 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><History className="text-primary"/>Election Timeline</CardTitle>
               </CardHeader>
               <CardContent>
-                <TimelineDisplay items={timelineItems} />
+                <TimelineDisplay
+                  items={timelineItems}
+                  onEditItem={handleOpenEditTimelineEventModal}
+                  onDeleteItem={handleDeleteTimelineEvent}
+                />
+                <Button onClick={handleOpenAddTimelineEventModal} className="mt-4">
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Timeline Event
+                </Button>
               </CardContent>
             </Card>
           )}
@@ -363,7 +431,7 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
             </CardContent>
           </Card>
 
-          {election.revisionHistory && election.revisionHistory.length > 0 && (
+          {currentElectionData.revisionHistory && currentElectionData.revisionHistory.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="font-headline text-xl flex items-center gap-2">
@@ -372,7 +440,7 @@ export default function ElectionDetailPage({ params: paramsPromise }: { params: 
               </CardHeader>
               <CardContent>
                 <ul className="space-y-4">
-                  {election.revisionHistory.map((event) => (
+                  {currentElectionData.revisionHistory.map((event) => (
                     <li key={event.id} className="border-b pb-3 last:border-b-0">
                       <div className="flex justify-between items-center mb-1">
                         <span className="font-semibold text-md">{event.event}</span>

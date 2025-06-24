@@ -8,11 +8,13 @@ import { useNotificationStore } from "@/lib/notifications";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Users, CalendarDays, CheckSquare, XSquare, ExternalLink, Landmark, FileText, ListCollapse, BookOpen, Info, Tag, Layers, Building, Clock, GitBranch, ShieldCheck, Newspaper, Star, UserPlus, CheckCircle, History, Trash2 } from 'lucide-react';
+import { Edit, Users, CalendarDays, CheckSquare, XSquare, ExternalLink, Landmark, FileText, ListCollapse, BookOpen, Info, Tag, Layers, Building, Clock, GitBranch, ShieldCheck, Newspaper, Star, UserPlus, CheckCircle, History, Trash2, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { TimelineDisplay, formatBillTimelineEventsForTimeline } from '@/components/common/timeline-display';
 import type { VoteRecord, BillTimelineEvent, NewsArticleLink, Bill } from '@/types/gov';
 import { useToast } from "@/hooks/use-toast";
+import { TimelineEventForm } from '@/components/common/forms/TimelineEventForm';
+import { billTimelineEventItemSchema } from '@/lib/schemas';
 import { format } from 'date-fns';
 import { getCurrentUser, canAccess, ADMIN_ROLES, isUserLoggedIn } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
@@ -27,7 +29,7 @@ const toSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace
 
 export default function BillDetailsPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = React.use(paramsPromise);
-  const bill = getBillById(params.id);
+  const initialBill = getBillById(params.id); // Renamed to initialBill
   const { toast } = useToast();
   const currentUser = getCurrentUser();
   const router = useRouter();
@@ -39,38 +41,47 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
   const { addNotification } = useNotificationStore();
   const notificationTriggered = useRef(false);
 
-  const [isSuggestEntityEditModalOpen, setIsSuggestEntityEditModalOpen] = useState(false); 
+  const [isSuggestEntityEditModalOpen, setIsSuggestEntityEditModalOpen] = useState(false);
+  const [currentBillData, setCurrentBillData] = useState<Bill | null>(null);
+  const [isBillTimelineEventModalOpen, setIsBillTimelineEventModalOpen] = useState(false);
+  const [editingBillTimelineEvent, setEditingBillTimelineEvent] = useState<BillTimelineEvent | null>(null);
 
   useEffect(() => {
-    if (bill && !notificationTriggered.current) {
+    if (initialBill) {
+      setCurrentBillData(JSON.parse(JSON.stringify(initialBill))); // Deep copy
+    }
+  }, [initialBill]);
+
+  useEffect(() => {
+    if (currentBillData && !notificationTriggered.current) {
       const timeoutId = setTimeout(() => {
         addNotification(
-          `The status of bill '${bill.title}' has been updated to 'In Committee'.`,
+          `The status of bill '${currentBillData.title}' has been updated to 'In Committee'.`,
           'info',
-          `/bills/${bill.id}`
+          `/bills/${currentBillData.id}`
         );
       }, 4000);
       notificationTriggered.current = true;
       return () => clearTimeout(timeoutId);
     }
-  }, [bill, addNotification]);
+  }, [currentBillData, addNotification]);
 
   useEffect(() => {
-    if (bill) {
-      setRelatedNews(getNewsByBillId(bill.id));
+    if (currentBillData) {
+      setRelatedNews(getNewsByBillId(currentBillData.id));
       try {
         const followedBillsStr = localStorage.getItem(LOCAL_STORAGE_FOLLOWED_BILLS_KEY);
         if (followedBillsStr) {
           const followedBillIds: string[] = JSON.parse(followedBillsStr);
-          setIsFollowingBill(followedBillIds.includes(bill.id));
+          setIsFollowingBill(followedBillIds.includes(currentBillData.id));
         }
       } catch (error) {
         console.error("Error reading followed bills from localStorage:", error);
       }
     }
-  }, [bill]);
+  }, [currentBillData]);
 
-  if (!bill) {
+  if (!currentBillData) {
     return (
       <div className="container mx-auto py-10 text-center">
         <FileText className="mx-auto h-16 w-16 text-muted-foreground" />
@@ -90,20 +101,20 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
       router.push('/auth/login');
       return;
     }
-    if (!bill) return;
+    if (!currentBillData) return;
     setIsSuggestEntityEditModalOpen(true);
   };
 
-  const handleBillEntityEditSuggestionSubmit = (submission: { 
+  const handleBillEntityEditSuggestionSubmit = (submission: {
     formData: Record<string, any>;
     reason: string;
     evidenceUrl: string;
   }) => {
-    if (!bill) return;
+    if (!currentBillData) return;
 
     console.log("Full Bill edit suggestion submitted:", {
       entityType: "Bill" as EntityType,
-      entityId: bill.id,
+      entityId: currentBillData.id,
       suggestedData: submission.formData,
       reason: submission.reason,
       evidenceUrl: submission.evidenceUrl,
@@ -113,14 +124,14 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
 
     toast({
       title: "Changes Suggested",
-      description: `Your proposed changes for bill "${bill.title}" have been submitted for review. Thank you!`,
+      description: `Your proposed changes for bill "${currentBillData.title}" have been submitted for review. Thank you!`,
       duration: 5000,
     });
     setIsSuggestEntityEditModalOpen(false);
   };
 
   const handleFollowBillToggle = () => {
-    if (!bill) return;
+    if (!currentBillData) return;
     const newFollowingState = !isFollowingBill;
     setIsFollowingBill(newFollowingState);
 
@@ -129,16 +140,16 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
       let followedBillIds: string[] = followedBillsStr ? JSON.parse(followedBillsStr) : [];
 
       if (newFollowingState) {
-        if (!followedBillIds.includes(bill.id)) {
-          followedBillIds.push(bill.id);
+        if (!followedBillIds.includes(currentBillData.id)) {
+          followedBillIds.push(currentBillData.id);
         }
       } else {
-        followedBillIds = followedBillIds.filter(id => id !== bill.id);
+        followedBillIds = followedBillIds.filter(id => id !== currentBillData.id);
       }
       localStorage.setItem(LOCAL_STORAGE_FOLLOWED_BILLS_KEY, JSON.stringify(followedBillIds));
        toast({
         title: newFollowingState ? `Following Bill` : `Unfollowed Bill`,
-        description: newFollowingState ? `You'll now receive updates for "${bill.title.substring(0,30)}..." (demo).` : `You will no longer receive updates for "${bill.title.substring(0,30)}..." (demo).`,
+        description: newFollowingState ? `You'll now receive updates for "${currentBillData.title.substring(0,30)}..." (demo).` : `You will no longer receive updates for "${currentBillData.title.substring(0,30)}..." (demo).`,
         duration: 3000,
       });
     } catch (error) {
@@ -163,7 +174,7 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
       });
       return;
     }
-    console.log("Bill Rating Submitted:", { billId: bill.id, rating: currentBillRating });
+    console.log("Bill Rating Submitted:", { billId: currentBillData.id, rating: currentBillRating });
     toast({
       title: "Review Submitted (Demo)",
       description: `You rated this bill ${currentBillRating} star(s).`,
@@ -171,28 +182,68 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
     });
   };
 
-  const timelineItems = bill.timelineEvents ? formatBillTimelineEventsForTimeline(bill.timelineEvents) : [];
+  const timelineItems = currentBillData.timelineEvents ? formatBillTimelineEventsForTimeline(currentBillData.timelineEvents) : [];
 
-  function handleDeleteBill() { 
-    if (!bill) return;
-    alert(`Mock delete action for bill: ${bill.title} (${bill.billNumber})`);
+  function handleDeleteBill() {
+    if (!currentBillData) return;
+    alert(`Mock delete action for bill: ${currentBillData.title} (${currentBillData.billNumber})`);
   }
+
+  const handleOpenAddBillTimelineEventModal = () => {
+    setEditingBillTimelineEvent(null);
+    setIsBillTimelineEventModalOpen(true);
+  };
+
+  const handleOpenEditBillTimelineEventModal = (eventId: string) => {
+    const eventToEdit = currentBillData?.timelineEvents?.find(e => e.id === eventId);
+    if (eventToEdit) {
+      setEditingBillTimelineEvent(eventToEdit);
+      setIsBillTimelineEventModalOpen(true);
+    }
+  };
+
+  const handleBillTimelineEventFormSubmit = (values: any) => {
+    if (!currentBillData) return;
+    let updatedEvents = [...(currentBillData.timelineEvents || [])];
+    if (editingBillTimelineEvent) {
+      updatedEvents = updatedEvents.map(e => e.id === editingBillTimelineEvent.id ? { ...e, ...values } : e);
+    } else {
+      updatedEvents.push({ ...values, id: `bill-evt-${Date.now().toString()}` });
+    }
+    const updatedBill = { ...currentBillData, timelineEvents: updatedEvents };
+    setCurrentBillData(updatedBill);
+    // TODO: Mock persistence for 'updatedBill'
+    console.log('Updated Bill Data with Timeline Changes:', updatedBill);
+    toast({ title: 'Bill Timeline Event Saved (Mock)', description: 'Changes are reflected locally.' });
+    setIsBillTimelineEventModalOpen(false);
+    setEditingBillTimelineEvent(null);
+  };
+
+  const handleDeleteBillTimelineEvent = (eventId: string) => {
+    if (!currentBillData) return;
+    const updatedEvents = (currentBillData.timelineEvents || []).filter(e => e.id !== eventId);
+    const updatedBill = { ...currentBillData, timelineEvents: updatedEvents };
+    setCurrentBillData(updatedBill);
+    // TODO: Mock persistence for 'updatedBill'
+    console.log('Updated Bill Data after Deleting Timeline Event:', updatedBill);
+    toast({ title: 'Bill Timeline Event Deleted (Mock)', description: 'Changes are reflected locally.' });
+  };
 
   return (
     <div>
       <PageHeader
         title={
           <span className="flex items-center">
-            {bill.title} 
-            {bill.billNumber && <span className="ml-1 flex items-center">({bill.billNumber})</span>}
+            {currentBillData.title}
+            {currentBillData.billNumber && <span className="ml-1 flex items-center">({currentBillData.billNumber})</span>}
           </span>
         }
         description={
             <div className="flex flex-wrap gap-2 items-center mt-1">
-                <Badge variant={bill.status === 'Became Law' ? 'default' : 'secondary'} className={`${bill.status === 'Became Law' ? 'bg-green-500 text-white' : ''}`}>
-                    {bill.status} 
+                <Badge variant={currentBillData.status === 'Became Law' ? 'default' : 'secondary'} className={`${currentBillData.status === 'Became Law' ? 'bg-green-500 text-white' : ''}`}>
+                    {currentBillData.status}
                 </Badge>
-                {bill.billType && <Badge variant="outline">{bill.billType}</Badge>}
+                {currentBillData.billType && <Badge variant="outline">{currentBillData.billType}</Badge>}
             </div>
         }
         actions={
@@ -216,14 +267,26 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
         }
       />
 
-      {bill && isSuggestEntityEditModalOpen && entitySchemas.Bill && ( 
+      {currentBillData && isSuggestEntityEditModalOpen && entitySchemas.Bill && (
         <SuggestEntityEditForm
           isOpen={isSuggestEntityEditModalOpen}
           onOpenChange={setIsSuggestEntityEditModalOpen}
           entityType="Bill"
           entitySchema={entitySchemas.Bill}
-          currentEntityData={bill}
+          currentEntityData={currentBillData}
           onSubmit={handleBillEntityEditSuggestionSubmit}
+        />
+      )}
+
+      {isBillTimelineEventModalOpen && (
+        <TimelineEventForm
+          isOpen={isBillTimelineEventModalOpen}
+          onOpenChange={setIsBillTimelineEventModalOpen}
+          eventData={editingBillTimelineEvent}
+          onSubmit={handleBillTimelineEventFormSubmit}
+          entitySchema={billTimelineEventItemSchema}
+          // Optionally pass a custom dialog title if TimelineEventForm supports it
+          // dialogTitle={editingBillTimelineEvent ? 'Edit Bill Timeline Event' : 'Add Bill Timeline Event'}
         />
       )}
 
@@ -234,18 +297,18 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
               <CardTitle className="font-headline text-xl flex items-center gap-2"><FileText className="text-primary"/> Summary & Purpose</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-foreground/80 whitespace-pre-line">{bill.summary}</p>
-              {bill.purpose && (
+              <p className="text-foreground/80 whitespace-pre-line">{currentBillData.summary}</p>
+              {currentBillData.purpose && (
                 <div className="mt-4 pt-4 border-t">
                   <div className="flex justify-between items-start">
                     <h3 className="font-semibold text-md mb-1">Purpose:</h3>
                   </div>
-                  <p className="text-sm text-muted-foreground italic">{bill.purpose}</p>
+                  <p className="text-sm text-muted-foreground italic">{currentBillData.purpose}</p>
                 </div>
               )}
-              {bill.fullTextUrl && (
+              {currentBillData.fullTextUrl && (
                  <div className="mt-4 flex items-center">
-                   <a href={bill.fullTextUrl} target="_blank" rel="noopener noreferrer" className="inline-block">
+                   <a href={currentBillData.fullTextUrl} target="_blank" rel="noopener noreferrer" className="inline-block">
                     <Button variant="link" className="p-0 h-auto text-primary items-center">
                       Read Full Text <ExternalLink className="ml-1 h-3 w-3" />
                     </Button>
@@ -261,52 +324,59 @@ export default function BillDetailsPage({ params: paramsPromise }: { params: Pro
                 <CardTitle className="font-headline text-xl flex items-center gap-2"><ListCollapse className="text-primary"/> Bill Journey</CardTitle>
               </CardHeader>
               <CardContent>
-                <TimelineDisplay items={timelineItems} />
+                <TimelineDisplay
+                  items={timelineItems}
+                  onEditItem={handleOpenEditBillTimelineEventModal}
+                  onDeleteItem={handleDeleteBillTimelineEvent}
+                />
+                <Button onClick={handleOpenAddBillTimelineEventModal} className="mt-4">
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Bill Timeline Event
+                </Button>
               </CardContent>
             </Card>
           )}
 
-          {bill.votingResults && (bill.votingResults.house || bill.votingResults.senate) && (
+          {currentBillData.votingResults && (currentBillData.votingResults.house || currentBillData.votingResults.senate) && (
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-headline text-xl">Voting Results</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {bill.votingResults.house && (
+                {currentBillData.votingResults.house && (
                   <div>
                     <div className="flex justify-between items-start">
-                      <h3 className="font-semibold text-md mb-1 flex items-center">House Vote ({format(new Date(bill.votingResults.house.date), 'MM/dd/yyyy')}):
-                        <Badge variant={bill.votingResults.house.passed ? "default" : "destructive"} className={`ml-2 ${bill.votingResults.house.passed ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-                          {bill.votingResults.house.passed ? 'Passed' : 'Failed'}
+                      <h3 className="font-semibold text-md mb-1 flex items-center">House Vote ({format(new Date(currentBillData.votingResults.house.date), 'MM/dd/yyyy')}):
+                        <Badge variant={currentBillData.votingResults.house.passed ? "default" : "destructive"} className={`ml-2 ${currentBillData.votingResults.house.passed ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                          {currentBillData.votingResults.house.passed ? 'Passed' : 'Failed'}
                         </Badge>
                       </h3>
                     </div>
                     <ul className="text-sm list-disc list-inside pl-2">
-                      {bill.votingResults.house.records.slice(0,3).map((vote: VoteRecord, idx: number) => (
+                      {currentBillData.votingResults.house.records.slice(0,3).map((vote: VoteRecord, idx: number) => (
                         <li key={`house-vote-${idx}`} className="flex justify-between items-center">
                            <span><Link href={`/politicians/${vote.politicianId}`} className="text-primary hover:underline">{vote.politicianName}</Link>: {vote.vote}</span>
                         </li>
                       ))}
-                      {bill.votingResults.house.records.length > 3 && <li className="text-muted-foreground">...and more</li>}
+                      {currentBillData.votingResults.house.records.length > 3 && <li className="text-muted-foreground">...and more</li>}
                     </ul>
                   </div>
                 )}
-                 {bill.votingResults.senate && (
+                 {currentBillData.votingResults.senate && (
                   <div>
                      <div className="flex justify-between items-start">
-                        <h3 className="font-semibold text-md mb-1 flex items-center">Senate Vote ({format(new Date(bill.votingResults.senate.date), 'MM/dd/yyyy')}):
-                          <Badge variant={bill.votingResults.senate.passed ? "default" : "destructive"} className={`ml-2 ${bill.votingResults.senate.passed ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-                            {bill.votingResults.senate.passed ? 'Passed' : 'Failed'}
+                        <h3 className="font-semibold text-md mb-1 flex items-center">Senate Vote ({format(new Date(currentBillData.votingResults.senate.date), 'MM/dd/yyyy')}):
+                          <Badge variant={currentBillData.votingResults.senate.passed ? "default" : "destructive"} className={`ml-2 ${currentBillData.votingResults.senate.passed ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                            {currentBillData.votingResults.senate.passed ? 'Passed' : 'Failed'}
                           </Badge>
                         </h3>
                       </div>
                      <ul className="text-sm list-disc list-inside pl-2">
-                      {bill.votingResults.senate.records.slice(0,3).map((vote: VoteRecord, idx: number) => (
+                      {currentBillData.votingResults.senate.records.slice(0,3).map((vote: VoteRecord, idx: number) => (
                         <li key={`senate-vote-${idx}`} className="flex justify-between items-center">
                            <span><Link href={`/politicians/${vote.politicianId}`} className="text-primary hover:underline">{vote.politicianName}</Link>: {vote.vote}</span>
                         </li>
                       ))}
-                      {bill.votingResults.senate.records.length > 3 && <li className="text-muted-foreground">...and more</li>}
+                      {currentBillData.votingResults.senate.records.length > 3 && <li className="text-muted-foreground">...and more</li>}
                     </ul>
                   </div>
                 )}
