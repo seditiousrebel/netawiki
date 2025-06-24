@@ -2,13 +2,12 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, Compass, UserCircle } from 'lucide-react'; // Removed SettingsIcon
+import { Home, Compass, UserCircle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { getCurrentUser } from '@/lib/auth';
 import React, { useState, useEffect } from 'react';
 
-// Removed Settings from baseNavItemsConfig
 const baseNavItemsConfig = [
   { href: '/feed', label: 'Feed', icon: Home },
   { href: '/explore', label: 'Explore', icon: Compass },
@@ -16,42 +15,26 @@ const baseNavItemsConfig = [
 
 export function MobileBottomNav() {
   const pathname = usePathname();
-  
-  const [navItems, setNavItems] = useState(() => {
-    const initialProfileLink = `/profile/guestUser`; 
-    return [
-      ...baseNavItemsConfig,
-      { href: initialProfileLink, label: 'Profile', icon: UserCircle } 
-    ];
-  });
+  const [profileLink, setProfileLink] = useState<string | null>(null);
 
   useEffect(() => {
     const clientCurrentUser = getCurrentUser();
-    const profileLink = clientCurrentUser.role !== 'Guest' 
+    const link = clientCurrentUser.role !== 'Guest' 
       ? `/profile/${clientCurrentUser.id || 'current-user'}`
       : '/auth/login';
+    setProfileLink(link);
+  }, [pathname]); // Re-evaluating on pathname change is sufficient for this mock setup.
 
-    setNavItems([
-      ...baseNavItemsConfig,
-      { href: profileLink, label: 'Profile', icon: UserCircle }
-    ]);
-  }, [pathname]);
+  const navItems = baseNavItemsConfig;
+
+  // Calculate active state for profile link
+  const isProfileActive = profileLink ? (pathname.startsWith('/profile/') || pathname.startsWith('/auth/login')) : false;
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-t-lg z-40">
-      {/* Main container is flex, distributing items */}
       <div className="flex items-center justify-around h-16 px-1"> 
         {navItems.map((item) => {
-          let isActive;
-          if (item.href.startsWith('/profile/')) {
-            isActive = pathname.startsWith('/profile/');
-          } else if (item.href === '/auth/login') {
-            isActive = pathname.startsWith('/auth/login');
-          } else if (item.href === '/feed' && pathname === '/') {
-            isActive = true;
-          } else {
-            isActive = item.href !== "/" ? pathname.startsWith(item.href) : pathname === item.href;
-          }
+          const isActive = (item.href === '/feed' && pathname === '/') || (item.href !== "/" && pathname.startsWith(item.href));
           
           return (
             <Link
@@ -63,11 +46,32 @@ export function MobileBottomNav() {
               )}
               aria-current={isActive ? "page" : undefined}
             >
-              <item.icon className={cn("h-5 w-5 shrink-0", isActive ? "text-primary" : "")} />
+              <item.icon className={cn("h-5 w-5 shrink-0", isActive && "text-primary")} />
               <span className="text-xs font-medium whitespace-nowrap">{item.label}</span>
             </Link>
           );
         })}
+        
+        {/* Profile Link with Hydration Safety */}
+        {profileLink ? (
+          <Link
+            href={profileLink}
+            className={cn(
+              'flex flex-row items-center justify-center gap-1 p-2 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 w-full h-full',
+              isProfileActive ? 'bg-primary/10 text-primary font-semibold' : 'text-muted-foreground hover:text-primary hover:bg-accent/50'
+            )}
+            aria-current={isProfileActive ? "page" : undefined}
+          >
+            <UserCircle className={cn("h-5 w-5 shrink-0", isProfileActive && "text-primary")} />
+            <span className="text-xs font-medium whitespace-nowrap">Profile</span>
+          </Link>
+        ) : (
+          // Render a disabled-looking placeholder on server and initial client render
+          <div className="flex flex-row items-center justify-center gap-1 p-2 rounded-md w-full h-full text-muted-foreground/50">
+            <UserCircle className="h-5 w-5 shrink-0" />
+            <span className="text-xs font-medium whitespace-nowrap">Profile</span>
+          </div>
+        )}
       </div>
     </nav>
   );

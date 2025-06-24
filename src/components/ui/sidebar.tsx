@@ -102,18 +102,10 @@ const SidebarProvider = React.forwardRef<
     )
 
     const toggleSidebar = React.useCallback(() => {
-      // For desktop, toggle the main sidebar. For mobile, this context's toggleSidebar
-      // is primarily for the desktop sidebar if it were ever unhidden on mobile,
-      // or for keyboard shortcuts. The mobile sheet has its own open/setOpen.
-      // However, the AppHeader's desktop toggle will use this.
       if (!isMobile) {
         setOpen((openVal) => !openVal);
       }
-      // If you intend for a global shortcut to also control the mobile sheet:
-      // else {
-      //   setOpenMobile((openVal) => !openVal);
-      // }
-    }, [isMobile, setOpen, setOpenMobile]) // setOpenMobile removed if not toggling sheet from here
+    }, [isMobile, setOpen])
 
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
@@ -122,10 +114,6 @@ const SidebarProvider = React.forwardRef<
           (event.metaKey || event.ctrlKey)
         ) {
           event.preventDefault()
-          // This global shortcut should ideally toggle the *visible* sidebar.
-          // If on mobile, it might be confusing if it tries to toggle the hidden desktop one.
-          // The AppHeader's mobile sheet trigger has its own mechanism.
-          // Let's make this primarily for desktop.
           if (!isMobile) {
             toggleSidebar()
           }
@@ -146,7 +134,7 @@ const SidebarProvider = React.forwardRef<
         isMobile,
         openMobile,
         setOpenMobile,
-        toggleSidebar, // Expose the specific desktop sidebar toggle
+        toggleSidebar,
       }),
       [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
     )
@@ -190,27 +178,24 @@ const Sidebar = React.forwardRef<
     {
       side = "left",
       variant = "sidebar",
-      collapsible = "offcanvas", // Default behavior for desktop sidebar
+      collapsible = "offcanvas",
       className,
       children,
       ...props
     },
     ref
   ) => {
-    const { isMobile, state } = useSidebar() // Removed openMobile, setOpenMobile as Sheet handles it directly
+    const { isMobile, state } = useSidebar() 
 
-    // The mobile sidebar (Sheet) is now handled within AppHeader.
-    // This Sidebar component is now primarily for the desktop version.
     if (isMobile) {
-      return null; // Desktop sidebar is not rendered on mobile
+      return null;
     }
 
-    // Desktop Sidebar Logic
     return (
       <div
         ref={ref}
-        className="group peer hidden md:block text-sidebar-foreground" // Ensures it's hidden on mobile by default
-        data-state={state} // 'expanded' or 'collapsed'
+        className="group peer hidden md:block text-sidebar-foreground" 
+        data-state={state} 
         data-collapsible={state === "collapsed" ? collapsible : ""}
         data-variant={variant}
         data-side={side}
@@ -218,8 +203,8 @@ const Sidebar = React.forwardRef<
         <div
           className={cn(
             "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-in-out",
-            "group-data-[collapsible=offcanvas]:w-0", // Collapses to 0 if offcanvas
-            "group-data-[collapsible=icon]:w-[--sidebar-width-icon]", // Collapses to icon width if icon
+            "group-data-[collapsible=offcanvas]:w-0", 
+            "group-data-[collapsible=icon]:w-[--sidebar-width-icon]", 
             variant === "floating" || variant === "inset"
               ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
               : ""
@@ -256,7 +241,7 @@ const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
-  const { toggleSidebar } = useSidebar() // This toggle is for the desktop sidebar
+  const { toggleSidebar } = useSidebar()
 
   return (
     <Button
@@ -573,7 +558,7 @@ const SidebarMenuButton = React.forwardRef<
         <TooltipContent
           side="right"
           align="center"
-          sideOffset={8} // Increased offset
+          sideOffset={8} 
           hidden={state !== "collapsed" || isMobile}
           {...tooltip}
         />
@@ -761,7 +746,6 @@ import { entityNavItems } from "@/lib/navigation";
 
 export function AppEntitySidebar() {
   const pathname = usePathname();
-  // The desktop sidebar toggle is now in AppHeader, so useSidebar is mainly for state here.
   const { state, isMobile } = useSidebar();
   const [isClientHydrated, setIsClientHydrated] = React.useState(false);
   const [showAdminLinksClient, setShowAdminLinksClient] = React.useState(false);
@@ -774,22 +758,14 @@ export function AppEntitySidebar() {
     setShowAdminLinksClient(canAccess(currentUser.role, EDITOR_ROLES));
   }, []);
 
-
-  if (isMobile) { // Desktop sidebar is not rendered on mobile. Mobile navigation is handled by AppHeader's Sheet.
-    return null;
-  }
-
   return (
     <Sidebar
       variant="sidebar"
-      collapsible="icon" // Desktop sidebar remains collapsible to icon state
-      className="hidden md:flex flex-col bg-sidebar border-r border-sidebar-border shadow-sm" // Ensure it's hidden on mobile via md:flex
+      collapsible="icon"
+      className="hidden md:flex flex-col bg-sidebar border-r border-sidebar-border shadow-sm"
     >
-      {/* The div that used to show the logo/brand in the sidebar is removed */}
-      {/* The header area of the sidebar is now empty or can be used for other purposes if needed in the future */}
       <div className="h-16 border-b border-sidebar-border flex items-center justify-center">
-        {/* This space is now intentionally left blank, or could be used for a small icon if sidebar is collapsed and space is tight. */}
-        {/* For now, keeping it minimal as the main AppHeader handles branding. */}
+        {/* This space is now intentionally left blank. */}
       </div>
 
       <SidebarContent className="pt-2">
@@ -884,5 +860,3 @@ export function AppEntitySidebar() {
     </Sidebar>
   );
 }
-
-    
